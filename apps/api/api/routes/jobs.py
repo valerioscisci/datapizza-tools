@@ -1,23 +1,14 @@
 from __future__ import annotations
 
-import json
 from typing import Literal, Optional
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from api.database.connection import get_db
 from api.database.models import Job
 from api.schemas.job import JobResponse, JobListResponse
+from api.utils import safe_parse_json_list
 
 router = APIRouter(tags=["Jobs"])
-
-
-def _safe_parse_tags(tags_json: Optional[str]) -> list[str]:
-    if not tags_json:
-        return []
-    try:
-        return json.loads(tags_json)
-    except (json.JSONDecodeError, TypeError):
-        return []
 
 
 @router.get("/jobs", response_model=JobListResponse)
@@ -50,7 +41,7 @@ async def list_jobs(
             "description": job.description,
             "salary_min": job.salary_min,
             "salary_max": job.salary_max,
-            "tags": _safe_parse_tags(job.tags_json),
+            "tags": safe_parse_json_list(job.tags_json),
             "experience_level": job.experience_level,
             "experience_years": job.experience_years,
             "employment_type": job.employment_type,

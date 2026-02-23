@@ -6,7 +6,51 @@
   },
   "nav": {
     "craftYourDeveloper": "Craft Your Developer",
-    "jobsMarket": "Mercato del Lavoro"
+    "jobsMarket": "Mercato del Lavoro",
+    "myApplications": "Le mie Candidature"
+  },
+  "auth": {
+    "login": "Accedi",
+    "loginSubtitle": "Accedi al tuo account Datapizza",
+    "signup": "Registrati",
+    "signupSubtitle": "Crea il tuo account Datapizza",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Conferma Password",
+    "fullName": "Nome completo",
+    "loginButton": "Accedi",
+    "signupButton": "Registrati",
+    "noAccount": "Non hai un account?",
+    "hasAccount": "Hai gia' un account?",
+    "logout": "Esci",
+    "myApplications": "Le mie Candidature",
+    "passwordMismatch": "Le password non coincidono",
+    "passwordTooShort": "La password deve avere almeno 6 caratteri",
+    "loginError": "Errore di login",
+    "signupError": "Errore di registrazione"
+  },
+  "applications": {
+    "title": "Candidature",
+    "subtitle": "Visualizza tutte le candidature ed il loro stato di avanzamento",
+    "tabs": {
+      "proposte": "Proposte",
+      "da_completare": "Da completare",
+      "attive": "Attive",
+      "archiviate": "Archiviate"
+    },
+    "status": {
+      "in_valutazione": "In valutazione",
+      "colloquio": "Colloquio schedulato",
+      "questionario": "Questionario da completare",
+      "proposta": "Proposta ricevuta",
+      "archiviata": "Archiviata"
+    },
+    "empty": "Nessuna candidatura in questa sezione",
+    "loading": "Caricamento candidature...",
+    "applied_at": "Candidatura inviata il",
+    "applied": "Candidatura inviata!",
+    "alreadyApplied": "Hai gia' inviato la candidatura",
+    "loginToApply": "Accedi per candidarti"
   },
   "home": {
     "hero": {
@@ -96,6 +140,16 @@
       "onsite": "In sede"
     },
     "empty": "Nessuna offerta trovata",
-    "loading": "Caricamento offerte..."
+    "loading": "Caricamento offerte...",
+    "dialog": {
+      "description": "Descrizione",
+      "close": "Chiudi",
+      "closeLabel": "Chiudi"
+    },
+    "pagination": {
+      "previous": "Precedente",
+      "next": "Successiva",
+      "page": "Pagina {current} di {total}"
+    }
   }
 }

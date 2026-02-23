@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.database.connection import engine, Base
-from api.routes import jobs
+from api.routes import jobs, auth, applications
 
 app = FastAPI(
     title="Datapizza Tools API",
@@ -24,6 +24,8 @@ Base.metadata.create_all(bind=engine)
 
 # Include routes
 app.include_router(jobs.router, prefix="/api/v1")
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(applications.router, prefix="/api/v1")
 
 @app.get("/health")
 async def health_check():

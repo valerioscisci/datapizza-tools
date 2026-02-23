@@ -36,6 +36,7 @@ A new paid product for companies (see [Datapizza for Companies](https://datapizz
 | Layer | Technology | Rationale |
 |-------|-----------|-----------|
 | **Frontend** | Next.js (App Router) + React | Go-to stack for new projects; App Router is stable and production-ready |
+| **Auth** | NextAuth v5 (Auth.js) | Industry-standard, secure session in httpOnly cookies, Credentials provider wrapping backend |
 | **Backend** | FastAPI | Fast development, deployable on AWS or Vercel |
 | **Database** | SQLite (local) | Convenience, no hosting needed at this stage |
 | **Styling** | Tailwind CSS v4 | Utility-first, rapid UI development |
@@ -52,13 +53,15 @@ datapizza-tools/
 │   └── CLAUDE.md            # Workflow configuration
 ├── apps/
 │   ├── web/                 # Next.js 16 frontend (port 3003)
-│   │   ├── src/app/[locale]/ # Pages (homepage, craft-your-developer, jobs)
+│   │   ├── src/app/[locale]/ # Pages (homepage, craft-your-developer, jobs, login, signup, candidature)
 │   │   ├── src/components/   # Shared components (Navbar, Footer)
+│   │   ├── src/lib/auth/      # NextAuth v5 config and useAuth hook
 │   │   └── messages/it.json  # Italian translations
 │   └── api/                 # FastAPI backend (port 8003)
-│       ├── api/routes/       # API endpoints (/api/v1/jobs)
-│       ├── api/database/     # SQLAlchemy models, connection, seed
-│       └── api/schemas/      # Pydantic response models
+│       ├── api/routes/       # API endpoints (/api/v1/jobs, /api/v1/auth, /api/v1/applications)
+│       ├── api/database/     # SQLAlchemy models (Job, User, Application), connection, seed
+│       ├── api/schemas/      # Pydantic response models
+│       └── api/auth.py       # JWT authentication utilities
 ├── THOUGHT_PROCESS.MD       # Development thought process log (in Italian)
 └── README.md
 ```
@@ -79,6 +82,11 @@ This project uses a structured AI-assisted development workflow to maximize prod
 - Craft Your Developer B2B landing page
 - Jobs Market with API integration and filtering
 - 10 seeded job listings in SQLite
+- User authentication (NextAuth v5 with Credentials provider, backend JWT + bcrypt)
+- User profiles with skills, experience, availability status
+- Job application system (apply in-app, duplicate prevention)
+- Applications tracking page with status tabs (Proposte, Da completare, Attive, Archiviate)
+- 10 seeded Italian developer profiles + 6 sample applications
 
 ## Getting Started
 

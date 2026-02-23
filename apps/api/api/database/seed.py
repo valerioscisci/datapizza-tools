@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 from api.database.connection import SessionLocal, engine, Base
-from api.database.models import Job
+from api.database.models import Job, User, Application
+from api.auth import hash_password
 
 
 def seed_jobs():
@@ -182,8 +183,250 @@ def seed_jobs():
     db.add_all(jobs)
     db.commit()
     print(f"Seeded {len(jobs)} jobs successfully.")
+
+    # Store job IDs for application seeding
+    all_jobs = db.query(Job).all()
+    job_ids = [j.id for j in all_jobs]
+
+    db.close()
+    return job_ids
+
+
+def seed_users(job_ids: list[str] | None = None):
+    """Seed the database with 10 Italian developer profiles and some applications."""
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+
+    # Clean existing data
+    db.query(Application).delete()
+    db.query(User).delete()
+    db.commit()
+
+    hashed = hash_password("password123")
+
+    users = [
+        User(
+            email="marco.rossi@email.it",
+            password_hash=hashed,
+            full_name="Marco Rossi",
+            phone="+39 333 1234567",
+            bio="Frontend developer appassionato di React e performance web. Contributore open source.",
+            location="Milano",
+            experience_level="senior",
+            experience_years="5+ anni",
+            current_role="Frontend Developer",
+            skills_json=json.dumps(["React", "Next.js", "TypeScript", "Tailwind CSS", "GraphQL"]),
+            availability_status="available",
+            created_at=datetime.now(timezone.utc) - timedelta(days=30),
+        ),
+        User(
+            email="giulia.bianchi@email.it",
+            password_hash=hashed,
+            full_name="Giulia Bianchi",
+            phone="+39 340 2345678",
+            bio="Backend engineer con focus su architetture distribuite e microservizi. Ex Amazon.",
+            location="Roma",
+            experience_level="senior",
+            experience_years="6+ anni",
+            current_role="Backend Engineer",
+            skills_json=json.dumps(["Python", "FastAPI", "AWS", "Docker", "Kubernetes"]),
+            availability_status="available",
+            created_at=datetime.now(timezone.utc) - timedelta(days=25),
+        ),
+        User(
+            email="luca.ferrari@email.it",
+            password_hash=hashed,
+            full_name="Luca Ferrari",
+            phone="+39 347 3456789",
+            bio="Full stack developer con background in startup. Amo costruire prodotti da zero.",
+            location="Torino",
+            experience_level="mid",
+            experience_years="3-4 anni",
+            current_role="Full Stack Developer",
+            skills_json=json.dumps(["React", "Node.js", "PostgreSQL", "MongoDB", "Docker"]),
+            availability_status="available",
+            created_at=datetime.now(timezone.utc) - timedelta(days=20),
+        ),
+        User(
+            email="sara.romano@email.it",
+            password_hash=hashed,
+            full_name="Sara Romano",
+            bio="Data scientist in transizione verso ML engineering. Appassionata di NLP e LLM.",
+            location="Milano",
+            experience_level="mid",
+            experience_years="3-4 anni",
+            current_role="Data Scientist",
+            skills_json=json.dumps(["Python", "PyTorch", "TensorFlow", "SQL", "Pandas"]),
+            availability_status="reskilling",
+            reskilling_status="in_progress",
+            created_at=datetime.now(timezone.utc) - timedelta(days=18),
+        ),
+        User(
+            email="andrea.conti@email.it",
+            password_hash=hashed,
+            full_name="Andrea Conti",
+            phone="+39 335 5678901",
+            bio="DevOps engineer con esperienza in ambienti enterprise. Certificato AWS Solutions Architect.",
+            location="Bologna",
+            experience_level="senior",
+            experience_years="5+ anni",
+            current_role="DevOps Engineer",
+            skills_json=json.dumps(["Kubernetes", "Terraform", "AWS", "CI/CD", "Linux"]),
+            availability_status="employed",
+            created_at=datetime.now(timezone.utc) - timedelta(days=15),
+        ),
+        User(
+            email="chiara.moretti@email.it",
+            password_hash=hashed,
+            full_name="Chiara Moretti",
+            bio="Mobile developer specializzata in React Native. Due app in top 100 su App Store Italia.",
+            location="Firenze",
+            experience_level="mid",
+            experience_years="3-4 anni",
+            current_role="Mobile Developer",
+            skills_json=json.dumps(["React Native", "TypeScript", "iOS", "Android", "Firebase"]),
+            availability_status="available",
+            created_at=datetime.now(timezone.utc) - timedelta(days=12),
+        ),
+        User(
+            email="matteo.ricci@email.it",
+            password_hash=hashed,
+            full_name="Matteo Ricci",
+            phone="+39 339 7890123",
+            bio="Data engineer con esperienza in pipeline ETL su larga scala. Ex consultant Deloitte.",
+            location="Milano",
+            experience_level="senior",
+            experience_years="4+ anni",
+            current_role="Data Engineer",
+            skills_json=json.dumps(["Python", "Apache Spark", "Airflow", "SQL", "dbt"]),
+            availability_status="available",
+            created_at=datetime.now(timezone.utc) - timedelta(days=10),
+        ),
+        User(
+            email="elena.colombo@email.it",
+            password_hash=hashed,
+            full_name="Elena Colombo",
+            bio="Frontend developer Vue.js con passione per l'accessibilita' web e il design system.",
+            location="Napoli",
+            experience_level="mid",
+            experience_years="2-3 anni",
+            current_role="Frontend Developer",
+            skills_json=json.dumps(["Vue.js", "JavaScript", "Sass", "Figma", "Storybook"]),
+            availability_status="available",
+            created_at=datetime.now(timezone.utc) - timedelta(days=8),
+        ),
+        User(
+            email="davide.gallo@email.it",
+            password_hash=hashed,
+            full_name="Davide Gallo",
+            phone="+39 342 9012345",
+            bio="Cybersecurity analyst con background in ethical hacking. Certificato OSCP e CEH.",
+            location="Roma",
+            experience_level="mid",
+            experience_years="3-4 anni",
+            current_role="Security Analyst",
+            skills_json=json.dumps(["Cybersecurity", "Penetration Testing", "SIEM", "Cloud Security"]),
+            availability_status="available",
+            created_at=datetime.now(timezone.utc) - timedelta(days=5),
+        ),
+        User(
+            email="francesca.bruno@email.it",
+            password_hash=hashed,
+            full_name="Francesca Bruno",
+            bio="Tech lead con esperienza in architetture a microservizi. Mentore in community tech italiane.",
+            location="Milano",
+            experience_level="senior",
+            experience_years="7+ anni",
+            current_role="Tech Lead",
+            skills_json=json.dumps(["Go", "gRPC", "Kubernetes", "Microservices", "System Design"]),
+            availability_status="employed",
+            created_at=datetime.now(timezone.utc) - timedelta(days=3),
+        ),
+    ]
+
+    db.add_all(users)
+    db.commit()
+    print(f"Seeded {len(users)} users successfully.")
+
+    # Fetch job IDs if not provided
+    if not job_ids:
+        all_jobs = db.query(Job).all()
+        job_ids = [j.id for j in all_jobs]
+
+    if not job_ids:
+        print("No jobs found, skipping application seeding.")
+        db.close()
+        return
+
+    # Fetch user IDs
+    all_users = db.query(User).all()
+
+    # Create some applications (4 users with 1-2 applications each)
+    applications = [
+        # Marco Rossi -> Senior Frontend Developer (job 0)
+        Application(
+            user_id=all_users[0].id,
+            job_id=job_ids[0],
+            status="attiva",
+            status_detail="In valutazione",
+            recruiter_name="Laura Verdi",
+            recruiter_role="HR Manager - TechFlow Italia",
+            applied_at=datetime.now(timezone.utc) - timedelta(days=5),
+        ),
+        # Marco Rossi -> Full Stack Developer (job 2)
+        Application(
+            user_id=all_users[0].id,
+            job_id=job_ids[2],
+            status="archiviata",
+            status_detail="Posizione chiusa",
+            applied_at=datetime.now(timezone.utc) - timedelta(days=15),
+        ),
+        # Giulia Bianchi -> Backend Engineer Python (job 1)
+        Application(
+            user_id=all_users[1].id,
+            job_id=job_ids[1],
+            status="attiva",
+            status_detail="Colloquio tecnico schedulato",
+            recruiter_name="Paolo Neri",
+            recruiter_role="CTO - DataSphere",
+            applied_at=datetime.now(timezone.utc) - timedelta(days=3),
+        ),
+        # Luca Ferrari -> Full Stack Developer (job 2)
+        Application(
+            user_id=all_users[2].id,
+            job_id=job_ids[2],
+            status="da_completare",
+            status_detail="Questionario tecnico da completare",
+            applied_at=datetime.now(timezone.utc) - timedelta(days=7),
+        ),
+        # Chiara Moretti -> Mobile Developer React Native (job 5)
+        Application(
+            user_id=all_users[5].id,
+            job_id=job_ids[5],
+            status="proposta",
+            status_detail="Proposta ricevuta dall'azienda",
+            recruiter_name="Alessia Martini",
+            recruiter_role="Talent Acquisition - AppFactory",
+            applied_at=datetime.now(timezone.utc) - timedelta(days=2),
+        ),
+        # Davide Gallo -> Cybersecurity Analyst (job 8)
+        Application(
+            user_id=all_users[8].id,
+            job_id=job_ids[8],
+            status="attiva",
+            status_detail="In valutazione",
+            recruiter_name="Marco Rossi",
+            recruiter_role="Security Director - SecureNet Italia",
+            applied_at=datetime.now(timezone.utc) - timedelta(days=4),
+        ),
+    ]
+
+    db.add_all(applications)
+    db.commit()
+    print(f"Seeded {len(applications)} applications successfully.")
     db.close()
 
 
 if __name__ == "__main__":
-    seed_jobs()
+    job_ids = seed_jobs()
+    seed_users(job_ids)

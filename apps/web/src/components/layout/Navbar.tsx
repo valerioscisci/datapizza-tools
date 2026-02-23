@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown, LogOut } from 'lucide-react';
+import { useAuth } from '@/lib/auth/use-auth';
 
 export default function Navbar() {
   const t = useTranslations();
+  const { user, logout, loading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [companiesOpen, setCompaniesOpen] = useState(false);
   const [talentsOpen, setTalentsOpen] = useState(false);
@@ -80,9 +82,61 @@ export default function Navbar() {
                   >
                     {t('nav.jobsMarket')}
                   </Link>
+                  {user && (
+                    <Link
+                      href="/it/candidature"
+                      className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 transition-colors"
+                    >
+                      {t('nav.myApplications')}
+                    </Link>
+                  )}
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Right side: Auth buttons (desktop) */}
+          <div className="hidden md:flex items-center gap-2">
+            {!loading && (
+              <>
+                {user ? (
+                  <>
+                    {/* User avatar */}
+                    <div className="w-8 h-8 bg-azure-100 rounded-full flex items-center justify-center text-sm font-semibold text-azure-700">
+                      {user.full_name.charAt(0).toUpperCase()}
+                    </div>
+                    <Link
+                      href="/it/candidature"
+                      className="px-3 py-2 text-sm font-medium text-neutral-700 hover:text-azure-600 transition-colors cursor-pointer"
+                    >
+                      {t('auth.myApplications')}
+                    </Link>
+                    <button
+                      onClick={logout}
+                      className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-neutral-500 hover:text-red-600 transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      {t('auth.logout')}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/it/login"
+                      className="px-4 py-2 text-sm font-medium text-neutral-700 hover:text-azure-600 transition-colors cursor-pointer"
+                    >
+                      {t('auth.login')}
+                    </Link>
+                    <Link
+                      href="/it/signup"
+                      className="px-4 py-2 text-sm font-medium bg-azure-600 text-white rounded-lg hover:bg-azure-700 transition-colors cursor-pointer"
+                    >
+                      {t('auth.signup')}
+                    </Link>
+                  </>
+                )}
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -119,6 +173,55 @@ export default function Navbar() {
             >
               {t('nav.jobsMarket')}
             </Link>
+            {user && (
+              <Link
+                href="/it/candidature"
+                className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 rounded-lg transition-colors"
+                onClick={() => setMobileOpen(false)}
+              >
+                {t('nav.myApplications')}
+              </Link>
+            )}
+
+            {/* Mobile Auth */}
+            {!loading && (
+              <div className="pt-4 border-t border-neutral-100 mt-3 space-y-1">
+                {user ? (
+                  <>
+                    <div className="flex items-center gap-2 px-4 py-2">
+                      <div className="w-8 h-8 bg-azure-100 rounded-full flex items-center justify-center text-sm font-semibold text-azure-700">
+                        {user.full_name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-sm font-medium text-neutral-700">{user.full_name}</span>
+                    </div>
+                    <button
+                      onClick={() => { logout(); setMobileOpen(false); }}
+                      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      {t('auth.logout')}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/it/login"
+                      className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 rounded-lg transition-colors"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {t('auth.login')}
+                    </Link>
+                    <Link
+                      href="/it/signup"
+                      className="block mx-4 py-2.5 text-sm text-center font-medium bg-azure-600 text-white rounded-lg hover:bg-azure-700 transition-colors"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {t('auth.signup')}
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
       </nav>

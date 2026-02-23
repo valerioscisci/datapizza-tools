@@ -1,8 +1,11 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
-import { MapPin, Briefcase, ExternalLink, X, ChevronDown } from 'lucide-react';
+import { useAuth } from '@/lib/auth/use-auth';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { Briefcase, ExternalLink, X, ChevronDown, Check } from 'lucide-react';
+import { formatSalary, formatDate, workModeLabel } from '@/lib/job-utils';
 
 interface Job {
   id: string;
@@ -35,31 +38,6 @@ interface JobListResponse {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8003';
 
 const WORK_MODE_FILTERS = ['all', 'remote', 'hybrid', 'onsite'] as const;
-
-function formatSalary(min: number | null, max: number | null): string | null {
-  if (!min && !max) return null;
-  const fmt = (n: number) => `${(n / 1000).toFixed(0)}k`;
-  if (min && max) return `${fmt(min)}-${fmt(max)}`;
-  if (min) return `da ${fmt(min)}`;
-  return `fino a ${fmt(max!)}`;
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('it-IT', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
-
-function workModeLabel(mode: string): string {
-  switch (mode) {
-    case 'remote': return 'Full Remote';
-    case 'hybrid': return 'Lavoro Ibrido';
-    case 'onsite': return 'In Sede';
-    default: return mode;
-  }
-}
 
 function experienceLevelEmoji(level: string): string {
   switch (level) {
@@ -168,7 +146,45 @@ function JobCard({ job, onClick }: { job: Job; onClick: () => void }) {
 }
 
 function JobDetailDialog({ job, onClose }: { job: Job; onClose: () => void }) {
+  const tApps = useTranslations('applications');
+  const tJobs = useTranslations('jobs');
+  const { user, accessToken } = useAuth();
+  const router = useRouter();
   const salary = formatSalary(job.salary_min, job.salary_max);
+  const [applyState, setApplyState] = useState<'idle' | 'loading' | 'success' | 'duplicate'>('idle');
+
+  // Lock body scroll while dialog is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  async function handleApply() {
+    if (!user || !accessToken) {
+      router.push('/it/login');
+      return;
+    }
+    setApplyState('loading');
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/applications`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ job_id: job.id }),
+      });
+      if (res.status === 409) {
+        setApplyState('duplicate');
+      } else if (res.ok) {
+        setApplyState('success');
+      } else {
+        setApplyState('idle');
+      }
+    } catch {
+      setApplyState('idle');
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose} role="presentation">
@@ -187,7 +203,7 @@ function JobDetailDialog({ job, onClose }: { job: Job; onClose: () => void }) {
         <button
           onClick={onClose}
           className="absolute top-4 right-4 w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center hover:bg-neutral-200 transition-colors cursor-pointer z-10"
-          aria-label="Chiudi"
+          aria-label={tJobs('dialog.closeLabel')}
         >
           <X className="w-4 h-4 text-neutral-600" />
         </button>
@@ -204,7 +220,7 @@ function JobDetailDialog({ job, onClose }: { job: Job; onClose: () => void }) {
               </h2>
               <p className="text-azure-600 font-medium mt-1">{job.company}</p>
               <p className="text-xs text-neutral-400 mt-1">
-                Pubblicata il {formatDate(job.created_at)}
+                {tJobs('card.postedAt')} {formatDate(job.created_at, 'short')}
               </p>
             </div>
           </div>
@@ -235,7 +251,7 @@ function JobDetailDialog({ job, onClose }: { job: Job; onClose: () => void }) {
 
           {/* Description */}
           <div className="mt-6 pt-6 border-t border-neutral-200">
-            <h3 className="text-sm font-semibold text-neutral-900 mb-3">Descrizione</h3>
+            <h3 className="text-sm font-semibold text-neutral-900 mb-3">{tJobs('dialog.description')}</h3>
             <p className="text-sm text-neutral-600 leading-relaxed whitespace-pre-line">
               {job.description}
             </p>
@@ -243,26 +259,39 @@ function JobDetailDialog({ job, onClose }: { job: Job; onClose: () => void }) {
 
           {/* CTA */}
           <div className="mt-8 flex gap-3">
-            {job.apply_url ? (
+            {applyState === 'success' ? (
+              <span className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-pastelgreen-100 text-pastelgreen-600 font-medium rounded-xl">
+                <Check className="w-4 h-4" />
+                {tApps('applied')}
+              </span>
+            ) : applyState === 'duplicate' ? (
+              <span className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-yellow-50 text-yellow-500 font-medium rounded-xl">
+                {tApps('alreadyApplied')}
+              </span>
+            ) : job.apply_url ? (
               <a
                 href={job.apply_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-azure-600 text-white font-medium rounded-xl hover:bg-azure-700 transition-colors cursor-pointer"
               >
-                Candidati
+                {tJobs('card.apply')}
                 <ExternalLink className="w-4 h-4" />
               </a>
             ) : (
-              <span className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-neutral-300 text-neutral-500 font-medium rounded-xl">
-                Candidatura non disponibile
-              </span>
+              <button
+                onClick={handleApply}
+                disabled={applyState === 'loading'}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-azure-600 text-white font-medium rounded-xl hover:bg-azure-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {applyState === 'loading' ? '...' : tJobs('card.apply')}
+              </button>
             )}
             <button
               onClick={onClose}
               className="px-6 py-3 bg-neutral-100 text-neutral-700 font-medium rounded-xl hover:bg-neutral-200 transition-colors cursor-pointer"
             >
-              Chiudi
+              {tJobs('dialog.close')}
             </button>
           </div>
         </div>
@@ -280,20 +309,7 @@ export default function JobsPage() {
   const [filter, setFilter] = useState<string>('all');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
-  useEffect(() => {
-    fetchJobs();
-  }, [page, filter]);
-
-  // Close dialog on Escape
-  useEffect(() => {
-    function handleEsc(e: KeyboardEvent) {
-      if (e.key === 'Escape') setSelectedJob(null);
-    }
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, []);
-
-  async function fetchJobs() {
+  const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -314,7 +330,20 @@ export default function JobsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [page, filter]);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
+
+  // Close dialog on Escape
+  useEffect(() => {
+    function handleEsc(e: KeyboardEvent) {
+      if (e.key === 'Escape') setSelectedJob(null);
+    }
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
 
   return (
     <>
@@ -379,17 +408,17 @@ export default function JobsPage() {
                 disabled={page === 1}
                 className="px-4 py-2 text-sm font-medium rounded-lg bg-white border border-neutral-200 text-neutral-600 hover:border-azure-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                Precedente
+                {t('pagination.previous')}
               </button>
               <span className="px-4 py-2 text-sm text-neutral-500">
-                Pagina {page} di {Math.ceil(total / 10)}
+                {t('pagination.page', { current: page, total: Math.ceil(total / 10) })}
               </span>
               <button
                 onClick={() => setPage((p) => p + 1)}
                 disabled={page >= Math.ceil(total / 10)}
                 className="px-4 py-2 text-sm font-medium rounded-lg bg-white border border-neutral-200 text-neutral-600 hover:border-azure-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                Successiva
+                {t('pagination.next')}
               </button>
             </div>
           )}
