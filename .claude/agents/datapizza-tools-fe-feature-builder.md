@@ -248,8 +248,14 @@ This ensures consistency and eliminates linter warnings.
 
 ### Rule 6: Internationalization
 - All user-facing strings must use translations
-- Add keys to ALL locale JSON files
+- **Italian only**: Only maintain `messages/it.json` — no other locale files needed
 - Use nested keys for organization
+- Default locale is `it`, routing configured with `locales: ['it']`
+
+### Rule 7: Cursor Pointer on Interactive Elements
+- **ALL** buttons, clickable badges, links, and interactive elements MUST have `cursor-pointer` class
+- This applies to: `<button>`, `<a>`, clickable `<div>`/`<span>`, badge filters, dropdown triggers
+- Never rely on browser defaults — always explicitly set `cursor-pointer`
 
 ```typescript
 const t = useTranslations('items');

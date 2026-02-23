@@ -1,0 +1,78 @@
+name: Fetch News & Courses
+
+on:
+  workflow_dispatch: # Manual trigger only — uncomment cron below to enable nightly runs
+  # schedule:
+  #   - cron: '0 1 * * *'  # Runs at 01:00 AM UTC every night
+
+jobs:
+  fetch-content:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install API dependencies
+        run: pip install -r requirements.txt
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ensure database tables exist
+        run: python -c "from api.database.connection import engine, Base; from api.database.models import News, Course; Base.metadata.create_all(bind=engine)"
+        env:
+          DATABASE_URL: sqlite:///./datapizza.db
+
+      - name: Build agent prompt
+        working-directory: .
+        run: |
+          cat > /tmp/fetch_prompt.txt << 'PROMPT'
+          Read the agent instructions from .claude/agents/datapizza-tools-content-fetcher.md using the Read tool.
+          Follow ALL instructions in that file precisely.
+
+          CRITICAL REQUIREMENTS:
+          1. You MUST read .claude/agents/datapizza-tools-content-fetcher.md FIRST
+          2. Fetch news from Hacker News API and TLDR Tech
+          3. Fetch courses from Coursera and Udemy
+          4. Use the insert_content.py script to add items to the database
+          5. Working directory for the insert script is apps/api
+          6. Do NOT ask for confirmation — execute everything directly
+          7. Print a summary of how many items were inserted at the end
+          PROMPT
+
+          echo "Prompt built. Size: $(wc -c < /tmp/fetch_prompt.txt) bytes"
+
+      - name: Run Content Fetcher Agent
+        working-directory: .
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DATABASE_URL: sqlite:///./apps/api/datapizza.db
+        run: |
+          cat /tmp/fetch_prompt.txt | npx @anthropic-ai/claude-code --print --allowedTools "Bash,Read,Write,WebFetch,Glob,Grep"
+
+      - name: Verify fetched content
+        env:
+          DATABASE_URL: sqlite:///./datapizza.db
+        run: |
+          python -c "
+          from api.database.connection import SessionLocal
+          from api.database.models import News, Course
+          db = SessionLocal()
+          try:
+              news_count = db.query(News).filter(News.is_active == 1).count()
+              course_count = db.query(Course).filter(Course.is_active == 1).count()
+              print(f'Database contains {news_count} news items and {course_count} courses')
+          finally:
+              db.close()
+          "

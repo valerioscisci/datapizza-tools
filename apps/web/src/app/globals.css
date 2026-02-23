@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+/* OddvalText - Heading font */
+@font-face {
+  font-family: "OddvalText";
+  src: url("/fonts/OddvalText-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "OddvalText";
+  src: url("/fonts/OddvalText-SemiBoldItalic.ttf") format("truetype");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+@theme {
+  --font-heading: "OddvalText", serif;
+  --font-sans: "Poppins", system-ui, -apple-system, sans-serif;
+
+  --radius: 8px;
+
+  --color-white: #fdfeff;
+  --color-black: #0d0e0e;
+  --color-black-800: #4a575c;
+  --color-black-900: #24414c;
+  --color-black-950: #0b2a35;
+
+  --color-border: #d5dde2;
+
+  --color-azure-25: #f8fbff;
+  --color-azure-50: #eef6ff;
+  --color-azure-100: #d9ebff;
+  --color-azure-200: #bcdcff;
+  --color-azure-300: #8ec8ff;
+  --color-azure-400: #59a8ff;
+  --color-azure-500: #3385ff;
+  --color-azure-600: #1b64f5;
+  --color-azure-700: #144fe1;
+  --color-azure-800: #1740b6;
+  --color-azure-900: #193a8f;
+  --color-azure-950: #142457;
+
+  --color-neutral-25: #fdfeff;
+  --color-neutral-50: #f9fafb;
+  --color-neutral-100: #eceff2;
+  --color-neutral-200: #d5dde2;
+  --color-neutral-300: #b0bfc9;
+  --color-neutral-400: #859bab;
+  --color-neutral-500: #668091;
+  --color-neutral-600: #516778;
+  --color-neutral-700: #425462;
+  --color-neutral-800: #394753;
+  --color-neutral-900: #333e47;
+  --color-neutral-950: #22292f;
+
+  --color-red-50: #fef3f2;
+  --color-red-100: #fde4e3;
+  --color-red-500: #ea5149;
+  --color-red-600: #d7342b;
+  --color-red-700: #b52820;
+
+  --color-yellow-50: #fff8eb;
+  --color-yellow-400: #ff9f20;
+  --color-yellow-500: #f97a07;
+
+  --color-pastelgreen-100: #dcfce8;
+  --color-pastelgreen-500: #22c563;
+  --color-pastelgreen-600: #16a34e;
+
+  --color-java-400: #1fe2de;
+  --color-java-500: #06c6c5;
+  --color-java-600: #029d9f;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-neutral-25);
+  color: var(--color-black-950);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+}

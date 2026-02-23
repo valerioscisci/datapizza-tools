@@ -397,7 +397,19 @@ return <Display data={data} />;
 <h1>{t('welcome.title')}</h1>
 ```
 
-Check all locale files have the key.
+**Italian only**: Only `messages/it.json` is maintained. No other locale files needed.
+
+### Cursor Pointer Review
+
+```typescript
+// REJECT: Missing cursor-pointer on interactive element
+<button className="px-4 py-2 bg-azure-600 text-white rounded-lg">Click</button>
+
+// APPROVE: cursor-pointer present
+<button className="px-4 py-2 bg-azure-600 text-white rounded-lg cursor-pointer">Click</button>
+```
+
+ALL buttons, clickable badges, links, and interactive elements MUST have `cursor-pointer`.
 
 ### Component Structure Review
 
@@ -506,6 +518,52 @@ When issues are found, offer options:
 2. **Fix one at a time** - Go through each issue interactively
 3. **Manual fix** - Just show the issues, user will fix manually
 
+### E2E Testing Review (Critical — Must Have)
+
+**Every new or modified page MUST have corresponding Playwright E2E tests.** After completing code review fixes, verify that tests exist and create any missing ones.
+
+#### Test Structure
+E2E tests live in `apps/web/e2e/` and use the main `playwright.config.ts`:
+```
+e2e/
+├── auth-and-applications.spec.ts  # Auth flow, jobs page, applications
+├── profile.spec.ts                # Profile page (view, edit, skills, experiences, educations)
+└── <new-page>.spec.ts             # One spec file per page/feature
+```
+
+#### Required Test Coverage Per Page
+Each page must have tests for:
+1. **Page renders** — Basic smoke test (heading, key elements visible)
+2. **Auth guard** — Protected pages redirect to login when unauthenticated
+3. **Data display** — Page shows data from API correctly
+4. **User interactions** — Forms, filters, modals, CRUD operations work
+5. **Error states** — Invalid inputs show appropriate errors
+
+```typescript
+// REJECT: New page without E2E tests
+// (No spec file found for the new page)
+
+// APPROVE: Complete E2E coverage following project pattern
+test.describe('MyPage', () => {
+  test('renders correctly', async ({ page }) => { ... });
+  test('redirects to login when not authenticated', async ({ page }) => { ... });
+  test('displays data from API', async ({ page }) => { ... });
+  test('form submission works', async ({ page }) => { ... });
+});
+```
+
+#### Running E2E Tests
+```bash
+cd apps/web && npx playwright test e2e/ --reporter=list
+```
+
+#### Post-Review Test Verification
+After completing all code review fixes:
+1. Check if E2E tests exist for all modified/new pages
+2. If tests are missing, create them following the pattern in `e2e/`
+3. Run the full E2E suite to verify no regressions
+4. Report test coverage gaps as MAJOR issues
+
 ## Self-Verification Checklist
 
 Before completing a review:
@@ -517,6 +575,8 @@ Before completing a review:
 - [ ] Checked for security issues
 - [ ] Verified translations exist for new strings
 - [ ] Tested dark mode compatibility (if UI changes)
+- [ ] **Verified E2E tests exist for all new/modified pages**
+- [ ] **Created missing E2E tests if needed (following `e2e/` pattern)**
 - [ ] **Verified mutations use `.isPending`** (not manual loading state)
 - [ ] **Verified proper cache invalidation** after mutations
 - [ ] **Verified queries are conditionally enabled** when params may be undefined

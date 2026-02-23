@@ -43,6 +43,15 @@ htmlcov/
 # Turbo
 .turbo
 
+# Database
+*.db
+
+# npm lockfile (using pnpm)
+package-lock.json
+
+# Ralph loop local state
+ralph-loop.local.md
+
 # Misc
 *.bak
 *.tmp
