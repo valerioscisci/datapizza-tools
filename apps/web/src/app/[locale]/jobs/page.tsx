@@ -3,9 +3,10 @@
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/use-auth';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Briefcase, ExternalLink, X, ChevronDown, Check } from 'lucide-react';
 import { formatSalary, formatDate, workModeLabel } from '@/lib/job-utils';
+import { TechTag } from '@/components/ui/TechTag';
 
 interface Job {
   id: string;
@@ -63,18 +64,6 @@ function Badge({ children, variant = 'default' }: { children: React.ReactNode; v
   return (
     <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full border ${colors[variant]}`}>
       {children}
-    </span>
-  );
-}
-
-function TechTag({ tag, primary }: { tag: string; primary: boolean }) {
-  return (
-    <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full border ${
-      primary
-        ? 'bg-pastelgreen-100 text-pastelgreen-600 border-pastelgreen-500/30'
-        : 'bg-neutral-100 text-neutral-600 border-neutral-200'
-    }`}>
-      {tag}
     </span>
   );
 }
@@ -158,6 +147,15 @@ function JobDetailDialog({ job, onClose }: { job: Job; onClose: () => void }) {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, []);
+
+  // Close on Escape
+  useEffect(() => {
+    function handleEsc(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
 
   async function handleApply() {
     if (!user || !accessToken) {
@@ -336,15 +334,6 @@ export default function JobsPage() {
     fetchJobs();
   }, [fetchJobs]);
 
-  // Close dialog on Escape
-  useEffect(() => {
-    function handleEsc(e: KeyboardEvent) {
-      if (e.key === 'Escape') setSelectedJob(null);
-    }
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, []);
-
   return (
     <>
       {/* Header */}
@@ -368,6 +357,7 @@ export default function JobsPage() {
               <button
                 key={mode}
                 onClick={() => { setFilter(mode); setPage(1); }}
+                aria-pressed={filter === mode}
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
                   filter === mode
                     ? 'bg-azure-600 text-white'
@@ -380,6 +370,7 @@ export default function JobsPage() {
           </div>
 
           {/* Job Cards */}
+          <div aria-live="polite">
           {loading ? (
             <div className="text-center py-16">
               <p className="text-neutral-500">{t('loading')}</p>
@@ -399,6 +390,7 @@ export default function JobsPage() {
               ))}
             </div>
           )}
+          </div>
 
           {/* Pagination */}
           {total > 10 && (

@@ -48,18 +48,20 @@ A new paid product for companies (see [Datapizza for Companies](https://datapizz
 
 ```
 datapizza-tools/
+├── .github/workflows/       # GitHub Actions (fetch-content.yml — disabled nightly scraper)
 ├── .claude/                 # Claude Code agents and configuration
-│   ├── agents/              # Specialized agents (BE/FE debugger, feature-builder, code-reviewer)
+│   ├── agents/              # Specialized agents (BE/FE debugger, feature-builder, code-reviewer, content-fetcher)
 │   └── CLAUDE.md            # Workflow configuration
 ├── apps/
 │   ├── web/                 # Next.js 16 frontend (port 3003)
-│   │   ├── src/app/[locale]/ # Pages (homepage, craft-your-developer, jobs, login, signup, candidature)
-│   │   ├── src/components/   # Shared components (Navbar, Footer)
+│   │   ├── src/app/[locale]/ # Pages (homepage, craft-your-developer, jobs, news, courses, login, signup, candidature)
+│   │   ├── src/components/   # Shared components (Navbar, Footer, TechTag)
 │   │   ├── src/lib/auth/      # NextAuth v5 config and useAuth hook
 │   │   └── messages/it.json  # Italian translations
 │   └── api/                 # FastAPI backend (port 8003)
-│       ├── api/routes/       # API endpoints (/api/v1/jobs, /api/v1/auth, /api/v1/applications)
-│       ├── api/database/     # SQLAlchemy models (Job, User, Application), connection, seed
+│       ├── api/routes/       # API endpoints (/api/v1/jobs, /api/v1/auth, /api/v1/applications, /api/v1/news, /api/v1/courses)
+│       ├── api/database/     # SQLAlchemy models (Job, User, Application, News, Course), connection, seed
+│       ├── api/scrapers/     # Content fetching CLI (insert_content.py — used by GitHub Action agent)
 │       ├── api/schemas/      # Pydantic response models
 │       └── api/auth.py       # JWT authentication utilities
 ├── THOUGHT_PROCESS.MD       # Development thought process log (in Italian)
@@ -87,6 +89,11 @@ This project uses a structured AI-assisted development workflow to maximize prod
 - Job application system (apply in-app, duplicate prevention)
 - Applications tracking page with status tabs (Proposte, Da completare, Attive, Archiviate)
 - 10 seeded Italian developer profiles + 6 sample applications
+- News Tech page with category filters, cards, detail dialog, pagination
+- Courses page with category/level filters, cards, detail dialog, pagination
+- News feed API with category filters (AI, tech, careers) and 10 seeded news items
+- Courses catalog API with category and level filters and 10 seeded courses
+- GitHub Action for nightly content fetching (disabled, showcase) — uses Claude Code agent to fetch from HN, TLDR, Coursera, Udemy
 
 ## Getting Started
 

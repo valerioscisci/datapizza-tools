@@ -82,6 +82,18 @@ export default function Navbar() {
                   >
                     {t('nav.jobsMarket')}
                   </Link>
+                  <Link
+                    href="/it/news"
+                    className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 transition-colors"
+                  >
+                    {t('nav.news')}
+                  </Link>
+                  <Link
+                    href="/it/courses"
+                    className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 transition-colors"
+                  >
+                    {t('nav.courses')}
+                  </Link>
                   {user && (
                     <Link
                       href="/it/candidature"
@@ -172,6 +184,20 @@ export default function Navbar() {
               onClick={() => setMobileOpen(false)}
             >
               {t('nav.jobsMarket')}
+            </Link>
+            <Link
+              href="/it/news"
+              className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 rounded-lg transition-colors"
+              onClick={() => setMobileOpen(false)}
+            >
+              {t('nav.news')}
+            </Link>
+            <Link
+              href="/it/courses"
+              className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 rounded-lg transition-colors"
+              onClick={() => setMobileOpen(false)}
+            >
+              {t('nav.courses')}
             </Link>
             {user && (
               <Link

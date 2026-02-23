@@ -7,7 +7,9 @@
   "nav": {
     "craftYourDeveloper": "Craft Your Developer",
     "jobsMarket": "Mercato del Lavoro",
-    "myApplications": "Le mie Candidature"
+    "myApplications": "Le mie Candidature",
+    "news": "News Tech",
+    "courses": "Corsi di Formazione"
   },
   "auth": {
     "login": "Accedi",
@@ -145,6 +147,74 @@
       "description": "Descrizione",
       "close": "Chiudi",
       "closeLabel": "Chiudi"
+    },
+    "pagination": {
+      "previous": "Precedente",
+      "next": "Successiva",
+      "page": "Pagina {current} di {total}"
+    }
+  },
+  "news": {
+    "title": "News Tech & AI",
+    "subtitle": "Resta aggiornato sulle ultime novita' nel mondo tech e AI per migliorare le tue opportunita' di carriera",
+    "filters": {
+      "all": "Tutte",
+      "AI": "Intelligenza Artificiale",
+      "tech": "Tecnologia",
+      "careers": "Carriere"
+    },
+    "card": {
+      "readMore": "Leggi l'articolo",
+      "publishedAt": "Pubblicata il",
+      "source": "Fonte"
+    },
+    "empty": "Nessuna news trovata",
+    "loading": "Caricamento news...",
+    "dialog": {
+      "close": "Chiudi",
+      "closeLabel": "Chiudi la news",
+      "source": "Fonte originale",
+      "readArticle": "Leggi l'articolo"
+    },
+    "pagination": {
+      "previous": "Precedente",
+      "next": "Successiva",
+      "page": "Pagina {current} di {total}"
+    }
+  },
+  "courses": {
+    "title": "Corsi di Formazione",
+    "subtitle": "Migliora le tue competenze con i migliori corsi tech e AI per accelerare la tua carriera",
+    "filters": {
+      "all": "Tutti",
+      "AI": "AI & ML",
+      "ML": "Machine Learning",
+      "frontend": "Frontend",
+      "backend": "Backend",
+      "devops": "DevOps"
+    },
+    "card": {
+      "goToCourse": "Vai al Corso",
+      "level": "Livello",
+      "duration": "Durata",
+      "price": "Prezzo",
+      "rating": "Valutazione",
+      "students": "Studenti",
+      "instructor": "Istruttore",
+      "free": "Gratis"
+    },
+    "levels": {
+      "beginner": "Principiante",
+      "intermediate": "Intermedio",
+      "advanced": "Avanzato"
+    },
+    "empty": "Nessun corso trovato",
+    "loading": "Caricamento corsi...",
+    "dialog": {
+      "close": "Chiudi",
+      "closeLabel": "Chiudi il corso",
+      "description": "Descrizione",
+      "goToCourse": "Vai al Corso"
     },
     "pagination": {
       "previous": "Precedente",

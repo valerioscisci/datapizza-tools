@@ -92,6 +92,16 @@ export default function Footer() {
                     {t('nav.jobsMarket')}
                   </Link>
                 </li>
+                <li>
+                  <Link href="/it/news" className="text-sm text-neutral-500 hover:text-azure-600 transition-colors cursor-pointer">
+                    {t('nav.news')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/it/courses" className="text-sm text-neutral-500 hover:text-azure-600 transition-colors cursor-pointer">
+                    {t('nav.courses')}
+                  </Link>
+                </li>
               </ul>
             </div>
 
