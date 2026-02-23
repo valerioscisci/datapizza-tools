@@ -51,8 +51,14 @@ datapizza-tools/
 │   ├── agents/              # Specialized agents (BE/FE debugger, feature-builder, code-reviewer)
 │   └── CLAUDE.md            # Workflow configuration
 ├── apps/
-│   ├── web/                 # Next.js frontend (planned)
-│   └── api/                 # FastAPI backend (planned)
+│   ├── web/                 # Next.js 16 frontend (port 3003)
+│   │   ├── src/app/[locale]/ # Pages (homepage, craft-your-developer, jobs)
+│   │   ├── src/components/   # Shared components (Navbar, Footer)
+│   │   └── messages/it.json  # Italian translations
+│   └── api/                 # FastAPI backend (port 8003)
+│       ├── api/routes/       # API endpoints (/api/v1/jobs)
+│       ├── api/database/     # SQLAlchemy models, connection, seed
+│       └── api/schemas/      # Pydantic response models
 ├── THOUGHT_PROCESS.MD       # Development thought process log (in Italian)
 └── README.md
 ```
@@ -67,10 +73,28 @@ This project uses a structured AI-assisted development workflow to maximize prod
 
 ## Development Status
 
-**Phase**: Planning & Setup
+**Phase**: MVP Development
 
-The project is currently in the initial setup phase. Development will begin in the coming days.
+- Homepage with hero, stats, services, community sections
+- Craft Your Developer B2B landing page
+- Jobs Market with API integration and filtering
+- 10 seeded job listings in SQLite
 
 ## Getting Started
 
-> Coming soon - setup instructions will be added as the project develops.
+```bash
+# Install FE dependencies
+pnpm install
+
+# Install BE dependencies
+cd apps/api && pip3 install -r requirements.txt
+
+# Seed the database
+cd apps/api && python3 -m api.database.seed
+
+# Start BE (port 8003)
+cd apps/api && python3 run_api.py
+
+# Start FE (port 3003)
+pnpm --filter datapizza-web dev
+```

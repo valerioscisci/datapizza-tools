@@ -397,7 +397,19 @@ return <Display data={data} />;
 <h1>{t('welcome.title')}</h1>
 ```
 
-Check all locale files have the key.
+**Italian only**: Only `messages/it.json` is maintained. No other locale files needed.
+
+### Cursor Pointer Review
+
+```typescript
+// REJECT: Missing cursor-pointer on interactive element
+<button className="px-4 py-2 bg-azure-600 text-white rounded-lg">Click</button>
+
+// APPROVE: cursor-pointer present
+<button className="px-4 py-2 bg-azure-600 text-white rounded-lg cursor-pointer">Click</button>
+```
+
+ALL buttons, clickable badges, links, and interactive elements MUST have `cursor-pointer`.
 
 ### Component Structure Review
 
