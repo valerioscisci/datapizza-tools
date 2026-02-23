@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "github": {
+      "command": "docker",
+      "args": [
+        "exec",
+        "-i",
+        "mcp-github",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {}
+    },
+    "context7": {
+      "command": "docker",
+      "args": [
+        "exec",
+        "-i",
+        "mcp-context7",
+        "npx",
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "env": {}
+    }
+  }
+}
