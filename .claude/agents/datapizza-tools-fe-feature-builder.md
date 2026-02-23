@@ -103,11 +103,11 @@ components/
 
 **CRITICAL: DO NOT create index.ts barrel files.** Always import directly from source files.
 
-### Rule 5: Styling with Tailwind v4
+### Rule 5: Styling with Tailwind v4 — Datapizza Design System
 - Use utility classes directly in JSX
 - Use `cn()` helper for conditional classes
 - Never use inline styles unless absolutely necessary
-- Follow the existing color token system (OKLch)
+- **Follow the Datapizza color token system** (see below)
 
 ```typescript
 import { cn } from '@/lib/utils/utils';
@@ -115,13 +115,122 @@ import { cn } from '@/lib/utils/utils';
 <button
   className={cn(
     'px-4 py-2 rounded-md font-medium transition-colors',
-    'bg-primary text-primary-foreground hover:bg-primary/90',
+    'bg-azure-600 text-white hover:bg-azure-700',
     isDisabled && 'opacity-50 cursor-not-allowed'
   )}
 >
 ```
 
-### Rule 5.1: Use Canonical Tailwind Classes
+### Rule 5.1: Datapizza Color Palette
+
+**ALL UI must use the Datapizza brand color tokens.** These are defined as CSS custom properties and mapped to Tailwind classes.
+
+#### Brand Identity
+- **Logo**: `/images/datapizzaLogo.svg` (158x32px), `/images/datapizza-icon.svg` (32x32px)
+- **Fonts**: Headings use **Oddval SemiBold** (`--font-heading`), body uses **Poppins** (all weights 100-900)
+- **Theme**: Light-only (no dark mode). Clean, modern, generous whitespace.
+
+#### Primary Colors (Azure — Main Brand)
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `azure-25` | `#f8fbff` | Lightest background |
+| `azure-50` | `#eef6ff` | Light background sections |
+| `azure-100` | `#d9ebff` | Hover backgrounds |
+| `azure-200` | `#bcdcff` | Light accents |
+| `azure-300` | `#8ec8ff` | Badges, tags |
+| `azure-400` | `#59a8ff` | Links hover |
+| `azure-500` | `#3385ff` | Links, secondary buttons |
+| `azure-600` | `#1b64f5` | **Primary action color**, buttons, CTAs |
+| `azure-700` | `#144fe1` | **Hover state** for primary actions |
+| `azure-800` | `#1740b6` | Active/pressed state |
+| `azure-900` | `#193a8f` | Dark accent |
+| `azure-950` | `#142457` | Darkest azure |
+
+#### Neutrals
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `neutral-25` / `white` | `#fdfeff` | Main background, cards |
+| `neutral-50` | `#f9fafb` | Secondary background |
+| `neutral-100` | `#eceff2` | Borders, dividers |
+| `neutral-200` | `#d5dde2` | Default border color |
+| `neutral-300` | `#b0bfc9` | Disabled text, placeholders |
+| `neutral-400` | `#859bab` | Muted icons |
+| `neutral-500` | `#668091` | Secondary text |
+| `neutral-600` | `#516778` | Body text (muted) |
+| `neutral-700` | `#425462` | Body text |
+| `neutral-800` | `#394753` | Headings |
+| `neutral-900` | `#333e47` | Strong text |
+| `neutral-950` | `#22292f` | Darkest neutral |
+| `black` | `#0d0e0e` | Maximum contrast |
+| `black-950` | `#0b2a35` | Primary text color |
+
+#### Accent — Red (Destructive / CTA Variant)
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `red-500` | `#ea5149` | Warning badges |
+| `red-600` / `tertiary-600` | `#d7342b` | **Destructive actions**, error states |
+| `red-700` | `#b52820` | Hover destructive |
+
+#### Accent — Yellow (Highlight / Warning)
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `yellow-50` | `#fff8eb` | Warning background |
+| `yellow-400` | `#ff9f20` | Warning icons |
+| `yellow-500` | `#f97a07` | Highlight accent |
+
+#### Accent — Green (Success)
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `pastelgreen-100` | `#dcfce8` | Success background |
+| `pastelgreen-500` | `#22c563` | Success state |
+| `pastelgreen-600` | `#16a34e` | Success icons |
+
+#### Accent — Teal/Java (Secondary Brand)
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `java-400` | `#1fe2de` | Feature highlights |
+| `java-500` | `#06c6c5` | Secondary brand accent |
+| `java-600` | `#029d9f` | Teal buttons |
+
+#### Additional Scales (Available)
+- **Blue** (`blue-25` to `blue-950`) — Alternative blue for data viz
+- **Blue Ribbon** (`blueribbon-25` to `blueribbon-950`) — Charts, links
+- **Fuchsia** (`fuchsia-25` to `fuchsia-950`) — Highlights, badges
+- **Ice Cold** (`icecold-25` to `icecold-950`) — Subtle teal accents
+
+#### Semantic Aliases
+| Alias | Maps To | CSS Variable |
+|-------|---------|-------------|
+| `background` | `neutral-25` | `--background` |
+| `foreground` | `black-950` | `--foreground` |
+| `foreground-accent` | `azure-600` | `--foreground-accent` |
+| `muted-foreground` | `neutral-600` | `--muted-foreground` |
+| `primary-foreground` | `neutral-25` | `--primary-foreground` |
+| `border` | `neutral-200` | `--border: #d5dde2` |
+| `card-foreground` | `blue-950` | `--card-foreground` |
+| `destructive` | HSL `0 84.2% 60.2%` | `--destructive` |
+
+#### Design Tokens
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--radius` | `8px` | Default border radius |
+| Border radius | `rounded-lg` (cards), `rounded-full` (pills/avatars), `rounded-[1.125rem]` (sections) |
+| Shadows | `shadow-sm`: `0 1px 3px 0 #0000001a` |
+| | Elevated: `0 20px 40px #00000014` |
+| | Azure glow: `0 0 9.6px rgba(81, 151, 255, 0.17)` |
+| Transitions | `transition-colors duration-300 ease-in-out` |
+
+#### Layout Standards
+| Property | Value |
+|----------|-------|
+| Max container | `max-w-7xl` |
+| Content width | `max-w-4xl`, `max-w-2xl` |
+| Horizontal padding | `px-4` (mobile), `md:px-8`, `lg:px-16` |
+| Vertical spacing | `py-16`, `py-28` |
+| Grid | `grid-cols-1` → `md:grid-cols-2` → `lg:grid-cols-12` |
+| Navbar height | `h-[72px]` with `pt-[72px]` body offset |
+
+### Rule 5.2: Use Canonical Tailwind Classes
 
 Always use the canonical (shorter) form of Tailwind classes to avoid VSCode warnings:
 

@@ -52,6 +52,54 @@ Review code across these dimensions:
 | **i18n** | Medium | All strings translated, all locales |
 | **Style Consistency** | Low | Naming, formatting, patterns |
 
+## Datapizza Design System Reference
+
+All UI must match the Datapizza brand. Review for correct usage of these tokens:
+
+### Brand Identity
+- **Logo**: `/images/datapizzaLogo.svg` (158x32px), `/images/datapizza-icon.svg` (32x32px)
+- **Fonts**: Headings = **Oddval SemiBold** (`--font-heading`), Body = **Poppins** (100-900)
+- **Theme**: Light-only (no dark mode)
+
+### Core Color Tokens
+| Role | Token | Hex |
+|------|-------|-----|
+| Primary action | `azure-600` | `#1b64f5` |
+| Primary hover | `azure-700` | `#144fe1` |
+| Background | `neutral-25` / `white` | `#fdfeff` |
+| Primary text | `black-950` | `#0b2a35` |
+| Secondary text | `neutral-600` | `#516778` |
+| Muted text | `neutral-400` | `#859bab` |
+| Border | `neutral-200` | `#d5dde2` |
+| Destructive | `red-600` | `#d7342b` |
+| Success | `pastelgreen-500` | `#22c563` |
+| Warning | `yellow-500` | `#f97a07` |
+| Secondary brand | `java-500` | `#06c6c5` |
+
+### Layout Standards
+- Container: `max-w-7xl`, padding `px-4` → `md:px-8` → `lg:px-16`
+- Navbar: `h-[72px]` with `pt-[72px]` body offset
+- Border radius: `rounded-lg` (cards), `rounded-full` (pills), `rounded-[1.125rem]` (sections)
+- Default radius: `--radius: 8px`
+- Transitions: `transition-colors duration-300 ease-in-out`
+
+### Review: Design Consistency (High Priority)
+```typescript
+// REJECT: Using arbitrary colors not in palette
+<button className="bg-blue-500 text-white">  // Not a Datapizza token!
+
+// APPROVE: Using Datapizza brand tokens
+<button className="bg-azure-600 text-white hover:bg-azure-700">
+```
+
+```typescript
+// REJECT: Wrong font for headings
+<h1 className="font-sans">  // Should use Oddval
+
+// APPROVE: Correct heading font
+<h1 className="font-heading font-semibold">
+```
+
 ## Review Checklist
 
 ### Type Safety (Critical - Zero Tolerance)

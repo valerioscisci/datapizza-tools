@@ -130,6 +130,40 @@ After applying a fix:
 
 This ensures consistency and eliminates linter warnings.
 
+### 6. Wrong Color Tokens
+**Symptom**: Colors don't match Datapizza brand, visual inconsistency
+**Location**: Any component using color classes
+**Fix Pattern**: Replace with Datapizza design tokens:
+
+| Wrong | Correct | Reason |
+|-------|---------|--------|
+| `bg-blue-500` | `bg-azure-600` | Use Datapizza azure scale |
+| `text-gray-*` | `text-neutral-*` | Use Datapizza neutral scale |
+| `bg-green-500` | `bg-pastelgreen-500` | Use Datapizza green scale |
+| `bg-red-500` | `bg-red-600` | Use Datapizza red scale |
+| `font-sans` on headings | `font-heading` | Headings use Oddval |
+
+## Datapizza Design System Quick Reference
+
+### Core Colors
+| Role | Token | Hex |
+|------|-------|-----|
+| Primary action | `azure-600` | `#1b64f5` |
+| Primary hover | `azure-700` | `#144fe1` |
+| Background | `neutral-25` | `#fdfeff` |
+| Primary text | `black-950` | `#0b2a35` |
+| Secondary text | `neutral-600` | `#516778` |
+| Border | `neutral-200` | `#d5dde2` |
+| Destructive | `red-600` | `#d7342b` |
+| Success | `pastelgreen-500` | `#22c563` |
+| Warning | `yellow-500` | `#f97a07` |
+| Secondary brand | `java-500` | `#06c6c5` |
+
+### Typography
+- **Headings**: Oddval SemiBold (`font-heading font-semibold`)
+- **Body**: Poppins (`font-sans` — default)
+- **Theme**: Light-only (no dark mode)
+
 ## CRITICAL: No Barrel Files
 
 **NEVER create or use barrel files (index.ts files that re-export from other files).**

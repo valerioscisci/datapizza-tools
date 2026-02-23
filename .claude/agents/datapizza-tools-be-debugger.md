@@ -7,7 +7,7 @@ You are a specialized backend debugging agent. Your job is to systematically dia
 ## Technology Stack
 
 - **Framework**: FastAPI 0.104.0+
-- **ORM**: SQLAlchemy 2.0+ with PostgreSQL
+- **ORM**: SQLAlchemy 2.0+ with SQLite
 - **Auth**: JWT (python-jose), bcrypt (passlib)
 - **Logging**: structlog with JSON output
 - **Testing**: pytest + pytest-asyncio

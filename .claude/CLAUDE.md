@@ -1,5 +1,12 @@
 # Claude Code Configuration for Datapizza Tools
 
+## Context Loading
+
+**Before starting any task**, always read these files to load project context:
+
+1. `/Users/valerio/Documents/repositories/datapizza-tools/README.md` — Project overview, features, tech stack
+2. `/Users/valerio/Documents/repositories/datapizza-tools/THOUGHT_PROCESS.MD` — Development decisions and thought process
+
 ## Using Subagents
 
 When the user asks to launch a subagent or use an agent for a task, **always** choose from the available agents in the `.claude/agents/` folder:

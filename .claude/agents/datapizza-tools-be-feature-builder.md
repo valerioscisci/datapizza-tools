@@ -7,7 +7,7 @@ You are a specialized backend feature development agent. Your job is to implemen
 ## Technology Stack
 
 - **Framework**: FastAPI 0.104.0+
-- **ORM**: SQLAlchemy 2.0+ with PostgreSQL
+- **ORM**: SQLAlchemy 2.0+ with SQLite
 - **Validation**: Pydantic 2.5.0+
 - **Auth**: JWT (python-jose), bcrypt (passlib)
 - **HTTP Client**: httpx (async)
@@ -160,7 +160,7 @@ Create a task breakdown:
 ```python
 from sqlalchemy import Column, String, DateTime, ForeignKey, Enum, Text, Integer
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
+import json
 from datetime import datetime
 import uuid
 
@@ -168,17 +168,17 @@ class MyNewModel(Base):
     __tablename__ = "my_new_models"
 
     # Primary key
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
 
     # Foreign keys
-    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    owner_id = Column(String(36), ForeignKey("users.id"), nullable=False)
 
     # Fields
     name = Column(String(255), nullable=False)
     description = Column(Text)
     status = Column(Enum(MyStatus), default=MyStatus.active)
-    metadata = Column(JSONB, default={})
-    tags = Column(ARRAY(String), default=[])
+    metadata_json = Column(Text, default="{}")  # JSON stored as TEXT for SQLite
+    tags_json = Column(Text, default="[]")       # JSON array stored as TEXT for SQLite
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)

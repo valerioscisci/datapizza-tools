@@ -7,7 +7,7 @@ You are a specialized backend code review agent. Your job is to review code chan
 ## Technology Stack
 
 - **Framework**: FastAPI 0.104.0+
-- **ORM**: SQLAlchemy 2.0+ with PostgreSQL
+- **ORM**: SQLAlchemy 2.0+ with SQLite
 - **Validation**: Pydantic 2.5.0+
 - **Auth**: JWT (python-jose), bcrypt
 - **Logging**: structlog
@@ -425,8 +425,8 @@ Special attention for webhook handlers:
 - [ ] Foreign keys with cascade rules
 - [ ] Soft delete (deleted_at) not hard delete
 - [ ] Timestamps (created_at, updated_at)
-- [ ] JSONB for flexible fields (not TEXT)
-- [ ] Enums stored as PostgreSQL ENUMs
+- [ ] JSON fields stored as TEXT with proper serialization/deserialization
+- [ ] Enums stored as String values (SQLite has no native ENUM type)
 - [ ] Transactions for multi-step operations
 ```
 
