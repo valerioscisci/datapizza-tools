@@ -54,16 +54,18 @@ datapizza-tools/
 │   └── CLAUDE.md            # Workflow configuration
 ├── apps/
 │   ├── web/                 # Next.js 16 frontend (port 3003)
-│   │   ├── src/app/[locale]/ # Pages (homepage, craft-your-developer, jobs, news, courses, login, signup, candidature)
+│   │   ├── src/app/[locale]/ # Pages (homepage, craft-your-developer, jobs, news, courses, login, signup, candidature, profilo)
 │   │   ├── src/components/   # Shared components (Navbar, Footer, TechTag)
 │   │   ├── src/lib/auth/      # NextAuth v5 config and useAuth hook
+│   │   ├── e2e/              # Playwright E2E tests (auth, jobs, applications, profile)
 │   │   └── messages/it.json  # Italian translations
 │   └── api/                 # FastAPI backend (port 8003)
-│       ├── api/routes/       # API endpoints (/api/v1/jobs, /api/v1/auth, /api/v1/applications, /api/v1/news, /api/v1/courses)
-│       ├── api/database/     # SQLAlchemy models (Job, User, Application, News, Course), connection, seed
+│       ├── api/routes/       # API endpoints (/api/v1/jobs, /api/v1/auth, /api/v1/applications, /api/v1/news, /api/v1/courses, /api/v1/profile)
+│       ├── api/database/     # SQLAlchemy models (Job, User, Application, News, Course, Experience, Education), connection, seed
 │       ├── api/scrapers/     # Content fetching CLI (insert_content.py — used by GitHub Action agent)
 │       ├── api/schemas/      # Pydantic response models
-│       └── api/auth.py       # JWT authentication utilities
+│       ├── api/auth.py       # JWT authentication utilities
+│       └── tests/            # pytest unit test suite (112 tests)
 ├── THOUGHT_PROCESS.MD       # Development thought process log (in Italian)
 └── README.md
 ```
@@ -93,7 +95,12 @@ This project uses a structured AI-assisted development workflow to maximize prod
 - Courses page with category/level filters, cards, detail dialog, pagination
 - News feed API with category filters (AI, tech, careers) and 10 seeded news items
 - Courses catalog API with category and level filters and 10 seeded courses
+- Profile API with experiences and educations CRUD (8 endpoints: GET/PATCH profile, POST/PATCH/DELETE experiences, POST/PATCH/DELETE educations)
+- 13 seeded experiences and 8 educations for the first 5 users
+- Profile page (`/it/profilo`) with full profile view and inline editing (bio, skills, experiences, educations, social links)
 - GitHub Action for nightly content fetching (disabled, showcase) — uses Claude Code agent to fetch from HN, TLDR, Coursera, Udemy
+- **Backend unit test suite** — 112 pytest tests covering auth, routes (auth, jobs, news, courses, profile, applications), schemas, and utilities with full mocking (no real DB)
+- **Frontend E2E test suite** — Playwright tests covering auth flow, jobs page, applications, and profile page (23 tests total)
 
 ## Getting Started
 
@@ -112,4 +119,10 @@ cd apps/api && python3 run_api.py
 
 # Start FE (port 3003)
 pnpm --filter datapizza-web dev
+
+# Run BE tests
+cd apps/api && python3 -m pytest tests/ -v
+
+# Run FE E2E tests (requires BE + FE running)
+cd apps/web && npx playwright test e2e/ --reporter=list
 ```

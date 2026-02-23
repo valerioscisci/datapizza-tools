@@ -55,4 +55,7 @@ class UserResponse(BaseModel):
     availability_status: str = "available"
     reskilling_status: Optional[str] = None
     adopted_by_company: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    github_url: Optional[str] = None
+    portfolio_url: Optional[str] = None
     created_at: datetime

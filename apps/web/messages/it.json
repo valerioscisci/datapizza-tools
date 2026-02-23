@@ -8,6 +8,7 @@
     "craftYourDeveloper": "Craft Your Developer",
     "jobsMarket": "Mercato del Lavoro",
     "myApplications": "Le mie Candidature",
+    "myProfile": "Il mio Profilo",
     "news": "News Tech",
     "courses": "Corsi di Formazione"
   },
@@ -220,6 +221,82 @@
       "previous": "Precedente",
       "next": "Successiva",
       "page": "Pagina {current} di {total}"
+    }
+  },
+  "profile": {
+    "title": "Il mio Profilo",
+    "editProfile": "Modifica Profilo",
+    "saveProfile": "Salva",
+    "cancel": "Annulla",
+    "bio": "Chi sono",
+    "bioPlaceholder": "Descrivi il tuo background e le tue passioni...",
+    "skills": "Competenze",
+    "addSkill": "Aggiungi competenza",
+    "skillPlaceholder": "es. React, Python, AWS...",
+    "experience": "Esperienza Lavorativa",
+    "addExperience": "Aggiungi Esperienza",
+    "education": "Formazione",
+    "addEducation": "Aggiungi Formazione",
+    "current": "Attuale",
+    "present": "Presente",
+    "noExperience": "Nessuna esperienza aggiunta",
+    "noEducation": "Nessuna formazione aggiunta",
+    "noBio": "Nessuna descrizione aggiunta",
+    "noSkills": "Nessuna competenza aggiunta",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "confirmDelete": "Sei sicuro di voler eliminare?",
+    "saving": "Salvataggio...",
+    "saved": "Salvato!",
+    "error": "Errore nel salvataggio",
+    "loading": "Caricamento profilo...",
+    "experienceYearsPlaceholder": "es. 3-5 anni",
+    "fields": {
+      "fullName": "Nome completo",
+      "phone": "Telefono",
+      "location": "Citta'",
+      "currentRole": "Ruolo attuale",
+      "experienceLevel": "Livello esperienza",
+      "experienceYears": "Anni di esperienza",
+      "availability": "Disponibilita'",
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "portfolio": "Portfolio/Sito web",
+      "title": "Ruolo",
+      "company": "Azienda",
+      "employmentType": "Tipo contratto",
+      "startMonth": "Mese inizio",
+      "startYear": "Anno inizio",
+      "endMonth": "Mese fine",
+      "endYear": "Anno fine",
+      "description": "Descrizione",
+      "institution": "Istituto",
+      "degree": "Titolo di studio",
+      "degreeType": "Tipo titolo",
+      "fieldOfStudy": "Indirizzo di studi"
+    },
+    "availability_options": {
+      "available": "Disponibile",
+      "employed": "Occupato",
+      "reskilling": "In formazione"
+    },
+    "experience_levels": {
+      "junior": "Junior",
+      "mid": "Mid-Level",
+      "senior": "Senior"
+    },
+    "employment_types": {
+      "full-time": "Full-time",
+      "part-time": "Part-time",
+      "contract": "Contratto",
+      "freelance": "Freelance"
+    },
+    "degree_types": {
+      "diploma": "Diploma",
+      "bachelor": "Laurea Triennale",
+      "master": "Laurea Magistrale",
+      "phd": "Dottorato",
+      "certificate": "Certificazione"
     }
   }
 }

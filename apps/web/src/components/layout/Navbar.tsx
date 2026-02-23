@@ -95,12 +95,20 @@ export default function Navbar() {
                     {t('nav.courses')}
                   </Link>
                   {user && (
-                    <Link
-                      href="/it/candidature"
-                      className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 transition-colors"
-                    >
-                      {t('nav.myApplications')}
-                    </Link>
+                    <>
+                      <Link
+                        href="/it/profilo"
+                        className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 transition-colors"
+                      >
+                        {t('nav.myProfile')}
+                      </Link>
+                      <Link
+                        href="/it/candidature"
+                        className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 transition-colors"
+                      >
+                        {t('nav.myApplications')}
+                      </Link>
+                    </>
                   )}
                 </div>
               )}
@@ -117,6 +125,12 @@ export default function Navbar() {
                     <div className="w-8 h-8 bg-azure-100 rounded-full flex items-center justify-center text-sm font-semibold text-azure-700">
                       {user.full_name.charAt(0).toUpperCase()}
                     </div>
+                    <Link
+                      href="/it/profilo"
+                      className="px-3 py-2 text-sm font-medium text-neutral-700 hover:text-azure-600 transition-colors cursor-pointer"
+                    >
+                      {t('nav.myProfile')}
+                    </Link>
                     <Link
                       href="/it/candidature"
                       className="px-3 py-2 text-sm font-medium text-neutral-700 hover:text-azure-600 transition-colors cursor-pointer"
@@ -200,13 +214,22 @@ export default function Navbar() {
               {t('nav.courses')}
             </Link>
             {user && (
-              <Link
-                href="/it/candidature"
-                className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 rounded-lg transition-colors"
-                onClick={() => setMobileOpen(false)}
-              >
-                {t('nav.myApplications')}
-              </Link>
+              <>
+                <Link
+                  href="/it/profilo"
+                  className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 rounded-lg transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {t('nav.myProfile')}
+                </Link>
+                <Link
+                  href="/it/candidature"
+                  className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 rounded-lg transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {t('nav.myApplications')}
+                </Link>
+              </>
             )}
 
             {/* Mobile Auth */}

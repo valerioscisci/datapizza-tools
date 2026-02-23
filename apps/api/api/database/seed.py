@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 from api.database.connection import SessionLocal, engine, Base
-from api.database.models import Job, User, Application, News, Course
+from api.database.models import Job, User, Application, News, Course, Experience, Education
 from api.auth import hash_password
 
 
@@ -11,420 +11,421 @@ def seed_jobs():
     """Seed the database with 10 fake job listings."""
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
+    try:
+        # Drop and re-create for fresh seed
+        db.query(Job).delete()
+        db.commit()
 
-    # Drop and re-create for fresh seed
-    db.query(Job).delete()
-    db.commit()
+        jobs = [
+            Job(
+                title="Senior Frontend Developer",
+                company="TechFlow Italia",
+                location="Milano",
+                work_mode="hybrid",
+                description="Cerchiamo un Senior Frontend Developer con esperienza in React e Next.js per guidare lo sviluppo della nostra piattaforma SaaS. Lavorerai con un team internazionale su prodotti innovativi nel settore fintech. Responsabilita': architettura frontend, code review, mentoring junior, ottimizzazione performance.",
+                salary_min=45000,
+                salary_max=60000,
+                tags_json=json.dumps(["React", "Next.js", "TypeScript", "Tailwind CSS"]),
+                experience_level="senior",
+                experience_years="4+ anni",
+                employment_type="full-time",
+                smart_working="2-3 giorni/settimana",
+                welfare="Welfare aziendale di \u20ac 1.500",
+                language="Inglese: B2",
+                created_at=datetime.now(timezone.utc) - timedelta(days=2),
+            ),
+            Job(
+                title="Backend Engineer - Python",
+                company="DataSphere",
+                location="Roma",
+                work_mode="remote",
+                description="Unisciti al nostro team come Backend Engineer. Svilupperai API REST con FastAPI e gestirai infrastrutture cloud su AWS. Esperienza con database SQL e NoSQL richiesta. Team distribuito, metodologia agile, deploy continuo.",
+                salary_min=40000,
+                salary_max=55000,
+                tags_json=json.dumps(["Python", "FastAPI", "AWS", "PostgreSQL"]),
+                experience_level="mid",
+                experience_years="3-4 anni",
+                employment_type="full-time",
+                smart_working="Full Remote",
+                language="Inglese: B2",
+                created_at=datetime.now(timezone.utc) - timedelta(days=3),
+            ),
+            Job(
+                title="Full Stack Developer",
+                company="InnovaHub",
+                location="Torino",
+                work_mode="onsite",
+                description="Stiamo cercando un Full Stack Developer per il nostro team di prodotto. Lavorerai su applicazioni web moderne con React frontend e Node.js backend. Ambiente giovane e dinamico con possibilita' di crescita rapida.",
+                salary_min=35000,
+                salary_max=48000,
+                tags_json=json.dumps(["React", "Node.js", "MongoDB", "Docker"]),
+                experience_level="mid",
+                experience_years="2-3 anni",
+                employment_type="full-time",
+                welfare="Buoni pasto \u20ac 8/giorno",
+                created_at=datetime.now(timezone.utc) - timedelta(days=1),
+            ),
+            Job(
+                title="AI/ML Engineer",
+                company="NeuralTech",
+                location="Milano",
+                work_mode="remote",
+                description="Cerchiamo un AI/ML Engineer per sviluppare modelli di machine learning e integrare soluzioni AI nei nostri prodotti. Esperienza con PyTorch e LLM richiesta. Lavorerai su progetti cutting-edge con dataset su larga scala.",
+                salary_min=50000,
+                salary_max=70000,
+                tags_json=json.dumps(["Python", "PyTorch", "LLM", "MLOps"]),
+                experience_level="senior",
+                experience_years="5+ anni",
+                employment_type="full-time",
+                smart_working="Full Remote",
+                welfare="Welfare aziendale di \u20ac 2.000",
+                language="Inglese: C1",
+                created_at=datetime.now(timezone.utc) - timedelta(days=5),
+            ),
+            Job(
+                title="DevOps Engineer",
+                company="CloudBase",
+                location="Bologna",
+                work_mode="hybrid",
+                description="Gestisci e ottimizza la nostra infrastruttura cloud. Esperienza con Kubernetes, Terraform e CI/CD pipeline. Ambiente dinamico e in forte crescita. Parteciperai alla definizione dell'architettura cloud-native.",
+                salary_min=42000,
+                salary_max=58000,
+                tags_json=json.dumps(["Kubernetes", "Terraform", "AWS", "CI/CD"]),
+                experience_level="mid",
+                experience_years="3-5 anni",
+                employment_type="full-time",
+                smart_working="1 giorno al mese in ufficio",
+                language="Inglese: B1",
+                created_at=datetime.now(timezone.utc) - timedelta(days=4),
+            ),
+            Job(
+                title="Mobile Developer - React Native",
+                company="AppFactory",
+                location="Firenze",
+                work_mode="hybrid",
+                description="Sviluppa applicazioni mobile cross-platform con React Native. Collaborerai con designer e backend team per creare esperienze utente eccellenti. Pubblicazione su App Store e Google Play.",
+                salary_min=35000,
+                salary_max=50000,
+                tags_json=json.dumps(["React Native", "TypeScript", "iOS", "Android"]),
+                experience_level="mid",
+                experience_years="2-4 anni",
+                employment_type="full-time",
+                smart_working="Smart 2-3 giorni/settimana",
+                welfare="Buoni pasto + welfare \u20ac 500",
+                created_at=datetime.now(timezone.utc) - timedelta(days=6),
+            ),
+            Job(
+                title="Data Engineer",
+                company="DataPipeline Srl",
+                location="Milano",
+                work_mode="remote",
+                description="Progetta e implementa pipeline di dati scalabili. Lavorerai con big data, Apache Spark e strumenti di data orchestration. Team internazionale, stack moderno, cultura engineering-first.",
+                salary_min=45000,
+                salary_max=62000,
+                tags_json=json.dumps(["Python", "Apache Spark", "Airflow", "SQL"]),
+                experience_level="senior",
+                experience_years="4+ anni",
+                employment_type="full-time",
+                smart_working="Full Remote",
+                welfare="Welfare aziendale di \u20ac 1.000",
+                language="Inglese: B2",
+                created_at=datetime.now(timezone.utc) - timedelta(days=7),
+            ),
+            Job(
+                title="Frontend Developer - Vue.js",
+                company="WebCraft Studio",
+                location="Napoli",
+                work_mode="onsite",
+                description="Cerchiamo un Frontend Developer con esperienza in Vue.js per sviluppare interfacce web moderne e performanti per i nostri clienti enterprise. Lavoro su progetti variegati e stimolanti.",
+                salary_min=30000,
+                salary_max=42000,
+                tags_json=json.dumps(["Vue.js", "JavaScript", "Sass", "Vite"]),
+                experience_level="mid",
+                experience_years="2-3 anni",
+                employment_type="full-time",
+                created_at=datetime.now(timezone.utc) - timedelta(days=8),
+            ),
+            Job(
+                title="Cybersecurity Analyst",
+                company="SecureNet Italia",
+                location="Roma",
+                work_mode="hybrid",
+                description="Proteggi le infrastrutture dei nostri clienti. Analisi delle vulnerabilita', penetration testing e implementazione di soluzioni di sicurezza. Certificazioni come CEH, CISSP o OSCP sono un plus.",
+                salary_min=38000,
+                salary_max=52000,
+                tags_json=json.dumps(["Cybersecurity", "SIEM", "Penetration Testing", "Cloud Security"]),
+                experience_level="mid",
+                experience_years="3-4 anni",
+                employment_type="full-time",
+                smart_working="2 giorni/settimana",
+                language="Inglese: B2",
+                created_at=datetime.now(timezone.utc) - timedelta(days=10),
+            ),
+            Job(
+                title="Tech Lead - Microservices",
+                company="ScaleUp Ventures",
+                location="Milano",
+                work_mode="hybrid",
+                description="Guida il team di sviluppo nella migrazione a microservizi. Definisci l'architettura, mentoring del team e hands-on coding. Stack: Go, gRPC, Kubernetes. Ruolo chiave nella crescita tecnica dell'azienda.",
+                salary_min=55000,
+                salary_max=75000,
+                tags_json=json.dumps(["Go", "gRPC", "Kubernetes", "Microservices"]),
+                experience_level="senior",
+                experience_years="5+ anni",
+                employment_type="full-time",
+                smart_working="1 giorno al mese in ufficio",
+                welfare="Welfare aziendale di \u20ac 2.500",
+                language="Inglese: C1",
+                created_at=datetime.now(timezone.utc) - timedelta(days=1),
+            ),
+        ]
 
-    jobs = [
-        Job(
-            title="Senior Frontend Developer",
-            company="TechFlow Italia",
-            location="Milano",
-            work_mode="hybrid",
-            description="Cerchiamo un Senior Frontend Developer con esperienza in React e Next.js per guidare lo sviluppo della nostra piattaforma SaaS. Lavorerai con un team internazionale su prodotti innovativi nel settore fintech. Responsabilita': architettura frontend, code review, mentoring junior, ottimizzazione performance.",
-            salary_min=45000,
-            salary_max=60000,
-            tags_json=json.dumps(["React", "Next.js", "TypeScript", "Tailwind CSS"]),
-            experience_level="senior",
-            experience_years="4+ anni",
-            employment_type="full-time",
-            smart_working="2-3 giorni/settimana",
-            welfare="Welfare aziendale di \u20ac 1.500",
-            language="Inglese: B2",
-            created_at=datetime.now(timezone.utc) - timedelta(days=2),
-        ),
-        Job(
-            title="Backend Engineer - Python",
-            company="DataSphere",
-            location="Roma",
-            work_mode="remote",
-            description="Unisciti al nostro team come Backend Engineer. Svilupperai API REST con FastAPI e gestirai infrastrutture cloud su AWS. Esperienza con database SQL e NoSQL richiesta. Team distribuito, metodologia agile, deploy continuo.",
-            salary_min=40000,
-            salary_max=55000,
-            tags_json=json.dumps(["Python", "FastAPI", "AWS", "PostgreSQL"]),
-            experience_level="mid",
-            experience_years="3-4 anni",
-            employment_type="full-time",
-            smart_working="Full Remote",
-            language="Inglese: B2",
-            created_at=datetime.now(timezone.utc) - timedelta(days=3),
-        ),
-        Job(
-            title="Full Stack Developer",
-            company="InnovaHub",
-            location="Torino",
-            work_mode="onsite",
-            description="Stiamo cercando un Full Stack Developer per il nostro team di prodotto. Lavorerai su applicazioni web moderne con React frontend e Node.js backend. Ambiente giovane e dinamico con possibilita' di crescita rapida.",
-            salary_min=35000,
-            salary_max=48000,
-            tags_json=json.dumps(["React", "Node.js", "MongoDB", "Docker"]),
-            experience_level="mid",
-            experience_years="2-3 anni",
-            employment_type="full-time",
-            welfare="Buoni pasto \u20ac 8/giorno",
-            created_at=datetime.now(timezone.utc) - timedelta(days=1),
-        ),
-        Job(
-            title="AI/ML Engineer",
-            company="NeuralTech",
-            location="Milano",
-            work_mode="remote",
-            description="Cerchiamo un AI/ML Engineer per sviluppare modelli di machine learning e integrare soluzioni AI nei nostri prodotti. Esperienza con PyTorch e LLM richiesta. Lavorerai su progetti cutting-edge con dataset su larga scala.",
-            salary_min=50000,
-            salary_max=70000,
-            tags_json=json.dumps(["Python", "PyTorch", "LLM", "MLOps"]),
-            experience_level="senior",
-            experience_years="5+ anni",
-            employment_type="full-time",
-            smart_working="Full Remote",
-            welfare="Welfare aziendale di \u20ac 2.000",
-            language="Inglese: C1",
-            created_at=datetime.now(timezone.utc) - timedelta(days=5),
-        ),
-        Job(
-            title="DevOps Engineer",
-            company="CloudBase",
-            location="Bologna",
-            work_mode="hybrid",
-            description="Gestisci e ottimizza la nostra infrastruttura cloud. Esperienza con Kubernetes, Terraform e CI/CD pipeline. Ambiente dinamico e in forte crescita. Parteciperai alla definizione dell'architettura cloud-native.",
-            salary_min=42000,
-            salary_max=58000,
-            tags_json=json.dumps(["Kubernetes", "Terraform", "AWS", "CI/CD"]),
-            experience_level="mid",
-            experience_years="3-5 anni",
-            employment_type="full-time",
-            smart_working="1 giorno al mese in ufficio",
-            language="Inglese: B1",
-            created_at=datetime.now(timezone.utc) - timedelta(days=4),
-        ),
-        Job(
-            title="Mobile Developer - React Native",
-            company="AppFactory",
-            location="Firenze",
-            work_mode="hybrid",
-            description="Sviluppa applicazioni mobile cross-platform con React Native. Collaborerai con designer e backend team per creare esperienze utente eccellenti. Pubblicazione su App Store e Google Play.",
-            salary_min=35000,
-            salary_max=50000,
-            tags_json=json.dumps(["React Native", "TypeScript", "iOS", "Android"]),
-            experience_level="mid",
-            experience_years="2-4 anni",
-            employment_type="full-time",
-            smart_working="Smart 2-3 giorni/settimana",
-            welfare="Buoni pasto + welfare \u20ac 500",
-            created_at=datetime.now(timezone.utc) - timedelta(days=6),
-        ),
-        Job(
-            title="Data Engineer",
-            company="DataPipeline Srl",
-            location="Milano",
-            work_mode="remote",
-            description="Progetta e implementa pipeline di dati scalabili. Lavorerai con big data, Apache Spark e strumenti di data orchestration. Team internazionale, stack moderno, cultura engineering-first.",
-            salary_min=45000,
-            salary_max=62000,
-            tags_json=json.dumps(["Python", "Apache Spark", "Airflow", "SQL"]),
-            experience_level="senior",
-            experience_years="4+ anni",
-            employment_type="full-time",
-            smart_working="Full Remote",
-            welfare="Welfare aziendale di \u20ac 1.000",
-            language="Inglese: B2",
-            created_at=datetime.now(timezone.utc) - timedelta(days=7),
-        ),
-        Job(
-            title="Frontend Developer - Vue.js",
-            company="WebCraft Studio",
-            location="Napoli",
-            work_mode="onsite",
-            description="Cerchiamo un Frontend Developer con esperienza in Vue.js per sviluppare interfacce web moderne e performanti per i nostri clienti enterprise. Lavoro su progetti variegati e stimolanti.",
-            salary_min=30000,
-            salary_max=42000,
-            tags_json=json.dumps(["Vue.js", "JavaScript", "Sass", "Vite"]),
-            experience_level="mid",
-            experience_years="2-3 anni",
-            employment_type="full-time",
-            created_at=datetime.now(timezone.utc) - timedelta(days=8),
-        ),
-        Job(
-            title="Cybersecurity Analyst",
-            company="SecureNet Italia",
-            location="Roma",
-            work_mode="hybrid",
-            description="Proteggi le infrastrutture dei nostri clienti. Analisi delle vulnerabilita', penetration testing e implementazione di soluzioni di sicurezza. Certificazioni come CEH, CISSP o OSCP sono un plus.",
-            salary_min=38000,
-            salary_max=52000,
-            tags_json=json.dumps(["Cybersecurity", "SIEM", "Penetration Testing", "Cloud Security"]),
-            experience_level="mid",
-            experience_years="3-4 anni",
-            employment_type="full-time",
-            smart_working="2 giorni/settimana",
-            language="Inglese: B2",
-            created_at=datetime.now(timezone.utc) - timedelta(days=10),
-        ),
-        Job(
-            title="Tech Lead - Microservices",
-            company="ScaleUp Ventures",
-            location="Milano",
-            work_mode="hybrid",
-            description="Guida il team di sviluppo nella migrazione a microservizi. Definisci l'architettura, mentoring del team e hands-on coding. Stack: Go, gRPC, Kubernetes. Ruolo chiave nella crescita tecnica dell'azienda.",
-            salary_min=55000,
-            salary_max=75000,
-            tags_json=json.dumps(["Go", "gRPC", "Kubernetes", "Microservices"]),
-            experience_level="senior",
-            experience_years="5+ anni",
-            employment_type="full-time",
-            smart_working="1 giorno al mese in ufficio",
-            welfare="Welfare aziendale di \u20ac 2.500",
-            language="Inglese: C1",
-            created_at=datetime.now(timezone.utc) - timedelta(days=1),
-        ),
-    ]
+        db.add_all(jobs)
+        db.commit()
+        print(f"Seeded {len(jobs)} jobs successfully.")
 
-    db.add_all(jobs)
-    db.commit()
-    print(f"Seeded {len(jobs)} jobs successfully.")
+        # Store job IDs for application seeding
+        all_jobs = db.query(Job).all()
+        job_ids = [j.id for j in all_jobs]
 
-    # Store job IDs for application seeding
-    all_jobs = db.query(Job).all()
-    job_ids = [j.id for j in all_jobs]
-
-    db.close()
-    return job_ids
+        return job_ids
+    finally:
+        db.close()
 
 
 def seed_users(job_ids: list[str] | None = None):
     """Seed the database with 10 Italian developer profiles and some applications."""
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
+    try:
+        # Clean existing data
+        db.query(Application).delete()
+        db.query(User).delete()
+        db.commit()
 
-    # Clean existing data
-    db.query(Application).delete()
-    db.query(User).delete()
-    db.commit()
+        hashed = hash_password("password123")
 
-    hashed = hash_password("password123")
+        users = [
+            User(
+                email="marco.rossi@email.it",
+                password_hash=hashed,
+                full_name="Marco Rossi",
+                phone="+39 333 1234567",
+                bio="Frontend developer appassionato di React e performance web. Contributore open source.",
+                location="Milano",
+                experience_level="senior",
+                experience_years="5+ anni",
+                current_role="Frontend Developer",
+                skills_json=json.dumps(["React", "Next.js", "TypeScript", "Tailwind CSS", "GraphQL"]),
+                availability_status="available",
+                created_at=datetime.now(timezone.utc) - timedelta(days=30),
+            ),
+            User(
+                email="giulia.bianchi@email.it",
+                password_hash=hashed,
+                full_name="Giulia Bianchi",
+                phone="+39 340 2345678",
+                bio="Backend engineer con focus su architetture distribuite e microservizi. Ex Amazon.",
+                location="Roma",
+                experience_level="senior",
+                experience_years="6+ anni",
+                current_role="Backend Engineer",
+                skills_json=json.dumps(["Python", "FastAPI", "AWS", "Docker", "Kubernetes"]),
+                availability_status="available",
+                created_at=datetime.now(timezone.utc) - timedelta(days=25),
+            ),
+            User(
+                email="luca.ferrari@email.it",
+                password_hash=hashed,
+                full_name="Luca Ferrari",
+                phone="+39 347 3456789",
+                bio="Full stack developer con background in startup. Amo costruire prodotti da zero.",
+                location="Torino",
+                experience_level="mid",
+                experience_years="3-4 anni",
+                current_role="Full Stack Developer",
+                skills_json=json.dumps(["React", "Node.js", "PostgreSQL", "MongoDB", "Docker"]),
+                availability_status="available",
+                created_at=datetime.now(timezone.utc) - timedelta(days=20),
+            ),
+            User(
+                email="sara.romano@email.it",
+                password_hash=hashed,
+                full_name="Sara Romano",
+                bio="Data scientist in transizione verso ML engineering. Appassionata di NLP e LLM.",
+                location="Milano",
+                experience_level="mid",
+                experience_years="3-4 anni",
+                current_role="Data Scientist",
+                skills_json=json.dumps(["Python", "PyTorch", "TensorFlow", "SQL", "Pandas"]),
+                availability_status="reskilling",
+                reskilling_status="in_progress",
+                created_at=datetime.now(timezone.utc) - timedelta(days=18),
+            ),
+            User(
+                email="andrea.conti@email.it",
+                password_hash=hashed,
+                full_name="Andrea Conti",
+                phone="+39 335 5678901",
+                bio="DevOps engineer con esperienza in ambienti enterprise. Certificato AWS Solutions Architect.",
+                location="Bologna",
+                experience_level="senior",
+                experience_years="5+ anni",
+                current_role="DevOps Engineer",
+                skills_json=json.dumps(["Kubernetes", "Terraform", "AWS", "CI/CD", "Linux"]),
+                availability_status="employed",
+                created_at=datetime.now(timezone.utc) - timedelta(days=15),
+            ),
+            User(
+                email="chiara.moretti@email.it",
+                password_hash=hashed,
+                full_name="Chiara Moretti",
+                bio="Mobile developer specializzata in React Native. Due app in top 100 su App Store Italia.",
+                location="Firenze",
+                experience_level="mid",
+                experience_years="3-4 anni",
+                current_role="Mobile Developer",
+                skills_json=json.dumps(["React Native", "TypeScript", "iOS", "Android", "Firebase"]),
+                availability_status="available",
+                created_at=datetime.now(timezone.utc) - timedelta(days=12),
+            ),
+            User(
+                email="matteo.ricci@email.it",
+                password_hash=hashed,
+                full_name="Matteo Ricci",
+                phone="+39 339 7890123",
+                bio="Data engineer con esperienza in pipeline ETL su larga scala. Ex consultant Deloitte.",
+                location="Milano",
+                experience_level="senior",
+                experience_years="4+ anni",
+                current_role="Data Engineer",
+                skills_json=json.dumps(["Python", "Apache Spark", "Airflow", "SQL", "dbt"]),
+                availability_status="available",
+                created_at=datetime.now(timezone.utc) - timedelta(days=10),
+            ),
+            User(
+                email="elena.colombo@email.it",
+                password_hash=hashed,
+                full_name="Elena Colombo",
+                bio="Frontend developer Vue.js con passione per l'accessibilita' web e il design system.",
+                location="Napoli",
+                experience_level="mid",
+                experience_years="2-3 anni",
+                current_role="Frontend Developer",
+                skills_json=json.dumps(["Vue.js", "JavaScript", "Sass", "Figma", "Storybook"]),
+                availability_status="available",
+                created_at=datetime.now(timezone.utc) - timedelta(days=8),
+            ),
+            User(
+                email="davide.gallo@email.it",
+                password_hash=hashed,
+                full_name="Davide Gallo",
+                phone="+39 342 9012345",
+                bio="Cybersecurity analyst con background in ethical hacking. Certificato OSCP e CEH.",
+                location="Roma",
+                experience_level="mid",
+                experience_years="3-4 anni",
+                current_role="Security Analyst",
+                skills_json=json.dumps(["Cybersecurity", "Penetration Testing", "SIEM", "Cloud Security"]),
+                availability_status="available",
+                created_at=datetime.now(timezone.utc) - timedelta(days=5),
+            ),
+            User(
+                email="francesca.bruno@email.it",
+                password_hash=hashed,
+                full_name="Francesca Bruno",
+                bio="Tech lead con esperienza in architetture a microservizi. Mentore in community tech italiane.",
+                location="Milano",
+                experience_level="senior",
+                experience_years="7+ anni",
+                current_role="Tech Lead",
+                skills_json=json.dumps(["Go", "gRPC", "Kubernetes", "Microservices", "System Design"]),
+                availability_status="employed",
+                created_at=datetime.now(timezone.utc) - timedelta(days=3),
+            ),
+        ]
 
-    users = [
-        User(
-            email="marco.rossi@email.it",
-            password_hash=hashed,
-            full_name="Marco Rossi",
-            phone="+39 333 1234567",
-            bio="Frontend developer appassionato di React e performance web. Contributore open source.",
-            location="Milano",
-            experience_level="senior",
-            experience_years="5+ anni",
-            current_role="Frontend Developer",
-            skills_json=json.dumps(["React", "Next.js", "TypeScript", "Tailwind CSS", "GraphQL"]),
-            availability_status="available",
-            created_at=datetime.now(timezone.utc) - timedelta(days=30),
-        ),
-        User(
-            email="giulia.bianchi@email.it",
-            password_hash=hashed,
-            full_name="Giulia Bianchi",
-            phone="+39 340 2345678",
-            bio="Backend engineer con focus su architetture distribuite e microservizi. Ex Amazon.",
-            location="Roma",
-            experience_level="senior",
-            experience_years="6+ anni",
-            current_role="Backend Engineer",
-            skills_json=json.dumps(["Python", "FastAPI", "AWS", "Docker", "Kubernetes"]),
-            availability_status="available",
-            created_at=datetime.now(timezone.utc) - timedelta(days=25),
-        ),
-        User(
-            email="luca.ferrari@email.it",
-            password_hash=hashed,
-            full_name="Luca Ferrari",
-            phone="+39 347 3456789",
-            bio="Full stack developer con background in startup. Amo costruire prodotti da zero.",
-            location="Torino",
-            experience_level="mid",
-            experience_years="3-4 anni",
-            current_role="Full Stack Developer",
-            skills_json=json.dumps(["React", "Node.js", "PostgreSQL", "MongoDB", "Docker"]),
-            availability_status="available",
-            created_at=datetime.now(timezone.utc) - timedelta(days=20),
-        ),
-        User(
-            email="sara.romano@email.it",
-            password_hash=hashed,
-            full_name="Sara Romano",
-            bio="Data scientist in transizione verso ML engineering. Appassionata di NLP e LLM.",
-            location="Milano",
-            experience_level="mid",
-            experience_years="3-4 anni",
-            current_role="Data Scientist",
-            skills_json=json.dumps(["Python", "PyTorch", "TensorFlow", "SQL", "Pandas"]),
-            availability_status="reskilling",
-            reskilling_status="in_progress",
-            created_at=datetime.now(timezone.utc) - timedelta(days=18),
-        ),
-        User(
-            email="andrea.conti@email.it",
-            password_hash=hashed,
-            full_name="Andrea Conti",
-            phone="+39 335 5678901",
-            bio="DevOps engineer con esperienza in ambienti enterprise. Certificato AWS Solutions Architect.",
-            location="Bologna",
-            experience_level="senior",
-            experience_years="5+ anni",
-            current_role="DevOps Engineer",
-            skills_json=json.dumps(["Kubernetes", "Terraform", "AWS", "CI/CD", "Linux"]),
-            availability_status="employed",
-            created_at=datetime.now(timezone.utc) - timedelta(days=15),
-        ),
-        User(
-            email="chiara.moretti@email.it",
-            password_hash=hashed,
-            full_name="Chiara Moretti",
-            bio="Mobile developer specializzata in React Native. Due app in top 100 su App Store Italia.",
-            location="Firenze",
-            experience_level="mid",
-            experience_years="3-4 anni",
-            current_role="Mobile Developer",
-            skills_json=json.dumps(["React Native", "TypeScript", "iOS", "Android", "Firebase"]),
-            availability_status="available",
-            created_at=datetime.now(timezone.utc) - timedelta(days=12),
-        ),
-        User(
-            email="matteo.ricci@email.it",
-            password_hash=hashed,
-            full_name="Matteo Ricci",
-            phone="+39 339 7890123",
-            bio="Data engineer con esperienza in pipeline ETL su larga scala. Ex consultant Deloitte.",
-            location="Milano",
-            experience_level="senior",
-            experience_years="4+ anni",
-            current_role="Data Engineer",
-            skills_json=json.dumps(["Python", "Apache Spark", "Airflow", "SQL", "dbt"]),
-            availability_status="available",
-            created_at=datetime.now(timezone.utc) - timedelta(days=10),
-        ),
-        User(
-            email="elena.colombo@email.it",
-            password_hash=hashed,
-            full_name="Elena Colombo",
-            bio="Frontend developer Vue.js con passione per l'accessibilita' web e il design system.",
-            location="Napoli",
-            experience_level="mid",
-            experience_years="2-3 anni",
-            current_role="Frontend Developer",
-            skills_json=json.dumps(["Vue.js", "JavaScript", "Sass", "Figma", "Storybook"]),
-            availability_status="available",
-            created_at=datetime.now(timezone.utc) - timedelta(days=8),
-        ),
-        User(
-            email="davide.gallo@email.it",
-            password_hash=hashed,
-            full_name="Davide Gallo",
-            phone="+39 342 9012345",
-            bio="Cybersecurity analyst con background in ethical hacking. Certificato OSCP e CEH.",
-            location="Roma",
-            experience_level="mid",
-            experience_years="3-4 anni",
-            current_role="Security Analyst",
-            skills_json=json.dumps(["Cybersecurity", "Penetration Testing", "SIEM", "Cloud Security"]),
-            availability_status="available",
-            created_at=datetime.now(timezone.utc) - timedelta(days=5),
-        ),
-        User(
-            email="francesca.bruno@email.it",
-            password_hash=hashed,
-            full_name="Francesca Bruno",
-            bio="Tech lead con esperienza in architetture a microservizi. Mentore in community tech italiane.",
-            location="Milano",
-            experience_level="senior",
-            experience_years="7+ anni",
-            current_role="Tech Lead",
-            skills_json=json.dumps(["Go", "gRPC", "Kubernetes", "Microservices", "System Design"]),
-            availability_status="employed",
-            created_at=datetime.now(timezone.utc) - timedelta(days=3),
-        ),
-    ]
+        db.add_all(users)
+        db.commit()
+        print(f"Seeded {len(users)} users successfully.")
 
-    db.add_all(users)
-    db.commit()
-    print(f"Seeded {len(users)} users successfully.")
+        # Fetch job IDs if not provided
+        if not job_ids:
+            all_jobs = db.query(Job).all()
+            job_ids = [j.id for j in all_jobs]
 
-    # Fetch job IDs if not provided
-    if not job_ids:
-        all_jobs = db.query(Job).all()
-        job_ids = [j.id for j in all_jobs]
+        if not job_ids:
+            print("No jobs found, skipping application seeding.")
+            return
 
-    if not job_ids:
-        print("No jobs found, skipping application seeding.")
+        # Fetch user IDs
+        all_users = db.query(User).all()
+
+        # Create some applications (4 users with 1-2 applications each)
+        applications = [
+            # Marco Rossi -> Senior Frontend Developer (job 0)
+            Application(
+                user_id=all_users[0].id,
+                job_id=job_ids[0],
+                status="attiva",
+                status_detail="In valutazione",
+                recruiter_name="Laura Verdi",
+                recruiter_role="HR Manager - TechFlow Italia",
+                applied_at=datetime.now(timezone.utc) - timedelta(days=5),
+            ),
+            # Marco Rossi -> Full Stack Developer (job 2)
+            Application(
+                user_id=all_users[0].id,
+                job_id=job_ids[2],
+                status="archiviata",
+                status_detail="Posizione chiusa",
+                applied_at=datetime.now(timezone.utc) - timedelta(days=15),
+            ),
+            # Giulia Bianchi -> Backend Engineer Python (job 1)
+            Application(
+                user_id=all_users[1].id,
+                job_id=job_ids[1],
+                status="attiva",
+                status_detail="Colloquio tecnico schedulato",
+                recruiter_name="Paolo Neri",
+                recruiter_role="CTO - DataSphere",
+                applied_at=datetime.now(timezone.utc) - timedelta(days=3),
+            ),
+            # Luca Ferrari -> Full Stack Developer (job 2)
+            Application(
+                user_id=all_users[2].id,
+                job_id=job_ids[2],
+                status="da_completare",
+                status_detail="Questionario tecnico da completare",
+                applied_at=datetime.now(timezone.utc) - timedelta(days=7),
+            ),
+            # Chiara Moretti -> Mobile Developer React Native (job 5)
+            Application(
+                user_id=all_users[5].id,
+                job_id=job_ids[5],
+                status="proposta",
+                status_detail="Proposta ricevuta dall'azienda",
+                recruiter_name="Alessia Martini",
+                recruiter_role="Talent Acquisition - AppFactory",
+                applied_at=datetime.now(timezone.utc) - timedelta(days=2),
+            ),
+            # Davide Gallo -> Cybersecurity Analyst (job 8)
+            Application(
+                user_id=all_users[8].id,
+                job_id=job_ids[8],
+                status="attiva",
+                status_detail="In valutazione",
+                recruiter_name="Marco Rossi",
+                recruiter_role="Security Director - SecureNet Italia",
+                applied_at=datetime.now(timezone.utc) - timedelta(days=4),
+            ),
+        ]
+
+        db.add_all(applications)
+        db.commit()
+        print(f"Seeded {len(applications)} applications successfully.")
+    finally:
         db.close()
-        return
-
-    # Fetch user IDs
-    all_users = db.query(User).all()
-
-    # Create some applications (4 users with 1-2 applications each)
-    applications = [
-        # Marco Rossi -> Senior Frontend Developer (job 0)
-        Application(
-            user_id=all_users[0].id,
-            job_id=job_ids[0],
-            status="attiva",
-            status_detail="In valutazione",
-            recruiter_name="Laura Verdi",
-            recruiter_role="HR Manager - TechFlow Italia",
-            applied_at=datetime.now(timezone.utc) - timedelta(days=5),
-        ),
-        # Marco Rossi -> Full Stack Developer (job 2)
-        Application(
-            user_id=all_users[0].id,
-            job_id=job_ids[2],
-            status="archiviata",
-            status_detail="Posizione chiusa",
-            applied_at=datetime.now(timezone.utc) - timedelta(days=15),
-        ),
-        # Giulia Bianchi -> Backend Engineer Python (job 1)
-        Application(
-            user_id=all_users[1].id,
-            job_id=job_ids[1],
-            status="attiva",
-            status_detail="Colloquio tecnico schedulato",
-            recruiter_name="Paolo Neri",
-            recruiter_role="CTO - DataSphere",
-            applied_at=datetime.now(timezone.utc) - timedelta(days=3),
-        ),
-        # Luca Ferrari -> Full Stack Developer (job 2)
-        Application(
-            user_id=all_users[2].id,
-            job_id=job_ids[2],
-            status="da_completare",
-            status_detail="Questionario tecnico da completare",
-            applied_at=datetime.now(timezone.utc) - timedelta(days=7),
-        ),
-        # Chiara Moretti -> Mobile Developer React Native (job 5)
-        Application(
-            user_id=all_users[5].id,
-            job_id=job_ids[5],
-            status="proposta",
-            status_detail="Proposta ricevuta dall'azienda",
-            recruiter_name="Alessia Martini",
-            recruiter_role="Talent Acquisition - AppFactory",
-            applied_at=datetime.now(timezone.utc) - timedelta(days=2),
-        ),
-        # Davide Gallo -> Cybersecurity Analyst (job 8)
-        Application(
-            user_id=all_users[8].id,
-            job_id=job_ids[8],
-            status="attiva",
-            status_detail="In valutazione",
-            recruiter_name="Marco Rossi",
-            recruiter_role="Security Director - SecureNet Italia",
-            applied_at=datetime.now(timezone.utc) - timedelta(days=4),
-        ),
-    ]
-
-    db.add_all(applications)
-    db.commit()
-    print(f"Seeded {len(applications)} applications successfully.")
-    db.close()
 
 
 def seed_news():
@@ -728,8 +729,334 @@ def seed_courses():
         db.close()
 
 
+def seed_experiences_and_educations():
+    """Seed experiences and educations for the first 5 seed users."""
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        # Clean existing data
+        db.query(Experience).delete()
+        db.query(Education).delete()
+        db.commit()
+
+        # Fetch user IDs
+        all_users = db.query(User).order_by(User.created_at.asc()).all()
+        if len(all_users) < 5:
+            print("Not enough users found, skipping experience/education seeding.")
+            return
+
+        # --- Marco Rossi (index 0) ---
+        experiences = [
+            Experience(
+                user_id=all_users[0].id,
+                title="Senior Frontend Developer",
+                company="TechFlow Italia",
+                employment_type="full-time",
+                location="Milano",
+                start_month=3,
+                start_year=2022,
+                is_current=1,
+                description="Guido lo sviluppo frontend della piattaforma SaaS fintech. Architettura React/Next.js, code review, mentoring junior, ottimizzazione performance. Stack: React, Next.js, TypeScript, Tailwind CSS.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=30),
+            ),
+            Experience(
+                user_id=all_users[0].id,
+                title="Frontend Developer",
+                company="WebStudio Milano",
+                employment_type="full-time",
+                location="Milano",
+                start_month=6,
+                start_year=2019,
+                end_month=2,
+                end_year=2022,
+                is_current=0,
+                description="Sviluppo di applicazioni web per clienti enterprise. Migrazione da jQuery a React, implementazione design system, integrazione API REST.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=30),
+            ),
+            Experience(
+                user_id=all_users[0].id,
+                title="Junior Developer",
+                company="StartupXYZ",
+                employment_type="full-time",
+                location="Milano",
+                start_month=9,
+                start_year=2017,
+                end_month=5,
+                end_year=2019,
+                is_current=0,
+                description="Primo ruolo come sviluppatore. Sviluppo frontend con React e backend con Node.js. Partecipazione attiva a sprint planning e code review.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=30),
+            ),
+        ]
+
+        educations = [
+            Education(
+                user_id=all_users[0].id,
+                institution="Politecnico di Milano",
+                degree="Laurea Magistrale",
+                degree_type="master",
+                field_of_study="Informatica",
+                start_year=2015,
+                end_year=2017,
+                is_current=0,
+                description="Tesi su ottimizzazione delle performance di Single Page Applications. Voto: 110/110 con lode.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=30),
+            ),
+            Education(
+                user_id=all_users[0].id,
+                institution="Universita' degli Studi di Milano",
+                degree="Laurea Triennale",
+                degree_type="bachelor",
+                field_of_study="Ingegneria Informatica",
+                start_year=2012,
+                end_year=2015,
+                is_current=0,
+                description="Fondamenti di informatica, algoritmi, basi di dati e ingegneria del software. Voto: 105/110.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=30),
+            ),
+        ]
+
+        # --- Giulia Bianchi (index 1) ---
+        experiences += [
+            Experience(
+                user_id=all_users[1].id,
+                title="Senior Backend Engineer",
+                company="DataSphere",
+                employment_type="full-time",
+                location="Roma (Remote)",
+                start_month=1,
+                start_year=2021,
+                is_current=1,
+                description="Architettura e sviluppo di microservizi Python/FastAPI su AWS. Gestione infrastruttura Kubernetes, CI/CD pipeline, mentoring del team backend.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=25),
+            ),
+            Experience(
+                user_id=all_users[1].id,
+                title="Software Development Engineer",
+                company="Amazon",
+                employment_type="full-time",
+                location="Dublino, Irlanda",
+                start_month=3,
+                start_year=2018,
+                end_month=12,
+                end_year=2020,
+                is_current=0,
+                description="Sviluppo di servizi backend per AWS Marketplace. Architetture distribuite, DynamoDB, Lambda, SQS. On-call rotation e operational excellence.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=25),
+            ),
+            Experience(
+                user_id=all_users[1].id,
+                title="Backend Developer",
+                company="Accenture Italia",
+                employment_type="full-time",
+                location="Roma",
+                start_month=9,
+                start_year=2016,
+                end_month=2,
+                end_year=2018,
+                is_current=0,
+                description="Sviluppo backend per progetti enterprise nel settore bancario. Java Spring Boot, Oracle DB, integrazione sistemi legacy.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=25),
+            ),
+        ]
+
+        educations += [
+            Education(
+                user_id=all_users[1].id,
+                institution="Universita' La Sapienza",
+                degree="Laurea Magistrale",
+                degree_type="master",
+                field_of_study="Ingegneria Informatica",
+                start_year=2014,
+                end_year=2016,
+                is_current=0,
+                description="Specializzazione in sistemi distribuiti e cloud computing. Tesi su architetture event-driven. Voto: 110/110 con lode.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=25),
+            ),
+            Education(
+                user_id=all_users[1].id,
+                institution="Universita' La Sapienza",
+                degree="Laurea Triennale",
+                degree_type="bachelor",
+                field_of_study="Informatica",
+                start_year=2011,
+                end_year=2014,
+                is_current=0,
+                created_at=datetime.now(timezone.utc) - timedelta(days=25),
+            ),
+        ]
+
+        # --- Luca Ferrari (index 2) ---
+        experiences += [
+            Experience(
+                user_id=all_users[2].id,
+                title="Full Stack Developer",
+                company="InnovaHub",
+                employment_type="full-time",
+                location="Torino",
+                start_month=4,
+                start_year=2021,
+                is_current=1,
+                description="Sviluppo full stack di applicazioni web con React e Node.js. Progettazione database, API REST, deployment su AWS. Team agile di 6 persone.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=20),
+            ),
+            Experience(
+                user_id=all_users[2].id,
+                title="Junior Full Stack Developer",
+                company="Digital Garage Torino",
+                employment_type="full-time",
+                location="Torino",
+                start_month=10,
+                start_year=2019,
+                end_month=3,
+                end_year=2021,
+                is_current=0,
+                description="Sviluppo di MVP per startup early-stage. React, Express.js, MongoDB. Coinvolto in tutte le fasi del prodotto dalla progettazione al lancio.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=20),
+            ),
+        ]
+
+        educations += [
+            Education(
+                user_id=all_users[2].id,
+                institution="Politecnico di Torino",
+                degree="Laurea Triennale",
+                degree_type="bachelor",
+                field_of_study="Ingegneria Informatica",
+                start_year=2016,
+                end_year=2019,
+                is_current=0,
+                description="Progetto finale su sviluppo di applicazioni web progressive (PWA). Voto: 100/110.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=20),
+            ),
+        ]
+
+        # --- Sara Romano (index 3) ---
+        experiences += [
+            Experience(
+                user_id=all_users[3].id,
+                title="Data Scientist",
+                company="AI Lab Milano",
+                employment_type="full-time",
+                location="Milano",
+                start_month=2,
+                start_year=2021,
+                is_current=1,
+                description="Sviluppo modelli NLP per analisi del sentiment e classificazione testi. Pipeline ML con PyTorch, MLflow per experiment tracking. In transizione verso ML engineering.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=18),
+            ),
+            Experience(
+                user_id=all_users[3].id,
+                title="Data Analyst",
+                company="ConsultingTech",
+                employment_type="full-time",
+                location="Milano",
+                start_month=7,
+                start_year=2019,
+                end_month=1,
+                end_year=2021,
+                is_current=0,
+                description="Analisi dati per clienti enterprise. Dashboard con Tableau, query SQL complesse, reporting automatizzato con Python.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=18),
+            ),
+        ]
+
+        educations += [
+            Education(
+                user_id=all_users[3].id,
+                institution="Universita' degli Studi di Milano-Bicocca",
+                degree="Laurea Magistrale",
+                degree_type="master",
+                field_of_study="Data Science",
+                start_year=2017,
+                end_year=2019,
+                is_current=0,
+                description="Specializzazione in machine learning e statistica applicata. Tesi su modelli NLP per l'italiano.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=18),
+            ),
+        ]
+
+        # --- Andrea Conti (index 4) ---
+        experiences += [
+            Experience(
+                user_id=all_users[4].id,
+                title="Senior DevOps Engineer",
+                company="CloudBase",
+                employment_type="full-time",
+                location="Bologna (Hybrid)",
+                start_month=5,
+                start_year=2020,
+                is_current=1,
+                description="Gestione infrastruttura cloud multi-account AWS. Kubernetes cluster management, Terraform IaC, CI/CD con GitHub Actions. Certificato AWS Solutions Architect Professional.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=15),
+            ),
+            Experience(
+                user_id=all_users[4].id,
+                title="DevOps Engineer",
+                company="Enterprise Solutions Srl",
+                employment_type="full-time",
+                location="Bologna",
+                start_month=3,
+                start_year=2018,
+                end_month=4,
+                end_year=2020,
+                is_current=0,
+                description="Migrazione da on-premise a cloud AWS. Setup pipeline CI/CD con Jenkins, containerizzazione con Docker, monitoring con Prometheus e Grafana.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=15),
+            ),
+            Experience(
+                user_id=all_users[4].id,
+                title="System Administrator",
+                company="IT Services Bologna",
+                employment_type="full-time",
+                location="Bologna",
+                start_month=6,
+                start_year=2016,
+                end_month=2,
+                end_year=2018,
+                is_current=0,
+                description="Amministrazione sistemi Linux, gestione server, networking. Primi passi nell'automazione con Ansible e scripting Bash.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=15),
+            ),
+        ]
+
+        educations += [
+            Education(
+                user_id=all_users[4].id,
+                institution="Universita' di Bologna",
+                degree="Laurea Magistrale",
+                degree_type="master",
+                field_of_study="Ingegneria Informatica",
+                start_year=2014,
+                end_year=2016,
+                is_current=0,
+                description="Specializzazione in sistemi e reti. Tesi su automazione infrastrutturale con approccio Infrastructure as Code.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=15),
+            ),
+            Education(
+                user_id=all_users[4].id,
+                institution="Universita' di Bologna",
+                degree="Laurea Triennale",
+                degree_type="bachelor",
+                field_of_study="Informatica",
+                start_year=2011,
+                end_year=2014,
+                is_current=0,
+                created_at=datetime.now(timezone.utc) - timedelta(days=15),
+            ),
+        ]
+
+        db.add_all(experiences)
+        db.add_all(educations)
+        db.commit()
+        print(f"Seeded {len(experiences)} experiences and {len(educations)} educations successfully.")
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     job_ids = seed_jobs()
     seed_users(job_ids)
     seed_news()
     seed_courses()
+    seed_experiences_and_educations()

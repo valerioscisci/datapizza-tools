@@ -27,6 +27,9 @@ def _user_to_response(user: User) -> UserResponse:
         availability_status=user.availability_status or "available",
         reskilling_status=user.reskilling_status,
         adopted_by_company=user.adopted_by_company,
+        linkedin_url=user.linkedin_url,
+        github_url=user.github_url,
+        portfolio_url=user.portfolio_url,
         created_at=user.created_at,
     )
 

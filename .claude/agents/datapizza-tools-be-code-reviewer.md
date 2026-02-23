@@ -272,30 +272,75 @@ class Item(Base):
     )
 ```
 
-### Testing Review (Medium Priority)
+### Testing Review (Critical — Must Have)
+
+**Every new or modified API endpoint, schema, and utility function MUST have corresponding unit tests.** After completing code review fixes, verify that tests exist and create any missing ones.
+
+#### Test Structure
+Tests live in `apps/api/tests/` following this structure:
+```
+tests/
+├── conftest.py               # Global pytest fixtures (mock_db, mock_user)
+└── unit/
+    ├── test_auth.py           # Auth module tests (hashing, JWT, get_current_user)
+    ├── test_auth_routes.py    # Auth route tests (signup, login, me)
+    ├── test_jobs_routes.py    # Jobs route tests
+    ├── test_profile_routes.py # Profile route tests (CRUD experiences, educations)
+    ├── test_news_routes.py    # News route tests
+    ├── test_courses_routes.py # Courses route tests
+    ├── test_applications_routes.py  # Applications route tests
+    ├── test_schemas.py        # Pydantic schema validation tests
+    └── test_utils.py          # Utility function tests
+```
+
+#### Required Test Coverage Per Endpoint
+Each endpoint must have tests for:
+1. **Happy path** — Successful operation
+2. **Not found (404)** — For GET/PATCH/DELETE by ID
+3. **Auth failure (401)** — For protected endpoints
+4. **Validation error (422)** — For POST/PATCH with invalid data
+5. **Data isolation** — Cannot access/modify other user's resources
 
 ```python
 # REJECT: No tests for new endpoint
-# (No test file found)
+# (No test file found for the new route)
 
-# APPROVE: Test coverage
+# APPROVE: Complete test coverage following project pattern
 class TestMyFeature:
-    def test_create_success(self, mock_db):
-        # Test happy path
+    """Tests for the MyFeature endpoint."""
+
+    def test_create_success(self, mock_db, mock_user):
+        """Should create a new resource successfully."""
         pass
 
-    def test_create_validation_error(self, mock_db):
-        # Test validation
+    def test_create_validation_error(self, mock_db, mock_user):
+        """Should return 422 for invalid input."""
         pass
 
-    def test_get_not_found(self, mock_db):
-        # Test 404 case
+    def test_get_not_found(self, mock_db, mock_user):
+        """Should return 404 when resource does not exist."""
         pass
 
     def test_unauthorized_access(self, mock_db):
-        # Test auth failure
+        """Should return 401 without valid auth token."""
+        pass
+
+    def test_cannot_access_other_user_resource(self, mock_db, mock_user):
+        """Should return 404 when trying to access another user's resource."""
         pass
 ```
+
+#### Running Tests
+```bash
+cd apps/api && python -m pytest tests/ -v
+```
+
+#### Post-Review Test Verification
+After completing all code review fixes:
+1. Check if tests exist for all modified/new endpoints
+2. If tests are missing, create them following the pattern in `tests/unit/`
+3. Run the full test suite to verify no regressions
+4. Report test coverage gaps as MAJOR issues
 
 ### Code Quality (Low Priority)
 
@@ -485,12 +530,13 @@ When modifying existing endpoints, check for:
 ## Self-Verification Checklist
 
 Before completing a review:
-- [ ] Ran tests (`pytest tests/ -v`)
+- [ ] Ran tests (`cd apps/api && python -m pytest tests/ -v`)
 - [ ] Checked all changed files
 - [ ] Verified no security vulnerabilities
 - [ ] Verified data isolation
 - [ ] Checked error handling patterns
-- [ ] Verified test coverage exists
+- [ ] **Verified unit tests exist for all new/modified endpoints, schemas, and utilities**
+- [ ] **Created missing tests if needed (following `tests/unit/` pattern)**
 - [ ] Checked logging is appropriate
 - [ ] **Verified all endpoints have `response_model`**
 - [ ] **Verified Pydantic schemas have proper types** (no `dict`, `Any`)
