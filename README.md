@@ -31,6 +31,10 @@ A new paid product for companies (see [Datapizza for Companies](https://datapizz
 - Reskill candidates with targeted courses and AI knowledge
 - Hire the developer after the training program is completed
 
+### TODO
+- **Automated Payment System** — Allow companies to automatically disburse budget to candidates to fund the courses selected in their training program (e.g. Stripe Connect / escrow model with per-course or milestone-based payouts)
+- **Transactional Email Notifications** — Automatic email alerts to talents and companies on key Craft Your Developer events (proposal received/accepted/rejected, course started/completed, milestone reached, all courses completed, hiring confirmation)
+
 ## Tech Stack
 
 | Layer | Technology | Rationale |
