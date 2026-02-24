@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 from api.database.connection import SessionLocal, engine, Base
-from api.database.models import Job, User, Application, News, Course, Experience, Education
+from api.database.models import Job, User, Application, News, Course, Experience, Education, Proposal, ProposalCourse
 from api.auth import hash_password
 
 
@@ -198,7 +198,9 @@ def seed_users(job_ids: list[str] | None = None):
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        # Clean existing data
+        # Clean existing data — must respect FK constraints
+        db.query(ProposalCourse).delete()
+        db.query(Proposal).delete()
         db.query(Application).delete()
         db.query(User).delete()
         db.commit()
@@ -218,6 +220,10 @@ def seed_users(job_ids: list[str] | None = None):
                 current_role="Frontend Developer",
                 skills_json=json.dumps(["React", "Next.js", "TypeScript", "Tailwind CSS", "GraphQL"]),
                 availability_status="available",
+                linkedin_url="https://linkedin.com/in/marco-rossi-dev",
+                github_url="https://github.com/marcorossi",
+                user_type="talent",
+                is_public=1,
                 created_at=datetime.now(timezone.utc) - timedelta(days=30),
             ),
             User(
@@ -232,6 +238,10 @@ def seed_users(job_ids: list[str] | None = None):
                 current_role="Backend Engineer",
                 skills_json=json.dumps(["Python", "FastAPI", "AWS", "Docker", "Kubernetes"]),
                 availability_status="available",
+                linkedin_url="https://linkedin.com/in/giulia-bianchi",
+                github_url="https://github.com/giuliabianchi",
+                user_type="talent",
+                is_public=1,
                 created_at=datetime.now(timezone.utc) - timedelta(days=25),
             ),
             User(
@@ -246,6 +256,9 @@ def seed_users(job_ids: list[str] | None = None):
                 current_role="Full Stack Developer",
                 skills_json=json.dumps(["React", "Node.js", "PostgreSQL", "MongoDB", "Docker"]),
                 availability_status="available",
+                github_url="https://github.com/lucaferrari",
+                user_type="talent",
+                is_public=1,
                 created_at=datetime.now(timezone.utc) - timedelta(days=20),
             ),
             User(
@@ -260,6 +273,8 @@ def seed_users(job_ids: list[str] | None = None):
                 skills_json=json.dumps(["Python", "PyTorch", "TensorFlow", "SQL", "Pandas"]),
                 availability_status="reskilling",
                 reskilling_status="in_progress",
+                user_type="talent",
+                is_public=1,
                 created_at=datetime.now(timezone.utc) - timedelta(days=18),
             ),
             User(
@@ -274,6 +289,8 @@ def seed_users(job_ids: list[str] | None = None):
                 current_role="DevOps Engineer",
                 skills_json=json.dumps(["Kubernetes", "Terraform", "AWS", "CI/CD", "Linux"]),
                 availability_status="employed",
+                user_type="talent",
+                is_public=0,
                 created_at=datetime.now(timezone.utc) - timedelta(days=15),
             ),
             User(
@@ -287,6 +304,8 @@ def seed_users(job_ids: list[str] | None = None):
                 current_role="Mobile Developer",
                 skills_json=json.dumps(["React Native", "TypeScript", "iOS", "Android", "Firebase"]),
                 availability_status="available",
+                user_type="talent",
+                is_public=1,
                 created_at=datetime.now(timezone.utc) - timedelta(days=12),
             ),
             User(
@@ -301,6 +320,8 @@ def seed_users(job_ids: list[str] | None = None):
                 current_role="Data Engineer",
                 skills_json=json.dumps(["Python", "Apache Spark", "Airflow", "SQL", "dbt"]),
                 availability_status="available",
+                user_type="talent",
+                is_public=0,
                 created_at=datetime.now(timezone.utc) - timedelta(days=10),
             ),
             User(
@@ -314,6 +335,8 @@ def seed_users(job_ids: list[str] | None = None):
                 current_role="Frontend Developer",
                 skills_json=json.dumps(["Vue.js", "JavaScript", "Sass", "Figma", "Storybook"]),
                 availability_status="available",
+                user_type="talent",
+                is_public=1,
                 created_at=datetime.now(timezone.utc) - timedelta(days=8),
             ),
             User(
@@ -328,6 +351,8 @@ def seed_users(job_ids: list[str] | None = None):
                 current_role="Security Analyst",
                 skills_json=json.dumps(["Cybersecurity", "Penetration Testing", "SIEM", "Cloud Security"]),
                 availability_status="available",
+                user_type="talent",
+                is_public=0,
                 created_at=datetime.now(timezone.utc) - timedelta(days=5),
             ),
             User(
@@ -341,6 +366,8 @@ def seed_users(job_ids: list[str] | None = None):
                 current_role="Tech Lead",
                 skills_json=json.dumps(["Go", "gRPC", "Kubernetes", "Microservices", "System Design"]),
                 availability_status="employed",
+                user_type="talent",
+                is_public=0,
                 created_at=datetime.now(timezone.utc) - timedelta(days=3),
             ),
         ]
@@ -438,105 +465,106 @@ def seed_news():
         db.commit()
 
         news_items = [
-            # --- Hacker News (real stories, real URLs) ---
+            # --- Hacker News (real stories from HN API, Feb 2026) ---
             News(
-                title="Introducing Claude Sonnet 4.6",
-                summary="Anthropic ha rilasciato Claude Sonnet 4.6, un modello aggiornato con finestra di contesto da 1 milione di token e capacita' migliorate in coding e ragionamento. Il modello rappresenta un significativo passo avanti nella famiglia Claude 4.",
-                source="TLDR Tech",
-                source_url="https://www.anthropic.com/news/claude-sonnet-4-6",
+                title="Steerling-8B: un modello che spiega ogni token generato",
+                summary="GuideLabs ha rilasciato Steerling-8B, un language model open-source capace di spiegare ogni singolo token che genera. Il modello offre trasparenza senza precedenti nel processo decisionale dell'AI, un passo importante verso l'interpretabilita' dei LLM.",
+                source="Hacker News",
+                source_url="https://news.ycombinator.com/item?id=47131225",
                 category="AI",
-                tags_json=json.dumps(["AI", "LLM", "Anthropic", "Claude"]),
-                author="TLDR Newsletter",
+                tags_json=json.dumps(["AI", "LLM", "Open Source", "Interpretability"]),
+                author="adebayoj",
                 published_at=datetime.now(timezone.utc) - timedelta(hours=6),
             ),
             News(
-                title="Ladybird Browser adopts Rust",
-                summary="Il browser Ladybird ha annunciato l'adozione di Rust come linguaggio principale per lo sviluppo. La decisione segna un importante cambiamento architetturale per il progetto open-source, che punta a costruire un browser web indipendente da zero.",
+                title="Making Wolfram Tech Available as a Foundation Tool for LLM Systems",
+                summary="Stephen Wolfram annuncia l'integrazione della tecnologia Wolfram come strumento fondamentale per i sistemi LLM. L'obiettivo e' fornire capacita' computazionali precise e conoscenza strutturata ai modelli linguistici, colmando il gap tra ragionamento linguistico e calcolo esatto.",
                 source="Hacker News",
-                source_url="https://news.ycombinator.com/item?id=47120899",
-                category="tech",
-                tags_json=json.dumps(["Rust", "Browser", "Open Source", "Web"]),
-                author="adius",
+                source_url="https://news.ycombinator.com/item?id=47129727",
+                category="AI",
+                tags_json=json.dumps(["AI", "LLM", "Wolfram", "Computation"]),
+                author="surprisetalk",
                 published_at=datetime.now(timezone.utc) - timedelta(hours=12),
             ),
             News(
-                title="Repeating Prompts migliora le performance dei modelli AI",
-                summary="Una ricerca dimostra che ripetere il prompt di input migliora le performance dei modelli AI piu' popolari senza aumentare il numero di token generati o la latenza. Una tecnica semplice ma efficace per ottenere risultati migliori dai LLM.",
-                source="TLDR Tech",
-                source_url="https://daoudclarke.net/2026/02/19/repeating-prompt",
-                category="AI",
-                tags_json=json.dumps(["AI", "Prompt Engineering", "LLM", "Research"]),
-                author="TLDR Newsletter",
+                title="Firefox 148 introduce l'AI Kill Switch e altri miglioramenti",
+                summary="Mozilla rilascia Firefox 148 con una nuova funzionalita' 'AI Kill Switch' che permette agli utenti di disabilitare completamente le funzioni AI integrate nel browser. Un approccio controcorrente rispetto alla tendenza di integrare AI ovunque.",
+                source="Hacker News",
+                source_url="https://news.ycombinator.com/item?id=47133313",
+                category="tech",
+                tags_json=json.dumps(["Firefox", "Browser", "AI", "Privacy"]),
+                author="shaunpud",
                 published_at=datetime.now(timezone.utc) - timedelta(days=1),
             ),
             News(
-                title="I sistemi AI agentici non falliscono improvvisamente - degradano nel tempo",
-                summary="Un'analisi su CIO.com spiega come i sistemi AI agentici subiscano un degrado graduale delle performance che richiede monitoraggio continuo e tecniche di rilevamento del drift statistico. Un tema cruciale per chi deploya AI in produzione.",
-                source="TLDR Tech",
-                source_url="https://www.cio.com/article/4134051/",
-                category="AI",
-                tags_json=json.dumps(["AI", "Agentic AI", "MLOps", "Monitoring"]),
-                author="TLDR Newsletter",
+                title="The Age Verification Trap: verificare l'eta' mina la protezione dei dati",
+                summary="Un'analisi di IEEE Spectrum spiega come i sistemi di verifica dell'eta' online compromettano la privacy di tutti gli utenti, non solo dei minori. Le implicazioni per la protezione dei dati personali sono profonde e spesso sottovalutate dai legislatori.",
+                source="Hacker News",
+                source_url="https://news.ycombinator.com/item?id=47122715",
+                category="tech",
+                tags_json=json.dumps(["Privacy", "Security", "Data Protection", "Policy"]),
+                author="oldnetguy",
                 published_at=datetime.now(timezone.utc) - timedelta(days=1, hours=5),
             ),
             News(
-                title="Coding Agents nel febbraio 2026: stato dell'arte",
-                summary="Un'analisi approfondita dei diversi coding agent disponibili nel 2026. I vari agenti eccellono in task differenti, e l'architettura e il sequencing dei progetti limitano sempre piu' la qualita' del prodotto finale. Una lettura essenziale per chi lavora con AI nel coding.",
-                source="TLDR Tech",
-                source_url="https://calv.info/agents-feb-2026",
-                category="AI",
-                tags_json=json.dumps(["AI", "Coding", "Agents", "Developer Tools"]),
-                author="TLDR Newsletter",
+                title="enveil: nascondi i segreti .env dagli occhi indiscreti dell'AI",
+                summary="Un nuovo tool open-source su GitHub che protegge i file .env dall'essere letti accidentalmente da assistenti AI e coding agent. Una soluzione pratica al crescente rischio di leak di credenziali durante lo sviluppo assistito da AI.",
+                source="Hacker News",
+                source_url="https://news.ycombinator.com/item?id=47133055",
+                category="tech",
+                tags_json=json.dumps(["Security", "DevTools", "AI", "Open Source"]),
+                author="parkaboy",
                 published_at=datetime.now(timezone.utc) - timedelta(days=2),
+            ),
+            # --- TLDR Tech (real articles from tldr.tech newsletter, Feb 2026) ---
+            News(
+                title="Meta' del mercato AI Agent e' una sola categoria. Il resto e' tutto da conquistare",
+                summary="Un'analisi del mercato degli AI agent rivela che la meta' delle startup si concentra su una singola categoria, lasciando enormi opportunita' inesplorate. Per chi cerca lavoro nel settore AI, capire dove si concentra l'innovazione e' fondamentale per posizionarsi strategicamente.",
+                source="TLDR Tech",
+                source_url="https://garryslist.org/posts/half-the-ai-agent-market-is-one-category-the-rest-is-wide-open",
+                category="AI",
+                tags_json=json.dumps(["AI", "Agents", "Startup", "Market"]),
+                author="TLDR Newsletter",
+                published_at=datetime.now(timezone.utc) - timedelta(days=2, hours=10),
             ),
             News(
                 title="Come lavora il team Codex di OpenAI sfruttando l'AI",
-                summary="Un articolo dettagliato su come il team di engineering di OpenAI che sviluppa Codex opera con la velocita' di una startup trattando l'AI come un 'teammate di prima classe'. Uno sguardo dentro le pratiche di sviluppo AI-first.",
+                summary="Un articolo dettagliato su come il team di engineering di OpenAI che sviluppa Codex opera con la velocita' di una startup trattando l'AI come un 'teammate di prima classe'. Uno sguardo dentro le pratiche di sviluppo AI-first che stanno ridefinendo il modo di lavorare.",
                 source="TLDR Tech",
                 source_url="https://newsletter.eng-leadership.com/p/how-openais-codex-team-works-and",
                 category="careers",
                 tags_json=json.dumps(["AI", "OpenAI", "Engineering", "Carriera"]),
                 author="TLDR Newsletter",
-                published_at=datetime.now(timezone.utc) - timedelta(days=2, hours=10),
-            ),
-            News(
-                title="Timeframe: un e-paper dashboard familiare DIY",
-                summary="Un progetto open-source che ha raccolto oltre 1300 punti su Hacker News. L'autore ha costruito Timeframe, un dashboard su display e-paper per la famiglia che mostra calendario, meteo e informazioni utili. Un esempio ispirante di hardware hacking casalingo.",
-                source="Hacker News",
-                source_url="https://news.ycombinator.com/item?id=47113728",
-                category="tech",
-                tags_json=json.dumps(["Hardware", "DIY", "E-Paper", "Open Source"]),
-                author="saeedesmaili",
                 published_at=datetime.now(timezone.utc) - timedelta(days=3),
             ),
             News(
-                title="I data center AI adottano superconduttori ad alta temperatura",
-                summary="Microsoft investe 75 milioni di dollari in superconduttori ad alta temperatura per migliorare l'efficienza energetica dei data center AI e ridurre le perdite di trasmissione dell'energia. Una tecnologia che potrebbe rivoluzionare l'infrastruttura AI.",
+                title="Apple lavora a smart glasses con AI integrata",
+                summary="Secondo fonti affidabili, Apple sta sviluppando smart glasses con funzionalita' AI avanzate. Il progetto sembra piu' ambizioso del previsto e potrebbe ridefinire il mercato dei dispositivi indossabili e creare nuove opportunita' per sviluppatori di app AR/AI.",
                 source="TLDR Tech",
-                source_url="https://spectrum.ieee.org/ai-data-centers-hts-superconductors",
+                source_url="https://9to5mac.com/2026/02/21/apple-ai-smart-glasses-rumors-sounding-more-exciting/",
                 category="tech",
-                tags_json=json.dumps(["AI", "Data Center", "Microsoft", "Energia"]),
+                tags_json=json.dumps(["Apple", "AI", "AR", "Wearables"]),
                 author="TLDR Newsletter",
                 published_at=datetime.now(timezone.utc) - timedelta(days=4),
             ),
             News(
-                title="Costruire una cultura di ingegneria AI d'elite nel 2026",
-                summary="Un articolo su come costruire team di ingegneria AI efficaci nel 2026. La formula vincente combina contesto strutturato, rigore a livelli e team piu' piccoli per evitare che l'AI amplifichi i problemi esistenti invece di risolverli.",
-                source="TLDR Tech",
-                source_url="https://www.cjroth.com/blog/2026-02-18-building-an-elite-engineering-culture",
-                category="careers",
-                tags_json=json.dumps(["AI", "Engineering", "Team", "Carriera"]),
-                author="TLDR Newsletter",
+                title="X86CSS: un emulatore CPU x86 scritto interamente in CSS",
+                summary="Un progetto incredibile che implementa un emulatore di CPU x86 usando solo CSS, senza JavaScript. Dimostra le capacita' computazionali nascoste dei CSS e la creativita' della community di sviluppatori. Un esercizio di ingegneria impressionante.",
+                source="Hacker News",
+                source_url="https://news.ycombinator.com/item?id=47132102",
+                category="tech",
+                tags_json=json.dumps(["CSS", "x86", "Emulator", "Creative Coding"]),
+                author="rebane2001",
                 published_at=datetime.now(timezone.utc) - timedelta(days=5),
             ),
             News(
-                title="Loops: un TikTok federato e open-source",
-                summary="Loops e' una nuova piattaforma video federata e open-source che offre un'alternativa decentralizzata a TikTok. Il progetto ha raccolto oltre 500 punti su Hacker News, dimostrando il forte interesse della community per alternative open ai social media.",
+                title="Coreboot portato sul ThinkPad X270: firmware libero per tutti",
+                summary="Uno sviluppatore ha portato con successo Coreboot sul ThinkPad X270, rendendo disponibile un firmware completamente open-source per uno dei laptop piu' popolari tra gli sviluppatori. Un passo avanti per la liberta' del software a livello hardware.",
                 source="Hacker News",
-                source_url="https://news.ycombinator.com/item?id=47113618",
+                source_url="https://news.ycombinator.com/item?id=47130860",
                 category="tech",
-                tags_json=json.dumps(["Open Source", "Social Media", "Fediverse", "Video"]),
-                author="Gooblebrai",
+                tags_json=json.dumps(["Open Source", "Firmware", "Hardware", "Linux"]),
+                author="todsacerdoti",
                 published_at=datetime.now(timezone.utc) - timedelta(days=6),
             ),
         ]
@@ -1054,9 +1082,143 @@ def seed_experiences_and_educations():
         db.close()
 
 
+def seed_companies_and_proposals():
+    """Seed 3 company users and 3 proposals linking companies to talents with courses."""
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        # Clean existing proposals and proposal courses
+        db.query(ProposalCourse).delete()
+        db.query(Proposal).delete()
+        db.commit()
+
+        hashed = hash_password("password123")
+
+        company_users = [
+            User(
+                email="hr@techflow.it",
+                password_hash=hashed,
+                full_name="Laura Verdi",
+                phone="+39 02 1234567",
+                bio="HR Manager presso TechFlow Italia. Cerchiamo talenti per il nostro team di sviluppo.",
+                location="Milano",
+                user_type="company",
+                company_name="TechFlow Italia",
+                company_website="https://techflow.it",
+                company_size="51-200",
+                industry="Software & Technology",
+                is_active=1,
+                created_at=datetime.now(timezone.utc) - timedelta(days=60),
+            ),
+            User(
+                email="info@aisolutions.it",
+                password_hash=hashed,
+                full_name="Roberto Mancini",
+                phone="+39 06 2345678",
+                bio="CEO di AI Solutions Srl. Startup specializzata in soluzioni AI per il settore enterprise.",
+                location="Roma",
+                user_type="company",
+                company_name="AI Solutions Srl",
+                company_website="https://aisolutions.it",
+                company_size="11-50",
+                industry="Artificial Intelligence",
+                is_active=1,
+                created_at=datetime.now(timezone.utc) - timedelta(days=45),
+            ),
+            User(
+                email="recruiting@datasphere.it",
+                password_hash=hashed,
+                full_name="Paolo Neri",
+                phone="+39 051 3456789",
+                bio="Head of Recruiting presso DataSphere. Costruiamo il futuro dei dati in Italia.",
+                location="Bologna",
+                user_type="company",
+                company_name="DataSphere",
+                company_website="https://datasphere.it",
+                company_size="201-500",
+                industry="Data & Analytics",
+                is_active=1,
+                created_at=datetime.now(timezone.utc) - timedelta(days=30),
+            ),
+        ]
+
+        db.add_all(company_users)
+        db.commit()
+        print(f"Seeded {len(company_users)} company users successfully.")
+
+        # Fetch talent users and courses for proposals
+        talents = db.query(User).filter(User.user_type == "talent", User.is_public == 1).order_by(User.created_at.asc()).all()
+        courses = db.query(Course).filter(Course.is_active == 1).order_by(Course.created_at.asc()).all()
+
+        if len(talents) < 3 or len(courses) < 3:
+            print("Not enough talents or courses found, skipping proposal seeding.")
+            return
+
+        # Proposal 1: TechFlow Italia -> Marco Rossi (talent[0]) with 3 AI courses
+        proposal1 = Proposal(
+            company_id=company_users[0].id,
+            talent_id=talents[0].id,
+            status="accepted",
+            message="Ciao Marco, siamo interessati al tuo profilo frontend. Ti proponiamo un percorso di formazione AI per integrarti nel nostro team che lavora su prodotti AI-driven.",
+            budget_range="5000-8000",
+            created_at=datetime.now(timezone.utc) - timedelta(days=10),
+        )
+        db.add(proposal1)
+        db.flush()
+
+        pc1_courses = [
+            ProposalCourse(proposal_id=proposal1.id, course_id=courses[0].id, order=0, is_completed=1, completed_at=datetime.now(timezone.utc) - timedelta(days=3)),
+            ProposalCourse(proposal_id=proposal1.id, course_id=courses[1].id, order=1, is_completed=0),
+            ProposalCourse(proposal_id=proposal1.id, course_id=courses[3].id, order=2, is_completed=0),
+        ]
+        db.add_all(pc1_courses)
+
+        # Proposal 2: AI Solutions Srl -> Sara Romano (talent[3]) with 2 ML courses
+        proposal2 = Proposal(
+            company_id=company_users[1].id,
+            talent_id=talents[3].id,
+            status="sent",
+            message="Buongiorno Sara, il tuo profilo di data scientist in transizione verso ML engineering e' perfetto per noi. Ecco un percorso formativo personalizzato.",
+            budget_range="3000-5000",
+            created_at=datetime.now(timezone.utc) - timedelta(days=5),
+        )
+        db.add(proposal2)
+        db.flush()
+
+        pc2_courses = [
+            ProposalCourse(proposal_id=proposal2.id, course_id=courses[2].id, order=0, is_completed=0),
+            ProposalCourse(proposal_id=proposal2.id, course_id=courses[4].id, order=1, is_completed=0),
+        ]
+        db.add_all(pc2_courses)
+
+        # Proposal 3: DataSphere -> Giulia Bianchi (talent[1]) with 2 courses
+        proposal3 = Proposal(
+            company_id=company_users[2].id,
+            talent_id=talents[1].id,
+            status="sent",
+            message="Giulia, la tua esperienza in backend engineering e' impressionante. Vorremmo proporti un percorso per consolidare le tue competenze AI e unirti al nostro team dati.",
+            budget_range="4000-6000",
+            created_at=datetime.now(timezone.utc) - timedelta(days=2),
+        )
+        db.add(proposal3)
+        db.flush()
+
+        pc3_courses = [
+            ProposalCourse(proposal_id=proposal3.id, course_id=courses[6].id, order=0, is_completed=0),
+            ProposalCourse(proposal_id=proposal3.id, course_id=courses[7].id, order=1, is_completed=0),
+        ]
+        db.add_all(pc3_courses)
+
+        db.commit()
+        print("Seeded 3 proposals with courses successfully.")
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     job_ids = seed_jobs()
     seed_users(job_ids)
     seed_news()
     seed_courses()
     seed_experiences_and_educations()
+    seed_companies_and_proposals()

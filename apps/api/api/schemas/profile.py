@@ -21,6 +21,11 @@ class ProfileUpdate(BaseModel):
     linkedin_url: Optional[str] = Field(None, max_length=500)
     github_url: Optional[str] = Field(None, max_length=500)
     portfolio_url: Optional[str] = Field(None, max_length=500)
+    is_public: Optional[bool] = None
+    company_name: Optional[str] = Field(None, min_length=1, max_length=255)
+    company_website: Optional[str] = Field(None, max_length=500)
+    company_size: Optional[str] = Field(None, max_length=100)
+    industry: Optional[str] = Field(None, max_length=255)
 
 
 class ProfileResponse(BaseModel):
@@ -40,6 +45,12 @@ class ProfileResponse(BaseModel):
     linkedin_url: Optional[str] = None
     github_url: Optional[str] = None
     portfolio_url: Optional[str] = None
+    user_type: str = "talent"
+    company_name: Optional[str] = None
+    company_website: Optional[str] = None
+    company_size: Optional[str] = None
+    industry: Optional[str] = None
+    is_public: bool = False
     experiences: list[ExperienceResponse] = Field(default_factory=list)
     educations: list[EducationResponse] = Field(default_factory=list)
     created_at: datetime

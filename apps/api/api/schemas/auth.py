@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Optional
 from datetime import datetime
 
@@ -19,11 +19,21 @@ class SignupRequest(BaseModel):
     email: str = Field(..., min_length=1, max_length=255)
     password: str = Field(..., min_length=6, max_length=255)
     full_name: str = Field(..., min_length=1, max_length=255)
+    user_type: str = Field("talent", pattern=r"^(talent|company)$")
+    company_name: Optional[str] = Field(None, min_length=1, max_length=255)
+    company_website: Optional[str] = Field(None, max_length=500)
+    industry: Optional[str] = Field(None, max_length=255)
 
     @field_validator("email")
     @classmethod
     def validate_email(cls, v: str) -> str:
         return _normalize_email(v)
+
+    @model_validator(mode="after")
+    def validate_company_name(self):
+        if self.user_type == "company" and not self.company_name:
+            raise ValueError("company_name is required when user_type is 'company'")
+        return self
 
 
 class LoginRequest(BaseModel):
@@ -58,4 +68,9 @@ class UserResponse(BaseModel):
     linkedin_url: Optional[str] = None
     github_url: Optional[str] = None
     portfolio_url: Optional[str] = None
+    user_type: str = "talent"
+    company_name: Optional[str] = None
+    company_website: Optional[str] = None
+    company_size: Optional[str] = None
+    industry: Optional[str] = None
     created_at: datetime

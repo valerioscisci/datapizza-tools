@@ -1,12 +1,13 @@
 """Tests for Pydantic schema validation (api/schemas/).
 
 Covers validation rules for JobResponse, ProfileUpdate,
-ExperienceCreate, and EducationCreate schemas.
+ExperienceCreate, EducationCreate, ProposalCreate, and ProposalUpdate schemas.
 """
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
@@ -15,6 +16,7 @@ from api.schemas.job import JobResponse
 from api.schemas.profile import ProfileUpdate
 from api.schemas.experience import ExperienceCreate
 from api.schemas.education import EducationCreate
+from api.schemas.proposal import ProposalCreate, ProposalUpdate
 
 
 class TestJobResponse:
@@ -269,3 +271,48 @@ class TestEducationCreate:
             )
         errors = exc_info.value.errors()
         assert any(e["loc"] == ("institution",) for e in errors)
+
+
+class TestProposalCreate:
+    """Tests for the ProposalCreate Pydantic model."""
+
+    def test_valid_proposal_create(self):
+        """ProposalCreate should accept valid data with required fields."""
+        proposal = ProposalCreate(
+            talent_id=str(uuid4()),
+            course_ids=[str(uuid4())],
+        )
+        assert proposal.message is None
+        assert proposal.budget_range is None
+        assert len(proposal.course_ids) == 1
+
+    def test_proposal_create_empty_course_ids_rejected(self):
+        """ProposalCreate should reject empty course_ids list."""
+        with pytest.raises(ValidationError):
+            ProposalCreate(
+                talent_id=str(uuid4()),
+                course_ids=[],
+            )
+
+    def test_proposal_create_missing_talent_id(self):
+        """ProposalCreate should reject missing talent_id."""
+        with pytest.raises(ValidationError) as exc_info:
+            ProposalCreate(
+                course_ids=[str(uuid4())],
+            )
+        errors = exc_info.value.errors()
+        assert any(e["loc"] == ("talent_id",) for e in errors)
+
+
+class TestProposalUpdate:
+    """Tests for the ProposalUpdate Pydantic model."""
+
+    def test_valid_proposal_update_status(self):
+        """ProposalUpdate should accept valid status values."""
+        update = ProposalUpdate(status="accepted")
+        assert update.status == "accepted"
+
+    def test_proposal_update_invalid_status(self):
+        """ProposalUpdate should reject invalid status values."""
+        with pytest.raises(ValidationError):
+            ProposalUpdate(status="invalid_status")

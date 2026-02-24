@@ -6,11 +6,14 @@
   },
   "nav": {
     "craftYourDeveloper": "Craft Your Developer",
+    "browseTalents": "Scopri i Talenti",
     "jobsMarket": "Mercato del Lavoro",
     "myApplications": "Le mie Candidature",
     "myProfile": "Il mio Profilo",
     "news": "News Tech",
-    "courses": "Corsi di Formazione"
+    "courses": "Corsi di Formazione",
+    "myProposals": "Le mie Proposte",
+    "companyProposals": "Le mie Proposte"
   },
   "auth": {
     "login": "Accedi",
@@ -30,7 +33,17 @@
     "passwordMismatch": "Le password non coincidono",
     "passwordTooShort": "La password deve avere almeno 6 caratteri",
     "loginError": "Errore di login",
-    "signupError": "Errore di registrazione"
+    "signupError": "Errore di registrazione",
+    "userTypeLabel": "Tipo di account",
+    "talentTab": "Sono un Talento",
+    "companyTab": "Sono un'Azienda",
+    "companyName": "Nome Azienda",
+    "contactName": "Nome referente",
+    "companyEmail": "Email aziendale",
+    "companyWebsite": "Sito Web",
+    "industry": "Settore",
+    "companyNameRequired": "Il nome dell'azienda e' obbligatorio",
+    "selectIndustry": "Seleziona un settore"
   },
   "applications": {
     "title": "Candidature",
@@ -66,6 +79,56 @@
       "jobsAvailable": "Offerte Disponibili",
       "companiesActive": "Aziende Attive",
       "developersHelped": "Developer Aiutati"
+    }
+  },
+  "talents": {
+    "title": "Scopri i Talenti",
+    "subtitle": "Esplora i profili dei developer disponibili nel nostro marketplace",
+    "search": {
+      "placeholder": "Cerca per nome, ruolo o competenza..."
+    },
+    "filters": {
+      "experienceLevel": "Livello",
+      "availability": "Disponibilita'",
+      "all": "Tutti",
+      "junior": "Junior",
+      "mid": "Mid-Level",
+      "senior": "Senior",
+      "available": "Disponibile",
+      "employed": "Occupato",
+      "reskilling": "In formazione"
+    },
+    "card": {
+      "skills": "Competenze",
+      "viewProfile": "Vedi Profilo"
+    },
+    "detail": {
+      "backToList": "Torna ai Talenti",
+      "bio": "Chi sono",
+      "noBio": "Nessuna descrizione disponibile",
+      "skills": "Competenze",
+      "noSkills": "Nessuna competenza indicata",
+      "experience": "Esperienza Lavorativa",
+      "noExperience": "Nessuna esperienza condivisa",
+      "education": "Formazione",
+      "noEducation": "Nessuna formazione condivisa",
+      "current": "Attuale",
+      "present": "Presente",
+      "interestedCta": "Interessato a questo talento?",
+      "interestedDescription": "Scopri come Craft Your Developer puo' aiutarti a formare questo developer sulle competenze che ti servono.",
+      "contactButton": "Scopri Craft Your Developer",
+      "proposeTraining": "Proponi un Percorso",
+      "proposeTrainingDescription": "Sei un'azienda? Proponi un percorso formativo personalizzato a questo talento."
+    },
+    "notFound": "Talento non trovato",
+    "notFoundDescription": "Il profilo richiesto non esiste o non e' pubblico.",
+    "empty": "Nessun talento trovato",
+    "emptyDescription": "Prova a modificare i filtri o la ricerca.",
+    "loading": "Caricamento talenti...",
+    "pagination": {
+      "previous": "Precedente",
+      "next": "Successiva",
+      "page": "Pagina {current} di {total}"
     }
   },
   "craftYourDeveloper": {
@@ -114,6 +177,11 @@
         "title": "Assumi",
         "description": "Al termine del percorso, assumi il developer gia' formato e pronto per contribuire al tuo team."
       }
+    },
+    "talents": {
+      "title": "Scopri i Talenti nel Marketplace",
+      "description": "Naviga i profili dei developer mid e senior disponibili. Trova il candidato ideale per il tuo percorso Craft Your Developer.",
+      "button": "Scopri i Talenti"
     },
     "cta": {
       "title": "Pronto a costruire il tuo team del futuro?",
@@ -251,6 +319,11 @@
     "error": "Errore nel salvataggio",
     "loading": "Caricamento profilo...",
     "experienceYearsPlaceholder": "es. 3-5 anni",
+    "privacyToggle": {
+      "title": "Visibilita' Profilo",
+      "description": "Rendi il tuo profilo visibile alle aziende nel marketplace dei talenti.",
+      "info": "Attivando questa opzione, il tuo profilo sara' visibile alle aziende attraverso il progetto \"Craft Your Developer\". Potresti ricevere proposte per percorsi di crescita professionale personalizzati. Le tue informazioni sensibili (email, telefono) non saranno mai mostrate pubblicamente."
+    },
     "fields": {
       "fullName": "Nome completo",
       "phone": "Telefono",
@@ -298,5 +371,85 @@
       "phd": "Dottorato",
       "certificate": "Certificazione"
     }
+  },
+  "proposals": {
+    "title": "Le mie Proposte",
+    "subtitle": "Visualizza le proposte formative ricevute dalle aziende",
+    "companyTitle": "Proposte Inviate",
+    "companySubtitle": "Gestisci le proposte formative inviate ai talenti",
+    "tabs": {
+      "all": "Tutte",
+      "draft": "Bozze",
+      "sent": "Inviate",
+      "accepted": "Accettate",
+      "rejected": "Rifiutate",
+      "completed": "Completate"
+    },
+    "status": {
+      "draft": "Bozza",
+      "sent": "Inviata",
+      "accepted": "Accettata",
+      "rejected": "Rifiutata",
+      "completed": "Completata"
+    },
+    "card": {
+      "from": "Da",
+      "to": "A",
+      "budget": "Budget",
+      "progress": "Progresso",
+      "courses": "Corsi",
+      "coursesCompleted": "{completed} di {total} corsi completati",
+      "message": "Messaggio"
+    },
+    "actions": {
+      "accept": "Accetta",
+      "reject": "Rifiuta",
+      "markCompleted": "Segna come completato",
+      "send": "Invia Proposta"
+    },
+    "create": {
+      "title": "Nuova Proposta",
+      "subtitle": "Proponi un percorso formativo personalizzato",
+      "talentInfo": "Informazioni Talento",
+      "selectCourses": "Seleziona i Corsi",
+      "selectedCourses": "Corsi Selezionati",
+      "searchCourses": "Cerca corsi...",
+      "message": "Messaggio",
+      "messagePlaceholder": "Descrivi la tua proposta, gli obiettivi formativi e le aspettative...",
+      "budgetRange": "Budget Indicativo",
+      "budgetPlaceholder": "es. 5.000 - 10.000",
+      "submit": "Invia Proposta",
+      "submitting": "Invio in corso...",
+      "success": "Proposta inviata con successo!",
+      "error": "Errore nell'invio della proposta",
+      "atLeastOneCourse": "Seleziona almeno un corso",
+      "noCourses": "Nessun corso disponibile",
+      "moveUp": "Sposta su",
+      "moveDown": "Sposta giu'",
+      "removeCourse": "Rimuovi"
+    },
+    "empty": "Nessuna proposta ricevuta",
+    "emptyDescription": "Rendi il tuo profilo pubblico per ricevere proposte dalle aziende.",
+    "companyEmpty": "Nessuna proposta inviata",
+    "companyEmptyDescription": "Esplora i talenti disponibili nel nostro marketplace e proponi un percorso formativo.",
+    "companyEmptyButton": "Scopri i Talenti",
+    "loading": "Caricamento proposte...",
+    "pagination": {
+      "previous": "Precedente",
+      "next": "Successiva",
+      "page": "Pagina {current} di {total}"
+    }
+  },
+  "industry": {
+    "fintech": "Fintech",
+    "aiml": "AI/ML",
+    "saas": "SaaS",
+    "ecommerce": "E-commerce",
+    "healthtech": "HealthTech",
+    "edtech": "EdTech",
+    "cybersecurity": "Cybersecurity",
+    "dataAnalytics": "Data & Analytics",
+    "consulting": "Consulenza",
+    "other": "Altro"
   }
 }

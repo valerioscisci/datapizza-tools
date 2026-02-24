@@ -54,18 +54,18 @@ datapizza-tools/
 │   └── CLAUDE.md            # Workflow configuration
 ├── apps/
 │   ├── web/                 # Next.js 16 frontend (port 3003)
-│   │   ├── src/app/[locale]/ # Pages (homepage, craft-your-developer, jobs, news, courses, login, signup, candidature, profilo)
+│   │   ├── src/app/[locale]/ # Pages (homepage, craft-your-developer, jobs, news, courses, login, signup, candidature, profilo, talenti, proposte, azienda/proposte)
 │   │   ├── src/components/   # Shared components (Navbar, Footer, TechTag)
 │   │   ├── src/lib/auth/      # NextAuth v5 config and useAuth hook
 │   │   ├── e2e/              # Playwright E2E tests (auth, jobs, applications, profile)
 │   │   └── messages/it.json  # Italian translations
 │   └── api/                 # FastAPI backend (port 8003)
-│       ├── api/routes/       # API endpoints (/api/v1/jobs, /api/v1/auth, /api/v1/applications, /api/v1/news, /api/v1/courses, /api/v1/profile)
-│       ├── api/database/     # SQLAlchemy models (Job, User, Application, News, Course, Experience, Education), connection, seed
+│       ├── api/routes/       # API endpoints (/api/v1/jobs, /api/v1/auth, /api/v1/applications, /api/v1/news, /api/v1/courses, /api/v1/profile, /api/v1/talents, /api/v1/proposals)
+│       ├── api/database/     # SQLAlchemy models (Job, User, Application, News, Course, Experience, Education, Proposal, ProposalCourse), connection, seed
 │       ├── api/scrapers/     # Content fetching CLI (insert_content.py — used by GitHub Action agent)
 │       ├── api/schemas/      # Pydantic response models
 │       ├── api/auth.py       # JWT authentication utilities
-│       └── tests/            # pytest unit test suite (112 tests)
+│       └── tests/            # pytest unit test suite (194 tests)
 ├── THOUGHT_PROCESS.MD       # Development thought process log (in Italian)
 └── README.md
 ```
@@ -90,17 +90,21 @@ This project uses a structured AI-assisted development workflow to maximize prod
 - User profiles with skills, experience, availability status
 - Job application system (apply in-app, duplicate prevention)
 - Applications tracking page with status tabs (Proposte, Da completare, Attive, Archiviate)
-- 10 seeded Italian developer profiles + 6 sample applications
+- 10 seeded Italian developer profiles (6 public, 4 private) + 6 sample applications
 - News Tech page with category filters, cards, detail dialog, pagination
 - Courses page with category/level filters, cards, detail dialog, pagination
 - News feed API with category filters (AI, tech, careers) and 10 seeded news items
 - Courses catalog API with category and level filters and 10 seeded courses
 - Profile API with experiences and educations CRUD (8 endpoints: GET/PATCH profile, POST/PATCH/DELETE experiences, POST/PATCH/DELETE educations)
 - 13 seeded experiences and 8 educations for the first 5 users
-- Profile page (`/it/profilo`) with full profile view and inline editing (bio, skills, experiences, educations, social links)
+- Profile page (`/it/profilo`) with full profile view, inline editing (bio, skills, experiences, educations, social links), and privacy toggle for public profile visibility
+- Public talents marketplace (`/it/talenti`) with search, experience level and availability filters, talent cards with skills pills, and detail pages with full read-only profile view (bio, skills, experiences, educations) and CTA linking to Craft Your Developer
 - GitHub Action for nightly content fetching (disabled, showcase) — uses Claude Code agent to fetch from HN, TLDR, Coursera, Udemy
-- **Backend unit test suite** — 112 pytest tests covering auth, routes (auth, jobs, news, courses, profile, applications), schemas, and utilities with full mocking (no real DB)
-- **Frontend E2E test suite** — Playwright tests covering auth flow, jobs page, applications, and profile page (23 tests total)
+- Public Developer Profiles (Browse Talents) API — GET /talents (list with search, filters, pagination) and GET /talents/{id} (detail with experiences/educations), public endpoints with privacy protection (is_public flag, no email/phone leak, 404 for private users)
+- Company Accounts & Contact Flow (Backend) — Dual user types (talent/company), company signup with validation, Proposal and ProposalCourse models, 5 proposal endpoints (POST/GET list/GET detail/PATCH update/PATCH course complete), role-based access control, status transitions (draft/sent/accepted/rejected/completed), auto-complete on all courses done, 3 seeded company users and 3 sample proposals
+- **Backend unit test suite** — 194 pytest tests covering auth, routes (auth, jobs, news, courses, profile, applications, talents, proposals), schemas, and utilities with full mocking (no real DB)
+- **Frontend E2E test suite** — Playwright tests covering auth flow, jobs page, applications, profile page, talents marketplace (list, search, filters, detail, privacy, navigation), profile privacy toggle, and company accounts & proposals flow (company signup, login redirects, role-based navbar, talent detail CTA, proposal creation, company/talent proposals dashboards, auth guards) (65 tests total)
+- **Company Accounts & Contact Flow (Frontend)** — Dual user types (talent/company) with type-aware signup form, login redirect logic, and role-based navigation. Company users see "Le mie Proposte" and can propose training paths to talents. Talent users see received proposals with accept/reject/course-completion flow. Full proposals CRUD: talent proposals page (`/it/proposte`), company proposals page (`/it/azienda/proposte`), proposal creation page (`/it/azienda/proposte/nuova`) with course selection, reordering, message, and budget range. Navbar adapts to user type showing relevant links. Talent detail page shows company-specific CTA "Proponi un Percorso" for authenticated company users
 
 ## Getting Started
 

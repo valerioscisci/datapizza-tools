@@ -277,17 +277,186 @@ const t = useTranslations('items');
 }
 ```
 
-### Rule 7: Component Folder Structure
+### Rule 7: Feature-Scoped Page Architecture (CRITICAL)
 
-For complex components (50+ lines or multiple sub-components), use this folder structure:
+Every page route MUST follow the **Feature-Scoped, Layered Component Architecture**. This is the most important structural rule.
+
+#### 7.1: Page Directory Structure
+
+Each page route gets this directory layout (underscore prefix `_` prevents Next.js routing):
 
 ```
-component-name/                      # kebab-case folder name
-├── ComponentName.tsx                # PascalCase main component file
-├── ComponentName.props.ts           # Props interface exports
-├── componentNameUtils.ts            # camelCase utilities file (if needed)
-├── ComponentNameLoading.tsx         # Skeleton/loading state
-└── SubComponent.tsx                 # Optional sub-components
+app/[locale]/page-name/
+├── page.tsx                          # Ultra-thin server component (≤15 lines)
+├── layout.tsx                        # Optional: wraps with context providers
+├── _components/
+│   ├── PageNamePage.tsx              # Main client component (orchestrator)
+│   ├── PageNamePage.props.ts         # Props interface for the page component
+│   ├── SectionOne.tsx                # Section component (business logic lives here)
+│   ├── SectionOne.props.ts           # Section props
+│   ├── SectionTwo.tsx                # Another section
+│   └── SomeWidget.tsx                # Smaller presentational components
+├── _hooks/
+│   ├── usePageNameData.ts            # Data fetching + state management hook
+│   └── usePageNameFilters.ts         # Feature-specific hooks
+├── _context/
+│   └── PageNameContext.tsx            # Feature-scoped React context (if needed)
+├── _utils/
+│   ├── constants.ts                  # Page-specific constants
+│   └── helpers.ts                    # Pure helper functions
+└── [id]/                             # Dynamic sub-routes follow same pattern
+    ├── page.tsx
+    └── _components/
+        └── ...
+```
+
+#### 7.2: page.tsx — Ultra-Thin Server Component
+
+`page.tsx` MUST be ultra-thin: import + render the main `*Page` component. **Nothing else.**
+
+```typescript
+// app/[locale]/jobs/page.tsx — CORRECT (≤15 lines)
+import { JobsPage } from './_components/JobsPage';
+
+export default function Page() {
+  return <JobsPage />;
+}
+```
+
+```typescript
+// WRONG — page.tsx with business logic, state, or UI code
+'use client';
+export default function Page() {
+  const [data, setData] = useState([]);
+  // 200+ lines of code...
+}
+```
+
+#### 7.3: layout.tsx — Context Provider Wrapper
+
+If the page needs shared state via context, wrap it in `layout.tsx`:
+
+```typescript
+// app/[locale]/jobs/layout.tsx
+import { JobsProvider } from './_context/JobsContext';
+
+export default function JobsLayout({ children }: { children: React.ReactNode }) {
+  return <JobsProvider>{children}</JobsProvider>;
+}
+```
+
+#### 7.4: _components/ — Sections and Presentational Components
+
+- **`*Page.tsx`**: The main client component. Orchestrates sections, manages top-level layout. Marked `'use client'`.
+- **Sections** (`SectionName.tsx`): Larger containers (200-500 lines OK) where business logic lives — API calls, state management, user interactions. Each section is a self-contained feature area.
+- **Presentational Components** (`WidgetName.tsx`): Pure/presentational, receive props, no direct API calls. Keep under 150 lines.
+- **All** complex components get a `.props.ts` file for their interface.
+
+```typescript
+// _components/JobsPage.tsx — orchestrator
+'use client';
+
+import { JobsFilters } from './JobsFilters';
+import { JobsList } from './JobsList';
+import { JobsHeader } from './JobsHeader';
+
+export function JobsPage() {
+  return (
+    <main className="container mx-auto py-8">
+      <JobsHeader />
+      <JobsFilters />
+      <JobsList />
+    </main>
+  );
+}
+```
+
+#### 7.5: _hooks/ — Feature-Scoped Custom Hooks
+
+Extract reusable logic (data fetching, filters, form state) into custom hooks:
+
+```typescript
+// _hooks/useJobsData.ts
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+
+interface UseJobsDataReturn {
+  jobs: Job[];
+  isLoading: boolean;
+  error: string | null;
+  refetch: () => void;
+}
+
+export function useJobsData(filters: JobFilters): UseJobsDataReturn {
+  // ... data fetching logic
+}
+```
+
+#### 7.6: _context/ — Feature-Scoped Context
+
+For shared state across multiple sections within the same page:
+
+```typescript
+// _context/JobsContext.tsx
+'use client';
+
+import { createContext, useContext, useCallback, useMemo, useState } from 'react';
+
+interface JobsContextValue {
+  filters: JobFilters;
+  setFilters: (filters: JobFilters) => void;
+  selectedJobId: string | null;
+  selectJob: (id: string | null) => void;
+}
+
+const JobsContext = createContext<JobsContextValue | null>(null);
+
+export function JobsProvider({ children }: { children: React.ReactNode }) {
+  const [filters, setFilters] = useState<JobFilters>(DEFAULT_FILTERS);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+
+  const selectJob = useCallback((id: string | null) => setSelectedJobId(id), []);
+
+  const value = useMemo(() => ({
+    filters, setFilters, selectedJobId, selectJob,
+  }), [filters, selectedJobId, selectJob]);
+
+  return <JobsContext.Provider value={value}>{children}</JobsContext.Provider>;
+}
+
+export function useJobs() {
+  const ctx = useContext(JobsContext);
+  if (!ctx) throw new Error('useJobs must be used within JobsProvider');
+  return ctx;
+}
+```
+
+#### 7.7: _utils/ — Constants and Pure Helpers
+
+```typescript
+// _utils/constants.ts
+export const DEFAULT_PAGE_SIZE = 20;
+export const JOB_STATUS_OPTIONS = ['active', 'closed', 'draft'] as const;
+
+// _utils/helpers.ts
+export function formatSalaryRange(min: number, max: number): string {
+  return `€${min.toLocaleString()} - €${max.toLocaleString()}`;
+}
+```
+
+### Rule 8: Component Folder Structure (Shared Components)
+
+For shared components in `src/components/` (NOT page-specific), use this folder structure:
+
+```
+components/
+├── component-name/                  # kebab-case folder name
+│   ├── ComponentName.tsx            # PascalCase main component file
+│   ├── ComponentName.props.ts       # Props interface exports
+│   ├── componentNameUtils.ts        # camelCase utilities file (if needed)
+│   ├── ComponentNameLoading.tsx     # Skeleton/loading state
+│   └── SubComponent.tsx             # Optional sub-components
 ```
 
 **Naming conventions:**
@@ -311,46 +480,11 @@ export interface ComponentNameProps {
 }
 ```
 
-**Loading component pattern:**
-```typescript
-// ComponentNameLoading.tsx
-import { Skeleton } from '@/components/ui/Skeleton';
-
-export function ComponentNameLoading() {
-  return (
-    <div className="...">
-      <Skeleton className="h-4 w-32" />
-      {/* Mirror the actual component structure */}
-    </div>
-  );
-}
-```
-
-**Page-level organization:**
-For page-specific components, use `_components` and `_utils` folders:
-
-```
-app/[locale]/page-name/
-├── page.tsx                         # Thin orchestrator
-├── _components/
-│   ├── _hooks/
-│   │   └── usePageData.ts
-│   ├── feature-one/
-│   │   ├── FeatureOne.tsx
-│   │   ├── FeatureOne.props.ts
-│   │   └── FeatureOneLoading.tsx
-│   └── feature-two/
-│       └── ...
-└── _utils/
-    ├── constants.ts
-    └── helpers.ts
-```
-
 **CRITICAL: NO BARREL FILES.** Import directly from source files:
 ```typescript
 // CORRECT - Direct imports
-import { FeatureOne } from './_components/feature-one/FeatureOne';
-import { usePageData } from './_components/_hooks/usePageData';
+import { FeatureOne } from './_components/FeatureOne';
+import { usePageData } from './_hooks/usePageData';
 import { CONSTANTS } from './_utils/constants';
 
 // WRONG - Barrel file imports
@@ -377,47 +511,114 @@ Create a task breakdown:
 6. Add translations
 7. Test and refine
 
-### Step 3: Component Creation Pattern
+### Step 3: Page Creation Pattern (Feature-Scoped Architecture)
 
-#### For a New Page:
+#### For a New Page — Always scaffold these files:
+
+```
+app/[locale]/my-feature/
+├── page.tsx                          # Ultra-thin server component
+├── _components/
+│   ├── MyFeaturePage.tsx             # Main client orchestrator
+│   ├── MyFeatureHeader.tsx           # Header section
+│   ├── MyFeatureContent.tsx          # Main content section (business logic)
+│   └── MyFeatureContent.props.ts    # Props for content section
+├── _hooks/
+│   └── useMyFeatureData.ts          # Data fetching hook
+└── _utils/
+    └── constants.ts                  # Page-specific constants
+```
+
+#### page.tsx — Ultra-thin:
 ```typescript
-// app/[locale]/my-feature/page.tsx
-import { getTranslations } from 'next-intl/server';
-import { MyFeatureClient } from './MyFeatureClient';
+// app/[locale]/my-feature/page.tsx (≤15 lines)
+import { MyFeaturePage } from './_components/MyFeaturePage';
 
-export async function generateMetadata({ params: { locale } }: Props) {
-  const t = await getTranslations({ locale, namespace: 'myFeature' });
-  return { title: t('meta.title') };
-}
-
-export default async function MyFeaturePage() {
-  // Server-side data fetching if needed
-  return <MyFeatureClient />;
+export default function Page() {
+  return <MyFeaturePage />;
 }
 ```
 
-#### For a Client Component:
+#### Main Page Component — Orchestrator:
 ```typescript
-// app/[locale]/my-feature/MyFeatureClient.tsx
+// app/[locale]/my-feature/_components/MyFeaturePage.tsx
 'use client';
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { MyFeatureHeader } from './MyFeatureHeader';
+import { MyFeatureContent } from './MyFeatureContent';
+import { useMyFeatureData } from '../_hooks/useMyFeatureData';
 
-interface MyFeatureClientProps {
-  initialData?: MyData;
-}
-
-export function MyFeatureClient({ initialData }: MyFeatureClientProps) {
-  const t = useTranslations('myFeature');
-  const [data, setData] = useState(initialData);
+export function MyFeaturePage() {
+  const { data, isLoading, error } = useMyFeatureData();
 
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-2xl font-bold">{t('title')}</h1>
-      {/* Feature content */}
-    </div>
+    <main className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16 py-16">
+      <MyFeatureHeader />
+      <MyFeatureContent data={data} isLoading={isLoading} error={error} />
+    </main>
   );
+}
+```
+
+#### Section Component — Where business logic lives:
+```typescript
+// app/[locale]/my-feature/_components/MyFeatureContent.tsx
+'use client';
+
+import { useTranslations } from 'next-intl';
+import { MyFeatureContentProps } from './MyFeatureContent.props';
+
+export function MyFeatureContent({ data, isLoading, error }: MyFeatureContentProps) {
+  const t = useTranslations('myFeature');
+
+  if (isLoading) return <Skeleton />;
+  if (error) return <ErrorMessage message={error} />;
+
+  return (
+    <section className="mt-8">
+      <h2 className="text-xl font-semibold">{t('content.title')}</h2>
+      {/* Section content */}
+    </section>
+  );
+}
+```
+
+#### Custom Hook — Data fetching:
+```typescript
+// app/[locale]/my-feature/_hooks/useMyFeatureData.ts
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+
+interface UseMyFeatureDataReturn {
+  data: MyData[] | null;
+  isLoading: boolean;
+  error: string | null;
+  refetch: () => void;
+}
+
+export function useMyFeatureData(): UseMyFeatureDataReturn {
+  const [data, setData] = useState<MyData[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/v1/my-feature');
+      if (!res.ok) throw new Error('Failed to fetch');
+      const json = await res.json();
+      setData(json.items);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Unknown error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  return { data, isLoading, error, refetch: fetchData };
 }
 ```
 
@@ -667,18 +868,22 @@ import { cn } from '@/lib/utils/utils';
 ## Self-Verification Checklist
 
 Before completing any feature:
+- [ ] **page.tsx is ultra-thin** (≤15 lines, just imports + renders `*Page` component)
+- [ ] **Feature-scoped directory structure** (`_components/`, `_hooks/`, `_utils/`, `_context/` as needed)
+- [ ] **Business logic lives in sections/hooks**, NOT in page.tsx or presentational components
+- [ ] **Props interfaces in `.props.ts` files** for all complex components
 - [ ] All TypeScript types are properly defined (no `any`)
 - [ ] Hook ordering follows the 9-step pattern
-- [ ] All strings are translated (all locales)
+- [ ] All strings are translated (Italian only — `messages/it.json`)
 - [ ] Component is accessible (keyboard, screen reader)
 - [ ] Loading and error states are handled
 - [ ] Mobile-responsive design
 - [ ] Code passes `pnpm typecheck`
 - [ ] Code passes `pnpm lint`
-- [ ] Feature works in both light and dark mode
 - [ ] **Mutations use `.isPending` for loading states** (not manual state)
 - [ ] **Cache invalidation implemented** where needed
 - [ ] **No barrel files created** (no index.ts re-exports)
+- [ ] **No monolithic page components** (>200 lines must be split into sections)
 
 ## Communication Style
 

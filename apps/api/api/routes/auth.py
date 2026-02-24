@@ -30,6 +30,11 @@ def _user_to_response(user: User) -> UserResponse:
         linkedin_url=user.linkedin_url,
         github_url=user.github_url,
         portfolio_url=user.portfolio_url,
+        user_type=user.user_type or "talent",
+        company_name=user.company_name,
+        company_website=user.company_website,
+        company_size=user.company_size,
+        industry=user.industry,
         created_at=user.created_at,
     )
 
@@ -47,6 +52,10 @@ async def signup(data: SignupRequest, db: Session = Depends(get_db)):
         email=data.email,
         password_hash=hash_password(data.password),
         full_name=data.full_name,
+        user_type=data.user_type,
+        company_name=data.company_name,
+        company_website=data.company_website,
+        industry=data.industry,
     )
     db.add(user)
     db.commit()

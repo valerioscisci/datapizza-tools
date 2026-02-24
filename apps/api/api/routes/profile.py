@@ -67,6 +67,12 @@ def _build_profile_response(user: User, experiences: list[Experience], education
         linkedin_url=user.linkedin_url,
         github_url=user.github_url,
         portfolio_url=user.portfolio_url,
+        user_type=user.user_type or "talent",
+        company_name=user.company_name,
+        company_website=user.company_website,
+        company_size=user.company_size,
+        industry=user.industry,
+        is_public=bool(user.is_public),
         experiences=[_experience_to_response(exp) for exp in experiences],
         educations=[_education_to_response(edu) for edu in educations],
         created_at=user.created_at,
@@ -103,6 +109,11 @@ async def update_profile(
     if "skills" in update_data:
         skills = update_data.pop("skills")
         current_user.skills_json = json.dumps(skills) if skills is not None else "[]"
+
+    # Special handling: convert is_public bool to Integer for SQLite
+    if "is_public" in update_data:
+        is_public = update_data.pop("is_public")
+        current_user.is_public = 1 if is_public else 0
 
     for field, value in update_data.items():
         setattr(current_user, field, value)

@@ -19,6 +19,11 @@ interface BackendUser {
   availability_status: string;
   reskilling_status: string | null;
   adopted_by_company: string | null;
+  user_type: string;
+  company_name: string | null;
+  company_website: string | null;
+  company_size: string | null;
+  industry: string | null;
   created_at: string;
 }
 
