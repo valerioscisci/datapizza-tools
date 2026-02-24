@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 from api.database.connection import SessionLocal, engine, Base
-from api.database.models import Job, User, Application, News, Course, Experience, Education, Proposal, ProposalCourse
+from api.database.models import Job, User, Application, News, Course, Experience, Education, Proposal, ProposalCourse, ProposalMilestone, ProposalMessage
 from api.auth import hash_password
 
 
@@ -1083,11 +1083,13 @@ def seed_experiences_and_educations():
 
 
 def seed_companies_and_proposals():
-    """Seed 3 company users and 3 proposals linking companies to talents with courses."""
+    """Seed 3 company users and 4 proposals linking companies to talents with courses, milestones, and messages."""
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        # Clean existing proposals and proposal courses
+        # Clean existing data
+        db.query(ProposalMessage).delete()
+        db.query(ProposalMilestone).delete()
         db.query(ProposalCourse).delete()
         db.query(Proposal).delete()
         db.commit()
@@ -1150,36 +1152,79 @@ def seed_companies_and_proposals():
         talents = db.query(User).filter(User.user_type == "talent", User.is_public == 1).order_by(User.created_at.asc()).all()
         courses = db.query(Course).filter(Course.is_active == 1).order_by(Course.created_at.asc()).all()
 
-        if len(talents) < 3 or len(courses) < 3:
+        if len(talents) < 4 or len(courses) < 8:
             print("Not enough talents or courses found, skipping proposal seeding.")
             return
 
-        # Proposal 1: TechFlow Italia -> Marco Rossi (talent[0]) with 3 AI courses
+        # Proposal 1: TechFlow Italia -> Marco Rossi (talent[0]) with 3 AI courses (accepted, 1 completed)
         proposal1 = Proposal(
             company_id=company_users[0].id,
             talent_id=talents[0].id,
             status="accepted",
             message="Ciao Marco, siamo interessati al tuo profilo frontend. Ti proponiamo un percorso di formazione AI per integrarti nel nostro team che lavora su prodotti AI-driven.",
             budget_range="5000-8000",
+            total_xp=235,
             created_at=datetime.now(timezone.utc) - timedelta(days=10),
         )
         db.add(proposal1)
         db.flush()
 
         pc1_courses = [
-            ProposalCourse(proposal_id=proposal1.id, course_id=courses[0].id, order=0, is_completed=1, completed_at=datetime.now(timezone.utc) - timedelta(days=3)),
-            ProposalCourse(proposal_id=proposal1.id, course_id=courses[1].id, order=1, is_completed=0),
-            ProposalCourse(proposal_id=proposal1.id, course_id=courses[3].id, order=2, is_completed=0),
+            ProposalCourse(
+                proposal_id=proposal1.id, course_id=courses[0].id, order=0,
+                is_completed=1, completed_at=datetime.now(timezone.utc) - timedelta(days=3),
+                started_at=datetime.now(timezone.utc) - timedelta(days=8),
+                xp_earned=200,
+                company_notes="Inizia da qui, e' il corso fondamentale.",
+                deadline=datetime.now(timezone.utc) + timedelta(days=20),
+            ),
+            ProposalCourse(
+                proposal_id=proposal1.id, course_id=courses[1].id, order=1,
+                is_completed=0,
+                started_at=datetime.now(timezone.utc) - timedelta(days=1),
+                company_notes="Secondo passo, dopo aver completato il primo.",
+                deadline=datetime.now(timezone.utc) + timedelta(days=30),
+            ),
+            ProposalCourse(
+                proposal_id=proposal1.id, course_id=courses[3].id, order=2,
+                is_completed=0,
+                deadline=datetime.now(timezone.utc) + timedelta(days=45),
+            ),
         ]
         db.add_all(pc1_courses)
 
-        # Proposal 2: AI Solutions Srl -> Sara Romano (talent[3]) with 2 ML courses
+        # Milestones for proposal 1
+        milestones1 = [
+            ProposalMilestone(
+                proposal_id=proposal1.id, milestone_type="first_course",
+                title="Primo corso iniziato!",
+                description="Bonus per aver iniziato il percorso formativo",
+                xp_reward=25,
+                achieved_at=datetime.now(timezone.utc) - timedelta(days=8),
+            ),
+            ProposalMilestone(
+                proposal_id=proposal1.id, milestone_type="course_started",
+                title="Corso iniziato",
+                xp_reward=10,
+                achieved_at=datetime.now(timezone.utc) - timedelta(days=8),
+            ),
+            ProposalMilestone(
+                proposal_id=proposal1.id, milestone_type="course_completed",
+                title="Corso completato: " + courses[0].title,
+                xp_reward=200,
+                achieved_at=datetime.now(timezone.utc) - timedelta(days=3),
+            ),
+        ]
+        db.add_all(milestones1)
+
+        # Proposal 2: AI Solutions Srl -> Giulia Bianchi (talent[1]) with 2 ML courses (accepted)
         proposal2 = Proposal(
             company_id=company_users[1].id,
-            talent_id=talents[3].id,
-            status="sent",
-            message="Buongiorno Sara, il tuo profilo di data scientist in transizione verso ML engineering e' perfetto per noi. Ecco un percorso formativo personalizzato.",
+            talent_id=talents[1].id,
+            status="accepted",
+            message="Buongiorno Giulia, il tuo profilo di backend engineer e' perfetto per noi. Ecco un percorso formativo personalizzato.",
             budget_range="3000-5000",
+            total_xp=0,
             created_at=datetime.now(timezone.utc) - timedelta(days=5),
         )
         db.add(proposal2)
@@ -1191,13 +1236,14 @@ def seed_companies_and_proposals():
         ]
         db.add_all(pc2_courses)
 
-        # Proposal 3: DataSphere -> Giulia Bianchi (talent[1]) with 2 courses
+        # Proposal 3: DataSphere -> Luca Ferrari (talent[2]) with 2 courses (sent)
         proposal3 = Proposal(
             company_id=company_users[2].id,
-            talent_id=talents[1].id,
+            talent_id=talents[2].id,
             status="sent",
-            message="Giulia, la tua esperienza in backend engineering e' impressionante. Vorremmo proporti un percorso per consolidare le tue competenze AI e unirti al nostro team dati.",
+            message="Luca, la tua esperienza full stack e' impressionante. Vorremmo proporti un percorso per consolidare le tue competenze AI e unirti al nostro team dati.",
             budget_range="4000-6000",
+            total_xp=0,
             created_at=datetime.now(timezone.utc) - timedelta(days=2),
         )
         db.add(proposal3)
@@ -1209,8 +1255,110 @@ def seed_companies_and_proposals():
         ]
         db.add_all(pc3_courses)
 
+        # Proposal 4: DataSphere -> Sara Romano (talent[3]) - HIRED
+        proposal4 = Proposal(
+            company_id=company_users[2].id,
+            talent_id=talents[3].id,
+            status="hired",
+            message="Sara, il tuo percorso formativo e' stato eccellente. Siamo lieti di offrirti una posizione nel nostro team.",
+            budget_range="6000-10000",
+            total_xp=650,
+            hired_at=datetime.now(timezone.utc) - timedelta(days=1),
+            hiring_notes="Sara ha completato brillantemente il percorso formativo. Assunta come ML Engineer.",
+            created_at=datetime.now(timezone.utc) - timedelta(days=20),
+        )
+        db.add(proposal4)
+        db.flush()
+
+        pc4_courses = [
+            ProposalCourse(
+                proposal_id=proposal4.id, course_id=courses[2].id, order=0,
+                is_completed=1, completed_at=datetime.now(timezone.utc) - timedelta(days=10),
+                started_at=datetime.now(timezone.utc) - timedelta(days=18),
+                xp_earned=200,
+            ),
+            ProposalCourse(
+                proposal_id=proposal4.id, course_id=courses[4].id, order=1,
+                is_completed=1, completed_at=datetime.now(timezone.utc) - timedelta(days=5),
+                started_at=datetime.now(timezone.utc) - timedelta(days=9),
+                xp_earned=300,
+            ),
+        ]
+        db.add_all(pc4_courses)
+
+        # Milestones for proposal 4
+        milestones4 = [
+            ProposalMilestone(
+                proposal_id=proposal4.id, milestone_type="first_course",
+                title="Primo corso iniziato!",
+                description="Bonus per aver iniziato il percorso formativo",
+                xp_reward=25,
+                achieved_at=datetime.now(timezone.utc) - timedelta(days=18),
+            ),
+            ProposalMilestone(
+                proposal_id=proposal4.id, milestone_type="course_completed",
+                title="Corso completato: " + courses[2].title,
+                xp_reward=200,
+                achieved_at=datetime.now(timezone.utc) - timedelta(days=10),
+            ),
+            ProposalMilestone(
+                proposal_id=proposal4.id, milestone_type="course_completed",
+                title="Corso completato: " + courses[4].title,
+                xp_reward=300,
+                achieved_at=datetime.now(timezone.utc) - timedelta(days=5),
+            ),
+            ProposalMilestone(
+                proposal_id=proposal4.id, milestone_type="all_complete",
+                title="Percorso completato al 100%",
+                xp_reward=50,
+                achieved_at=datetime.now(timezone.utc) - timedelta(days=5),
+            ),
+        ]
+        db.add_all(milestones4)
+
+        # Update Sara Romano: hired by DataSphere
+        sara = talents[3]
+        sara.availability_status = "employed"
+        sara.reskilling_status = "completed"
+        sara.adopted_by_company = "DataSphere"
+
+        # Messages between companies and talents
+        messages = [
+            ProposalMessage(
+                proposal_id=proposal1.id,
+                sender_id=company_users[0].id,
+                content="Ciao Marco, come procede il primo corso? Se hai domande non esitare a scriverci.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=7),
+            ),
+            ProposalMessage(
+                proposal_id=proposal1.id,
+                sender_id=talents[0].id,
+                content="Grazie Laura! Ho completato il primo modulo, molto interessante. Procedo con il secondo.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=6),
+            ),
+            ProposalMessage(
+                proposal_id=proposal1.id,
+                sender_id=company_users[0].id,
+                content="Ottimo lavoro! Ti abbiamo aggiornato le note del corso con alcune risorse aggiuntive.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=5),
+            ),
+            ProposalMessage(
+                proposal_id=proposal4.id,
+                sender_id=company_users[2].id,
+                content="Complimenti Sara per aver completato il percorso! Ti contatteremo presto per i prossimi step.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=3),
+            ),
+            ProposalMessage(
+                proposal_id=proposal4.id,
+                sender_id=talents[3].id,
+                content="Grazie mille! Sono molto entusiasta di questa opportunita'.",
+                created_at=datetime.now(timezone.utc) - timedelta(days=2),
+            ),
+        ]
+        db.add_all(messages)
+
         db.commit()
-        print("Seeded 3 proposals with courses successfully.")
+        print("Seeded 4 proposals with courses, milestones, and messages successfully.")
     finally:
         db.close()
 

@@ -1,13 +1,14 @@
-"""Tests for proposal route handlers (api/routes/proposals.py).
+"""Tests for proposal route handlers (api/routes/proposals/).
 
-Covers proposal creation, listing, detail, update, and course completion.
+Covers proposal creation, listing, detail, update, course completion,
+course start, notes, company-update, dashboard, hiring, and gamification.
 Tests cover both company and talent perspectives, access control,
-status transitions, and progress computation.
+status transitions, progress computation, XP, milestones, and messages.
 """
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from unittest.mock import MagicMock, patch, AsyncMock
 from uuid import uuid4
 
@@ -18,12 +19,67 @@ from api.routes.proposals.router import (
     create_proposal,
     list_proposals,
     get_proposal,
+    get_proposal_dashboard,
     update_proposal,
     complete_proposal_course,
+    start_proposal_course,
+    update_course_notes,
+    update_course_company,
     get_current_company_user,
     _build_proposal_response,
+    _xp_for_level,
 )
-from api.routes.proposals.schemas import ProposalCreate, ProposalUpdate
+from api.routes.proposals.schemas import (
+    ProposalCreate,
+    ProposalUpdate,
+    CourseNotesUpdate,
+    CompanyCourseUpdate,
+)
+
+
+def _make_proposal_course(proposal_id, course_id, order=0, is_completed=0, completed_at=None, started_at=None, talent_notes=None, company_notes=None, deadline=None, xp_earned=0):
+    """Helper to create a fully-formed mock ProposalCourse."""
+    pc = MagicMock()
+    pc.id = str(uuid4())
+    pc.proposal_id = proposal_id
+    pc.course_id = course_id
+    pc.order = order
+    pc.is_completed = is_completed
+    pc.completed_at = completed_at
+    pc.started_at = started_at
+    pc.talent_notes = talent_notes
+    pc.company_notes = company_notes
+    pc.deadline = deadline
+    pc.xp_earned = xp_earned
+    pc.created_at = datetime(2024, 7, 1, tzinfo=timezone.utc)
+    return pc
+
+
+def _make_course(course_id=None, title="Test Course", provider="Coursera", level="intermediate", url="https://example.com", duration="8 weeks", category="ML"):
+    """Helper to create a fully-formed mock Course."""
+    course = MagicMock()
+    course.id = course_id or str(uuid4())
+    course.title = title
+    course.provider = provider
+    course.level = level
+    course.url = url
+    course.duration = duration
+    course.category = category
+    course.is_active = 1
+    return course
+
+
+def _make_milestone(proposal_id, milestone_type="course_completed", title="Corso completato", xp_reward=200):
+    """Helper to create a fully-formed mock ProposalMilestone."""
+    m = MagicMock()
+    m.id = str(uuid4())
+    m.proposal_id = proposal_id
+    m.milestone_type = milestone_type
+    m.title = title
+    m.description = None
+    m.xp_reward = xp_reward
+    m.achieved_at = datetime(2024, 8, 1, tzinfo=timezone.utc)
+    return m
 
 
 # --- get_current_company_user dependency ---
@@ -76,25 +132,11 @@ class TestBuildProposalResponse:
 
     def test_computes_progress_partial(self, mock_proposal, mock_company_user, mock_user, mock_course):
         """Progress should be 0.5 when half of courses are completed."""
-        pc1 = MagicMock()
-        pc1.id = str(uuid4())
-        pc1.course_id = mock_course.id
-        pc1.order = 0
-        pc1.is_completed = 1
-        pc1.completed_at = datetime(2024, 8, 1, tzinfo=timezone.utc)
+        pc1 = _make_proposal_course(mock_proposal.id, mock_course.id, order=0, is_completed=1, completed_at=datetime(2024, 8, 1, tzinfo=timezone.utc))
 
-        course2 = MagicMock()
-        course2.id = str(uuid4())
-        course2.title = "Advanced ML"
-        course2.provider = "Udemy"
-        course2.level = "advanced"
+        course2 = _make_course(title="Advanced ML", provider="Udemy", level="advanced")
 
-        pc2 = MagicMock()
-        pc2.id = str(uuid4())
-        pc2.course_id = course2.id
-        pc2.order = 1
-        pc2.is_completed = 0
-        pc2.completed_at = None
+        pc2 = _make_proposal_course(mock_proposal.id, course2.id, order=1)
 
         courses_map = {mock_course.id: mock_course, course2.id: course2}
         response = _build_proposal_response(
@@ -113,25 +155,10 @@ class TestBuildProposalResponse:
 
     def test_courses_sorted_by_order(self, mock_proposal, mock_company_user, mock_user, mock_course):
         """Courses in response should be sorted by order."""
-        course2 = MagicMock()
-        course2.id = str(uuid4())
-        course2.title = "Course 2"
-        course2.provider = "Udemy"
-        course2.level = "beginner"
+        course2 = _make_course(title="Course 2", provider="Udemy", level="beginner")
 
-        pc1 = MagicMock()
-        pc1.id = str(uuid4())
-        pc1.course_id = course2.id
-        pc1.order = 1
-        pc1.is_completed = 0
-        pc1.completed_at = None
-
-        pc0 = MagicMock()
-        pc0.id = str(uuid4())
-        pc0.course_id = mock_course.id
-        pc0.order = 0
-        pc0.is_completed = 0
-        pc0.completed_at = None
+        pc1 = _make_proposal_course(mock_proposal.id, course2.id, order=1)
+        pc0 = _make_proposal_course(mock_proposal.id, mock_course.id, order=0)
 
         courses_map = {mock_course.id: mock_course, course2.id: course2}
         response = _build_proposal_response(
@@ -140,6 +167,79 @@ class TestBuildProposalResponse:
         )
         assert response.courses[0].order == 0
         assert response.courses[1].order == 1
+
+    def test_includes_milestones(self, mock_proposal, mock_company_user, mock_user, mock_proposal_course, mock_course):
+        """Response should include milestones when provided."""
+        milestone = _make_milestone(mock_proposal.id)
+        courses_map = {mock_course.id: mock_course}
+        response = _build_proposal_response(
+            mock_proposal, mock_company_user, mock_user,
+            [mock_proposal_course], courses_map,
+            milestones=[milestone],
+        )
+        assert len(response.milestones) == 1
+        assert response.milestones[0].milestone_type == "course_completed"
+
+    def test_includes_total_xp(self, mock_proposal, mock_company_user, mock_user):
+        """Response should include total_xp."""
+        mock_proposal.total_xp = 350
+        response = _build_proposal_response(
+            mock_proposal, mock_company_user, mock_user, [], {},
+        )
+        assert response.total_xp == 350
+
+    def test_includes_hired_fields(self, mock_proposal, mock_company_user, mock_user):
+        """Response should include hired_at and hiring_notes when set."""
+        hired_time = datetime(2024, 9, 1, tzinfo=timezone.utc)
+        mock_proposal.hired_at = hired_time
+        mock_proposal.hiring_notes = "Great candidate"
+        response = _build_proposal_response(
+            mock_proposal, mock_company_user, mock_user, [], {},
+        )
+        assert response.hired_at == hired_time
+        assert response.hiring_notes == "Great candidate"
+
+    def test_includes_course_enriched_fields(self, mock_proposal, mock_company_user, mock_user, mock_course):
+        """Response courses should include url, duration, category from Course model."""
+        pc = _make_proposal_course(mock_proposal.id, mock_course.id)
+        courses_map = {mock_course.id: mock_course}
+        response = _build_proposal_response(
+            mock_proposal, mock_company_user, mock_user,
+            [pc], courses_map,
+        )
+        assert response.courses[0].course_url == mock_course.url
+        assert response.courses[0].course_duration == mock_course.duration
+        assert response.courses[0].course_category == mock_course.category
+
+    def test_computes_is_overdue(self, mock_proposal, mock_company_user, mock_user, mock_course):
+        """is_overdue should be True when deadline has passed and course not completed."""
+        pc = _make_proposal_course(
+            mock_proposal.id, mock_course.id,
+            deadline=datetime(2024, 1, 1, tzinfo=timezone.utc),
+        )
+        courses_map = {mock_course.id: mock_course}
+        response = _build_proposal_response(
+            mock_proposal, mock_company_user, mock_user,
+            [pc], courses_map,
+        )
+        assert response.courses[0].is_overdue is True
+        assert response.courses[0].days_remaining is not None
+        assert response.courses[0].days_remaining < 0
+
+    def test_computes_days_remaining(self, mock_proposal, mock_company_user, mock_user, mock_course):
+        """days_remaining should be computed from deadline."""
+        future = datetime.now(timezone.utc) + timedelta(days=10)
+        pc = _make_proposal_course(
+            mock_proposal.id, mock_course.id,
+            deadline=future,
+        )
+        courses_map = {mock_course.id: mock_course}
+        response = _build_proposal_response(
+            mock_proposal, mock_company_user, mock_user,
+            [pc], courses_map,
+        )
+        assert response.courses[0].is_overdue is False
+        assert response.courses[0].days_remaining >= 9
 
 
 # --- POST /proposals ---
@@ -168,7 +268,7 @@ class TestCreateProposal:
                 # Course lookup
                 call_mock.all.return_value = [mock_course]
             else:
-                # After commit: company, talent, proposal_courses, courses
+                # After commit: company, talent, proposal_courses, courses, milestones
                 call_mock.first.return_value = mock_company_user
                 call_mock.all.return_value = []
             return call_mock
@@ -255,19 +355,8 @@ class TestCreateProposal:
         mock_user.is_public = 1
         mock_user.is_active = 1
 
-        course1 = MagicMock()
-        course1.id = str(uuid4())
-        course1.title = "Course 1"
-        course1.provider = "Coursera"
-        course1.level = "beginner"
-        course1.is_active = 1
-
-        course2 = MagicMock()
-        course2.id = str(uuid4())
-        course2.title = "Course 2"
-        course2.provider = "Udemy"
-        course2.level = "intermediate"
-        course2.is_active = 1
+        course1 = _make_course(title="Course 1", provider="Coursera", level="beginner")
+        course2 = _make_course(title="Course 2", provider="Udemy", level="intermediate")
 
         filter_calls = []
 
@@ -380,9 +469,8 @@ class TestListProposals:
 class TestGetProposal:
     """Tests for the GET /proposals/{id} endpoint."""
 
-    @pytest.mark.asyncio
-    async def test_get_proposal_as_company_owner(self, mock_db, mock_company_user, mock_user, mock_proposal, mock_course, mock_proposal_course):
-        """Company owner should see proposal detail."""
+    def _setup_get_proposal_mocks(self, mock_db, mock_proposal, mock_company_user, mock_user, mock_proposal_course, mock_course):
+        """Setup filter side_effect for get_proposal tests."""
         filter_calls = []
 
         def side_effect_filter(*args, **kwargs):
@@ -396,11 +484,19 @@ class TestGetProposal:
                 call_mock.first.return_value = mock_user
             elif len(filter_calls) == 4:
                 call_mock.all.return_value = [mock_proposal_course]
-            else:
+            elif len(filter_calls) == 5:
                 call_mock.all.return_value = [mock_course]
+            else:
+                # milestones
+                call_mock.all.return_value = []
             return call_mock
 
         mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+    @pytest.mark.asyncio
+    async def test_get_proposal_as_company_owner(self, mock_db, mock_company_user, mock_user, mock_proposal, mock_course, mock_proposal_course):
+        """Company owner should see proposal detail."""
+        self._setup_get_proposal_mocks(mock_db, mock_proposal, mock_company_user, mock_user, mock_proposal_course, mock_course)
 
         result = await get_proposal(
             proposal_id=mock_proposal.id,
@@ -451,17 +547,15 @@ class TestGetProposal:
         assert exc_info.value.status_code == 404
 
 
-# --- PATCH /proposals/{id} ---
+# --- GET /proposals/{id}/dashboard ---
 
 
-class TestUpdateProposal:
-    """Tests for the PATCH /proposals/{id} endpoint."""
+class TestGetProposalDashboard:
+    """Tests for the GET /proposals/{id}/dashboard endpoint."""
 
     @pytest.mark.asyncio
-    async def test_talent_accepts_proposal(self, mock_db, mock_user, mock_proposal, mock_company_user, mock_course, mock_proposal_course):
-        """Talent should be able to accept a sent proposal."""
-        mock_proposal.status = "sent"
-
+    async def test_dashboard_returns_enriched_response(self, mock_db, mock_company_user, mock_user, mock_proposal, mock_course, mock_proposal_course):
+        """Dashboard should return enriched ProposalResponse."""
         filter_calls = []
 
         def side_effect_filter(*args, **kwargs):
@@ -475,11 +569,67 @@ class TestUpdateProposal:
                 call_mock.first.return_value = mock_user
             elif len(filter_calls) == 4:
                 call_mock.all.return_value = [mock_proposal_course]
-            else:
+            elif len(filter_calls) == 5:
                 call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
             return call_mock
 
         mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        result = await get_proposal_dashboard(
+            proposal_id=mock_proposal.id,
+            current_user=mock_company_user, db=mock_db,
+        )
+        assert result.id == mock_proposal.id
+
+    @pytest.mark.asyncio
+    async def test_dashboard_not_found(self, mock_db, mock_company_user):
+        """Should raise 404 when proposal does not exist."""
+        mock_db.query.return_value.filter.return_value.first.return_value = None
+
+        with pytest.raises(HTTPException) as exc_info:
+            await get_proposal_dashboard(
+                proposal_id=str(uuid4()),
+                current_user=mock_company_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 404
+
+
+# --- PATCH /proposals/{id} ---
+
+
+class TestUpdateProposal:
+    """Tests for the PATCH /proposals/{id} endpoint."""
+
+    def _setup_update_success_mocks(self, mock_db, mock_proposal, mock_company_user, mock_user, mock_proposal_course, mock_course):
+        """Setup filter side_effect for successful update tests."""
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 4:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 5:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+    @pytest.mark.asyncio
+    async def test_talent_accepts_proposal(self, mock_db, mock_user, mock_proposal, mock_company_user, mock_course, mock_proposal_course):
+        """Talent should be able to accept a sent proposal."""
+        mock_proposal.status = "sent"
+        self._setup_update_success_mocks(mock_db, mock_proposal, mock_company_user, mock_user, mock_proposal_course, mock_course)
 
         data = ProposalUpdate(status="accepted")
         result = await update_proposal(
@@ -493,25 +643,7 @@ class TestUpdateProposal:
     async def test_talent_rejects_proposal(self, mock_db, mock_user, mock_proposal, mock_company_user, mock_course, mock_proposal_course):
         """Talent should be able to reject a sent proposal."""
         mock_proposal.status = "sent"
-
-        filter_calls = []
-
-        def side_effect_filter(*args, **kwargs):
-            call_mock = MagicMock()
-            filter_calls.append(call_mock)
-            if len(filter_calls) == 1:
-                call_mock.first.return_value = mock_proposal
-            elif len(filter_calls) == 2:
-                call_mock.first.return_value = mock_company_user
-            elif len(filter_calls) == 3:
-                call_mock.first.return_value = mock_user
-            elif len(filter_calls) == 4:
-                call_mock.all.return_value = [mock_proposal_course]
-            else:
-                call_mock.all.return_value = [mock_course]
-            return call_mock
-
-        mock_db.query.return_value.filter.side_effect = side_effect_filter
+        self._setup_update_success_mocks(mock_db, mock_proposal, mock_company_user, mock_user, mock_proposal_course, mock_course)
 
         data = ProposalUpdate(status="rejected")
         result = await update_proposal(
@@ -524,25 +656,7 @@ class TestUpdateProposal:
     async def test_company_updates_draft_message(self, mock_db, mock_company_user, mock_proposal, mock_user, mock_course, mock_proposal_course):
         """Company should be able to update message on draft proposals."""
         mock_proposal.status = "draft"
-
-        filter_calls = []
-
-        def side_effect_filter(*args, **kwargs):
-            call_mock = MagicMock()
-            filter_calls.append(call_mock)
-            if len(filter_calls) == 1:
-                call_mock.first.return_value = mock_proposal
-            elif len(filter_calls) == 2:
-                call_mock.first.return_value = mock_company_user
-            elif len(filter_calls) == 3:
-                call_mock.first.return_value = mock_user
-            elif len(filter_calls) == 4:
-                call_mock.all.return_value = [mock_proposal_course]
-            else:
-                call_mock.all.return_value = [mock_course]
-            return call_mock
-
-        mock_db.query.return_value.filter.side_effect = side_effect_filter
+        self._setup_update_success_mocks(mock_db, mock_proposal, mock_company_user, mock_user, mock_proposal_course, mock_course)
 
         data = ProposalUpdate(message="Updated message")
         result = await update_proposal(
@@ -555,25 +669,7 @@ class TestUpdateProposal:
     async def test_company_sends_draft(self, mock_db, mock_company_user, mock_proposal, mock_user, mock_course, mock_proposal_course):
         """Company should be able to send a draft proposal."""
         mock_proposal.status = "draft"
-
-        filter_calls = []
-
-        def side_effect_filter(*args, **kwargs):
-            call_mock = MagicMock()
-            filter_calls.append(call_mock)
-            if len(filter_calls) == 1:
-                call_mock.first.return_value = mock_proposal
-            elif len(filter_calls) == 2:
-                call_mock.first.return_value = mock_company_user
-            elif len(filter_calls) == 3:
-                call_mock.first.return_value = mock_user
-            elif len(filter_calls) == 4:
-                call_mock.all.return_value = [mock_proposal_course]
-            else:
-                call_mock.all.return_value = [mock_course]
-            return call_mock
-
-        mock_db.query.return_value.filter.side_effect = side_effect_filter
+        self._setup_update_success_mocks(mock_db, mock_proposal, mock_company_user, mock_user, mock_proposal_course, mock_course)
 
         data = ProposalUpdate(status="sent")
         result = await update_proposal(
@@ -715,16 +811,24 @@ class TestCompleteProposalCourse:
             elif len(filter_calls) == 2:
                 call_mock.first.return_value = mock_proposal_course
             elif len(filter_calls) == 3:
-                # all_proposal_courses - only this one, already completed
-                call_mock.all.return_value = [mock_proposal_course]
+                # Course lookup for XP
+                call_mock.first.return_value = mock_course
             elif len(filter_calls) == 4:
-                call_mock.first.return_value = mock_company_user
-            elif len(filter_calls) == 5:
-                call_mock.first.return_value = mock_user
-            elif len(filter_calls) == 6:
+                # all_proposal_courses
                 call_mock.all.return_value = [mock_proposal_course]
-            else:
+            elif len(filter_calls) == 5:
+                # existing milestones
+                call_mock.all.return_value = []
+            elif len(filter_calls) == 6:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 7:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 8:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 9:
                 call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
             return call_mock
 
         mock_db.query.return_value.filter.side_effect = side_effect_filter
@@ -742,14 +846,7 @@ class TestCompleteProposalCourse:
         """Proposal should auto-complete when all courses are marked as completed."""
         mock_proposal.status = "accepted"
 
-        # Single course already completed in the check
-        pc = MagicMock()
-        pc.id = str(uuid4())
-        pc.proposal_id = mock_proposal.id
-        pc.course_id = mock_course.id
-        pc.order = 0
-        pc.is_completed = 0  # Will be set to 1
-        pc.completed_at = None
+        pc = _make_proposal_course(mock_proposal.id, mock_course.id)
 
         filter_calls = []
 
@@ -761,15 +858,24 @@ class TestCompleteProposalCourse:
             elif len(filter_calls) == 2:
                 call_mock.first.return_value = pc
             elif len(filter_calls) == 3:
-                call_mock.all.return_value = [pc]
+                # Course lookup for XP
+                call_mock.first.return_value = mock_course
             elif len(filter_calls) == 4:
-                call_mock.first.return_value = mock_company_user
-            elif len(filter_calls) == 5:
-                call_mock.first.return_value = mock_user
-            elif len(filter_calls) == 6:
+                # all_proposal_courses
                 call_mock.all.return_value = [pc]
-            else:
+            elif len(filter_calls) == 5:
+                # existing milestones
+                call_mock.all.return_value = []
+            elif len(filter_calls) == 6:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 7:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 8:
+                call_mock.all.return_value = [pc]
+            elif len(filter_calls) == 9:
                 call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
             return call_mock
 
         mock_db.query.return_value.filter.side_effect = side_effect_filter
@@ -779,7 +885,6 @@ class TestCompleteProposalCourse:
             course_id=mock_course.id,
             current_user=mock_user, db=mock_db,
         )
-        # The course completion happens in the route, and auto-complete sets status
         assert mock_proposal.status == "completed"
 
     @pytest.mark.asyncio
@@ -917,6 +1022,1097 @@ class TestCompleteProposalCourse:
         assert "already completed" in exc_info.value.detail
 
 
+# --- Gamification: XP calculation ---
+
+
+class TestXPCalculation:
+    """Tests for XP calculation based on course level."""
+
+    def test_xp_beginner(self):
+        """Beginner courses should earn 100 XP."""
+        assert _xp_for_level("beginner") == 100
+
+    def test_xp_intermediate(self):
+        """Intermediate courses should earn 200 XP."""
+        assert _xp_for_level("intermediate") == 200
+
+    def test_xp_advanced(self):
+        """Advanced courses should earn 300 XP."""
+        assert _xp_for_level("advanced") == 300
+
+    def test_xp_unknown_defaults_to_100(self):
+        """Unknown level should default to 100 XP."""
+        assert _xp_for_level("unknown") == 100
+
+    @pytest.mark.asyncio
+    async def test_xp_earned_set_on_course_completion(self, mock_db, mock_user, mock_proposal, mock_company_user, mock_course):
+        """xp_earned should be set on the ProposalCourse after completion."""
+        mock_proposal.status = "accepted"
+        mock_course.level = "advanced"
+
+        pc = _make_proposal_course(mock_proposal.id, mock_course.id)
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = pc
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = mock_course
+            elif len(filter_calls) == 4:
+                call_mock.all.return_value = [pc]
+            elif len(filter_calls) == 5:
+                call_mock.all.return_value = []
+            elif len(filter_calls) == 6:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 7:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 8:
+                call_mock.all.return_value = [pc]
+            elif len(filter_calls) == 9:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        await complete_proposal_course(
+            proposal_id=mock_proposal.id,
+            course_id=mock_course.id,
+            current_user=mock_user, db=mock_db,
+        )
+        assert pc.xp_earned == 300
+
+    @pytest.mark.asyncio
+    async def test_total_xp_accumulates(self, mock_db, mock_user, mock_proposal, mock_company_user, mock_course):
+        """total_xp on proposal should accumulate as courses complete."""
+        mock_proposal.status = "accepted"
+        mock_proposal.total_xp = 100  # Already some XP
+
+        pc = _make_proposal_course(mock_proposal.id, mock_course.id)
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = pc
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = mock_course
+            elif len(filter_calls) == 4:
+                call_mock.all.return_value = [pc]
+            elif len(filter_calls) == 5:
+                call_mock.all.return_value = []
+            elif len(filter_calls) == 6:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 7:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 8:
+                call_mock.all.return_value = [pc]
+            elif len(filter_calls) == 9:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        await complete_proposal_course(
+            proposal_id=mock_proposal.id,
+            course_id=mock_course.id,
+            current_user=mock_user, db=mock_db,
+        )
+        # 100 existing + 200 (intermediate) + 50 (all_complete milestone for 1/1 = 100%)
+        assert mock_proposal.total_xp > 100
+
+
+# --- Gamification: Milestone creation ---
+
+
+class TestMilestoneCreation:
+    """Tests for milestone creation during course completion."""
+
+    @pytest.mark.asyncio
+    async def test_course_completed_milestone_created(self, mock_db, mock_user, mock_proposal, mock_company_user, mock_course):
+        """A course_completed milestone should be created when a course is completed."""
+        mock_proposal.status = "accepted"
+
+        pc = _make_proposal_course(mock_proposal.id, mock_course.id)
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = pc
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = mock_course
+            elif len(filter_calls) == 4:
+                call_mock.all.return_value = [pc]
+            elif len(filter_calls) == 5:
+                call_mock.all.return_value = []
+            elif len(filter_calls) == 6:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 7:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 8:
+                call_mock.all.return_value = [pc]
+            elif len(filter_calls) == 9:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        await complete_proposal_course(
+            proposal_id=mock_proposal.id,
+            course_id=mock_course.id,
+            current_user=mock_user, db=mock_db,
+        )
+        # db.add should be called for the milestone(s)
+        add_calls = mock_db.add.call_args_list
+        assert len(add_calls) >= 1  # At least 1 milestone added
+
+    @pytest.mark.asyncio
+    async def test_streak_3_milestone_created(self, mock_db, mock_user, mock_proposal, mock_company_user):
+        """A streak_3 milestone should be created when 3 consecutive courses are completed."""
+        mock_proposal.status = "accepted"
+        mock_proposal.total_xp = 0
+
+        c1 = _make_course(title="Course 1", level="beginner")
+        c2 = _make_course(title="Course 2", level="beginner")
+        c3 = _make_course(title="Course 3", level="beginner")
+
+        pc1 = _make_proposal_course(mock_proposal.id, c1.id, order=0, is_completed=1, completed_at=datetime(2024, 7, 1, tzinfo=timezone.utc), xp_earned=100)
+        pc2 = _make_proposal_course(mock_proposal.id, c2.id, order=1, is_completed=1, completed_at=datetime(2024, 7, 2, tzinfo=timezone.utc), xp_earned=100)
+        pc3 = _make_proposal_course(mock_proposal.id, c3.id, order=2)
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = pc3
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = c3
+            elif len(filter_calls) == 4:
+                call_mock.all.return_value = [pc1, pc2, pc3]
+            elif len(filter_calls) == 5:
+                call_mock.all.return_value = []  # no existing milestones
+            elif len(filter_calls) == 6:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 7:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 8:
+                call_mock.all.return_value = [pc1, pc2, pc3]
+            elif len(filter_calls) == 9:
+                call_mock.all.return_value = [c1, c2, c3]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        await complete_proposal_course(
+            proposal_id=mock_proposal.id,
+            course_id=c3.id,
+            current_user=mock_user, db=mock_db,
+        )
+        # XP should include streak_3 (100) + course_completed + all_complete (50)
+        assert mock_proposal.total_xp >= 250
+
+    @pytest.mark.asyncio
+    async def test_progress_milestones_50_percent(self, mock_db, mock_user, mock_proposal, mock_company_user):
+        """50% milestone should be created when half the courses are completed."""
+        mock_proposal.status = "accepted"
+        mock_proposal.total_xp = 0
+
+        c1 = _make_course(title="Course 1", level="beginner")
+        c2 = _make_course(title="Course 2", level="beginner")
+        c3 = _make_course(title="Course 3", level="beginner")
+        c4 = _make_course(title="Course 4", level="beginner")
+
+        pc1 = _make_proposal_course(mock_proposal.id, c1.id, order=0, is_completed=1, xp_earned=100)
+        pc2 = _make_proposal_course(mock_proposal.id, c2.id, order=1)
+        pc3 = _make_proposal_course(mock_proposal.id, c3.id, order=2)
+        pc4 = _make_proposal_course(mock_proposal.id, c4.id, order=3)
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = pc2
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = c2
+            elif len(filter_calls) == 4:
+                call_mock.all.return_value = [pc1, pc2, pc3, pc4]
+            elif len(filter_calls) == 5:
+                call_mock.all.return_value = []  # no existing milestones
+            elif len(filter_calls) == 6:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 7:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 8:
+                call_mock.all.return_value = [pc1, pc2, pc3, pc4]
+            elif len(filter_calls) == 9:
+                call_mock.all.return_value = [c1, c2, c3, c4]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        await complete_proposal_course(
+            proposal_id=mock_proposal.id,
+            course_id=c2.id,
+            current_user=mock_user, db=mock_db,
+        )
+        # Should have course_completed + 25_percent + 50_percent milestones
+        # 100 (course) + 50 (25%) + 50 (50%) = 200
+        assert mock_proposal.total_xp == 200
+
+
+# --- PATCH /proposals/{id}/courses/{course_id}/start ---
+
+
+class TestStartProposalCourse:
+    """Tests for the PATCH /proposals/{id}/courses/{course_id}/start endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_start_course_success(self, mock_db, mock_user, mock_proposal, mock_proposal_course, mock_company_user, mock_course):
+        """Talent should be able to start a course in an accepted proposal."""
+        mock_proposal.status = "accepted"
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = mock_proposal_course
+            elif len(filter_calls) == 3:
+                # all_pcs to check first course
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 4:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 5:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 6:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 7:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        result = await start_proposal_course(
+            proposal_id=mock_proposal.id,
+            course_id=mock_course.id,
+            current_user=mock_user, db=mock_db,
+        )
+        assert mock_proposal_course.started_at is not None
+
+    @pytest.mark.asyncio
+    async def test_start_course_already_started(self, mock_db, mock_user, mock_proposal, mock_proposal_course, mock_course):
+        """Should raise 400 if course is already started."""
+        mock_proposal.status = "accepted"
+        mock_proposal_course.started_at = datetime(2024, 7, 1, tzinfo=timezone.utc)
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            else:
+                call_mock.first.return_value = mock_proposal_course
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        with pytest.raises(HTTPException) as exc_info:
+            await start_proposal_course(
+                proposal_id=mock_proposal.id,
+                course_id=mock_course.id,
+                current_user=mock_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 400
+        assert "already started" in exc_info.value.detail
+
+    @pytest.mark.asyncio
+    async def test_start_course_wrong_user(self, mock_db, mock_proposal, mock_proposal_course, mock_course):
+        """Non-recipient talent should get 403."""
+        mock_proposal.status = "accepted"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        other_talent = MagicMock()
+        other_talent.id = str(uuid4())
+        other_talent.user_type = "talent"
+
+        with pytest.raises(HTTPException) as exc_info:
+            await start_proposal_course(
+                proposal_id=mock_proposal.id,
+                course_id=mock_course.id,
+                current_user=other_talent, db=mock_db,
+            )
+        assert exc_info.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_start_course_wrong_status(self, mock_db, mock_user, mock_proposal, mock_course):
+        """Should raise 400 when proposal is not accepted."""
+        mock_proposal.status = "sent"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        with pytest.raises(HTTPException) as exc_info:
+            await start_proposal_course(
+                proposal_id=mock_proposal.id,
+                course_id=mock_course.id,
+                current_user=mock_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 400
+        assert "must be accepted" in exc_info.value.detail
+
+    @pytest.mark.asyncio
+    async def test_start_course_company_rejected(self, mock_db, mock_company_user):
+        """Company should not be able to start courses."""
+        with pytest.raises(HTTPException) as exc_info:
+            await start_proposal_course(
+                proposal_id=str(uuid4()),
+                course_id=str(uuid4()),
+                current_user=mock_company_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_first_course_milestone(self, mock_db, mock_user, mock_proposal, mock_proposal_course, mock_company_user, mock_course):
+        """First course started should create first_course milestone (+25 XP)."""
+        mock_proposal.status = "accepted"
+        mock_proposal.total_xp = 0
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = mock_proposal_course
+            elif len(filter_calls) == 3:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 4:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 5:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 6:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 7:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        await start_proposal_course(
+            proposal_id=mock_proposal.id,
+            course_id=mock_course.id,
+            current_user=mock_user, db=mock_db,
+        )
+        # 10 (course_started) + 25 (first_course) = 35
+        assert mock_proposal.total_xp == 35
+
+    @pytest.mark.asyncio
+    async def test_second_course_no_first_course_milestone(self, mock_db, mock_user, mock_proposal, mock_company_user, mock_course):
+        """Second course started should NOT create first_course milestone."""
+        mock_proposal.status = "accepted"
+        mock_proposal.total_xp = 35
+
+        c2 = _make_course(title="Course 2")
+        pc1 = _make_proposal_course(mock_proposal.id, mock_course.id, order=0, started_at=datetime(2024, 7, 1, tzinfo=timezone.utc))
+        pc2 = _make_proposal_course(mock_proposal.id, c2.id, order=1)
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = pc2
+            elif len(filter_calls) == 3:
+                call_mock.all.return_value = [pc1, pc2]
+            elif len(filter_calls) == 4:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 5:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 6:
+                call_mock.all.return_value = [pc1, pc2]
+            elif len(filter_calls) == 7:
+                call_mock.all.return_value = [mock_course, c2]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        await start_proposal_course(
+            proposal_id=mock_proposal.id,
+            course_id=c2.id,
+            current_user=mock_user, db=mock_db,
+        )
+        # Only 10 (course_started), NOT +25
+        assert mock_proposal.total_xp == 45  # 35 + 10
+
+
+# --- PATCH /proposals/{id}/courses/{course_id}/notes ---
+
+
+class TestUpdateCourseNotes:
+    """Tests for the PATCH /proposals/{id}/courses/{course_id}/notes endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_talent_updates_notes_success(self, mock_db, mock_user, mock_proposal, mock_proposal_course, mock_company_user, mock_course):
+        """Talent should be able to update notes on a course."""
+        mock_proposal.status = "accepted"
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = mock_proposal_course
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 4:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 5:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 6:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        data = CourseNotesUpdate(talent_notes="Making great progress!")
+        result = await update_course_notes(
+            proposal_id=mock_proposal.id,
+            course_id=mock_course.id,
+            data=data,
+            current_user=mock_user, db=mock_db,
+        )
+        assert mock_proposal_course.talent_notes == "Making great progress!"
+
+    @pytest.mark.asyncio
+    async def test_company_cannot_update_talent_notes(self, mock_db, mock_company_user):
+        """Company should not be able to update talent notes."""
+        with pytest.raises(HTTPException) as exc_info:
+            await update_course_notes(
+                proposal_id=str(uuid4()),
+                course_id=str(uuid4()),
+                data=CourseNotesUpdate(talent_notes="Sneaky"),
+                current_user=mock_company_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_notes_wrong_recipient(self, mock_db, mock_proposal):
+        """Non-recipient talent should get 403."""
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        other_talent = MagicMock()
+        other_talent.id = str(uuid4())
+        other_talent.user_type = "talent"
+
+        with pytest.raises(HTTPException) as exc_info:
+            await update_course_notes(
+                proposal_id=mock_proposal.id,
+                course_id=str(uuid4()),
+                data=CourseNotesUpdate(talent_notes="test"),
+                current_user=other_talent, db=mock_db,
+            )
+        assert exc_info.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_notes_rejected_on_sent_status(self, mock_db, mock_user, mock_proposal):
+        """Updating notes should be rejected when proposal status is 'sent'."""
+        mock_proposal.status = "sent"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        with pytest.raises(HTTPException) as exc_info:
+            await update_course_notes(
+                proposal_id=mock_proposal.id,
+                course_id=str(uuid4()),
+                data=CourseNotesUpdate(talent_notes="test"),
+                current_user=mock_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 400
+        assert "accepted, completed, or hired" in exc_info.value.detail
+
+    @pytest.mark.asyncio
+    async def test_notes_rejected_on_rejected_status(self, mock_db, mock_user, mock_proposal):
+        """Updating notes should be rejected when proposal status is 'rejected'."""
+        mock_proposal.status = "rejected"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        with pytest.raises(HTTPException) as exc_info:
+            await update_course_notes(
+                proposal_id=mock_proposal.id,
+                course_id=str(uuid4()),
+                data=CourseNotesUpdate(talent_notes="test"),
+                current_user=mock_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_notes_rejected_on_draft_status(self, mock_db, mock_user, mock_proposal):
+        """Updating notes should be rejected when proposal status is 'draft'."""
+        mock_proposal.status = "draft"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        with pytest.raises(HTTPException) as exc_info:
+            await update_course_notes(
+                proposal_id=mock_proposal.id,
+                course_id=str(uuid4()),
+                data=CourseNotesUpdate(talent_notes="test"),
+                current_user=mock_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_notes_allowed_on_completed_status(self, mock_db, mock_user, mock_proposal, mock_proposal_course, mock_company_user, mock_course):
+        """Updating notes should succeed when proposal status is 'completed'."""
+        mock_proposal.status = "completed"
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = mock_proposal_course
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 4:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 5:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 6:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        data = CourseNotesUpdate(talent_notes="Completed but adding retrospective notes")
+        result = await update_course_notes(
+            proposal_id=mock_proposal.id,
+            course_id=mock_course.id,
+            data=data,
+            current_user=mock_user, db=mock_db,
+        )
+        assert mock_proposal_course.talent_notes == "Completed but adding retrospective notes"
+
+    @pytest.mark.asyncio
+    async def test_notes_allowed_on_hired_status(self, mock_db, mock_user, mock_proposal, mock_proposal_course, mock_company_user, mock_course):
+        """Updating notes should succeed when proposal status is 'hired'."""
+        mock_proposal.status = "hired"
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = mock_proposal_course
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 4:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 5:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 6:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        data = CourseNotesUpdate(talent_notes="Post-hire notes")
+        result = await update_course_notes(
+            proposal_id=mock_proposal.id,
+            course_id=mock_course.id,
+            data=data,
+            current_user=mock_user, db=mock_db,
+        )
+        assert mock_proposal_course.talent_notes == "Post-hire notes"
+
+
+# --- PATCH /proposals/{id}/courses/{course_id}/company-update ---
+
+
+class TestUpdateCourseCompany:
+    """Tests for the PATCH /proposals/{id}/courses/{course_id}/company-update endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_company_updates_notes_and_deadline(self, mock_db, mock_company_user, mock_proposal, mock_proposal_course, mock_user, mock_course):
+        """Company should be able to update notes and deadline."""
+        mock_proposal.status = "accepted"
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = mock_proposal_course
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 4:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 5:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 6:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        deadline = datetime(2025, 3, 1, tzinfo=timezone.utc)
+        data = CompanyCourseUpdate(company_notes="Focus on chapter 3", deadline=deadline)
+        result = await update_course_company(
+            proposal_id=mock_proposal.id,
+            course_id=mock_course.id,
+            data=data,
+            current_user=mock_company_user, db=mock_db,
+        )
+        assert mock_proposal_course.company_notes == "Focus on chapter 3"
+        assert mock_proposal_course.deadline == deadline
+
+    @pytest.mark.asyncio
+    async def test_talent_cannot_update_company_fields(self, mock_db, mock_user):
+        """Talent should not be able to update company fields."""
+        with pytest.raises(HTTPException) as exc_info:
+            await update_course_company(
+                proposal_id=str(uuid4()),
+                course_id=str(uuid4()),
+                data=CompanyCourseUpdate(company_notes="Sneaky"),
+                current_user=mock_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_company_update_wrong_owner(self, mock_db, mock_proposal):
+        """Company that doesn't own the proposal should get 403."""
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        other_company = MagicMock()
+        other_company.id = str(uuid4())
+        other_company.user_type = "company"
+
+        with pytest.raises(HTTPException) as exc_info:
+            await update_course_company(
+                proposal_id=mock_proposal.id,
+                course_id=str(uuid4()),
+                data=CompanyCourseUpdate(company_notes="test"),
+                current_user=other_company, db=mock_db,
+            )
+        assert exc_info.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_company_update_rejected_on_sent_status(self, mock_db, mock_company_user, mock_proposal):
+        """Company update should be rejected when proposal status is 'sent'."""
+        mock_proposal.status = "sent"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        with pytest.raises(HTTPException) as exc_info:
+            await update_course_company(
+                proposal_id=mock_proposal.id,
+                course_id=str(uuid4()),
+                data=CompanyCourseUpdate(company_notes="test"),
+                current_user=mock_company_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 400
+        assert "accepted, completed, or hired" in exc_info.value.detail
+
+    @pytest.mark.asyncio
+    async def test_company_update_rejected_on_rejected_status(self, mock_db, mock_company_user, mock_proposal):
+        """Company update should be rejected when proposal status is 'rejected'."""
+        mock_proposal.status = "rejected"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        with pytest.raises(HTTPException) as exc_info:
+            await update_course_company(
+                proposal_id=mock_proposal.id,
+                course_id=str(uuid4()),
+                data=CompanyCourseUpdate(company_notes="test"),
+                current_user=mock_company_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_company_update_rejected_on_draft_status(self, mock_db, mock_company_user, mock_proposal):
+        """Company update should be rejected when proposal status is 'draft'."""
+        mock_proposal.status = "draft"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        with pytest.raises(HTTPException) as exc_info:
+            await update_course_company(
+                proposal_id=mock_proposal.id,
+                course_id=str(uuid4()),
+                data=CompanyCourseUpdate(company_notes="test"),
+                current_user=mock_company_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_company_update_allowed_on_completed_status(self, mock_db, mock_company_user, mock_proposal, mock_proposal_course, mock_user, mock_course):
+        """Company update should succeed when proposal status is 'completed'."""
+        mock_proposal.status = "completed"
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = mock_proposal_course
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 4:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 5:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 6:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        data = CompanyCourseUpdate(company_notes="Post-completion feedback")
+        result = await update_course_company(
+            proposal_id=mock_proposal.id,
+            course_id=mock_course.id,
+            data=data,
+            current_user=mock_company_user, db=mock_db,
+        )
+        assert mock_proposal_course.company_notes == "Post-completion feedback"
+
+    @pytest.mark.asyncio
+    async def test_company_update_allowed_on_hired_status(self, mock_db, mock_company_user, mock_proposal, mock_proposal_course, mock_user, mock_course):
+        """Company update should succeed when proposal status is 'hired'."""
+        mock_proposal.status = "hired"
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = mock_proposal_course
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 4:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 5:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 6:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        data = CompanyCourseUpdate(company_notes="Post-hire notes from company")
+        result = await update_course_company(
+            proposal_id=mock_proposal.id,
+            course_id=mock_course.id,
+            data=data,
+            current_user=mock_company_user, db=mock_db,
+        )
+        assert mock_proposal_course.company_notes == "Post-hire notes from company"
+
+
+# --- Hiring tests ---
+
+
+class TestHireAfterTraining:
+    """Tests for the hire status transition (Feature 4)."""
+
+    @pytest.mark.asyncio
+    async def test_hire_from_accepted(self, mock_db, mock_company_user, mock_proposal, mock_user, mock_course, mock_proposal_course):
+        """Company should be able to hire from accepted status."""
+        mock_proposal.status = "accepted"
+
+        # The update_proposal route queries for proposal, then for talent (to update availability),
+        # then for company (to get company_name), then _fetch_proposal_data
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                # proposal lookup
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                # talent lookup (for hired update)
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 3:
+                # company lookup (for company_name)
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 4:
+                # _fetch: company
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 5:
+                # _fetch: talent
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 6:
+                # _fetch: proposal_courses
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 7:
+                # _fetch: courses
+                call_mock.all.return_value = [mock_course]
+            else:
+                # _fetch: milestones
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        data = ProposalUpdate(status="hired", hiring_notes="Excellent training completion")
+        result = await update_proposal(
+            proposal_id=mock_proposal.id, data=data,
+            current_user=mock_company_user, db=mock_db,
+        )
+        assert mock_proposal.status == "hired"
+        assert mock_proposal.hired_at is not None
+        assert mock_proposal.hiring_notes == "Excellent training completion"
+        assert mock_user.availability_status == "employed"
+        assert mock_user.adopted_by_company == "TechFlow Italia"
+
+    @pytest.mark.asyncio
+    async def test_hire_from_completed(self, mock_db, mock_company_user, mock_proposal, mock_user, mock_course, mock_proposal_course):
+        """Company should be able to hire from completed status."""
+        mock_proposal.status = "completed"
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 4:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 5:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 6:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 7:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        data = ProposalUpdate(status="hired")
+        result = await update_proposal(
+            proposal_id=mock_proposal.id, data=data,
+            current_user=mock_company_user, db=mock_db,
+        )
+        assert mock_proposal.status == "hired"
+        assert mock_proposal.hired_at is not None
+
+    @pytest.mark.asyncio
+    async def test_invalid_hire_from_draft(self, mock_db, mock_company_user, mock_proposal):
+        """Should reject draft -> hired transition."""
+        mock_proposal.status = "draft"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        data = ProposalUpdate(status="hired")
+
+        with pytest.raises(HTTPException) as exc_info:
+            await update_proposal(
+                proposal_id=mock_proposal.id, data=data,
+                current_user=mock_company_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 400
+        assert "Invalid status transition" in exc_info.value.detail
+
+    @pytest.mark.asyncio
+    async def test_invalid_hire_from_sent(self, mock_db, mock_company_user, mock_proposal):
+        """Should reject sent -> hired transition."""
+        mock_proposal.status = "sent"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        data = ProposalUpdate(status="hired")
+
+        with pytest.raises(HTTPException) as exc_info:
+            await update_proposal(
+                proposal_id=mock_proposal.id, data=data,
+                current_user=mock_company_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 400
+        assert "Invalid status transition" in exc_info.value.detail
+
+    @pytest.mark.asyncio
+    async def test_invalid_hire_from_rejected(self, mock_db, mock_company_user, mock_proposal):
+        """Should reject rejected -> hired transition."""
+        mock_proposal.status = "rejected"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        data = ProposalUpdate(status="hired")
+
+        with pytest.raises(HTTPException) as exc_info:
+            await update_proposal(
+                proposal_id=mock_proposal.id, data=data,
+                current_user=mock_company_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_invalid_hire_from_hired(self, mock_db, mock_company_user, mock_proposal):
+        """Should reject hired -> hired transition."""
+        mock_proposal.status = "hired"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
+
+        data = ProposalUpdate(status="hired")
+
+        with pytest.raises(HTTPException) as exc_info:
+            await update_proposal(
+                proposal_id=mock_proposal.id, data=data,
+                current_user=mock_company_user, db=mock_db,
+            )
+        assert exc_info.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_hiring_notes_stored(self, mock_db, mock_company_user, mock_proposal, mock_user, mock_course, mock_proposal_course):
+        """Hiring notes should be stored when provided."""
+        mock_proposal.status = "accepted"
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 4:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 5:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 6:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 7:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        data = ProposalUpdate(status="hired", hiring_notes="Superb candidate, hired immediately")
+        result = await update_proposal(
+            proposal_id=mock_proposal.id, data=data,
+            current_user=mock_company_user, db=mock_db,
+        )
+        assert mock_proposal.hiring_notes == "Superb candidate, hired immediately"
+
+    @pytest.mark.asyncio
+    async def test_hired_at_timestamp_set(self, mock_db, mock_company_user, mock_proposal, mock_user, mock_course, mock_proposal_course):
+        """hired_at should be set when transitioning to hired."""
+        mock_proposal.status = "completed"
+        mock_proposal.hired_at = None
+
+        filter_calls = []
+
+        def side_effect_filter(*args, **kwargs):
+            call_mock = MagicMock()
+            filter_calls.append(call_mock)
+            if len(filter_calls) == 1:
+                call_mock.first.return_value = mock_proposal
+            elif len(filter_calls) == 2:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 3:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 4:
+                call_mock.first.return_value = mock_company_user
+            elif len(filter_calls) == 5:
+                call_mock.first.return_value = mock_user
+            elif len(filter_calls) == 6:
+                call_mock.all.return_value = [mock_proposal_course]
+            elif len(filter_calls) == 7:
+                call_mock.all.return_value = [mock_course]
+            else:
+                call_mock.all.return_value = []
+            return call_mock
+
+        mock_db.query.return_value.filter.side_effect = side_effect_filter
+
+        data = ProposalUpdate(status="hired")
+        result = await update_proposal(
+            proposal_id=mock_proposal.id, data=data,
+            current_user=mock_company_user, db=mock_db,
+        )
+        assert mock_proposal.hired_at is not None
+
+
 # --- Edge cases and security tests ---
 
 
@@ -959,7 +2155,6 @@ class TestProposalEdgeCases:
         target_company.is_public = 1
         target_company.is_active = 1
 
-        # The filter includes User.user_type == "talent", so a company user won't be found
         mock_db.query.return_value.filter.return_value.first.return_value = None
 
         data = ProposalCreate(
@@ -977,7 +2172,7 @@ class TestProposalEdgeCases:
         """Empty update body should be rejected with 400."""
         mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
 
-        data = ProposalUpdate()  # no fields set
+        data = ProposalUpdate()
 
         with pytest.raises(HTTPException) as exc_info:
             await update_proposal(
@@ -1011,7 +2206,6 @@ class TestProposalEdgeCases:
         mock_proposal.status = "sent"
         mock_db.query.return_value.filter.return_value.first.return_value = mock_proposal
 
-        # Try to send both status and message on a sent proposal
         data = ProposalUpdate(status="sent", message="sneaky update")
 
         with pytest.raises(HTTPException) as exc_info:
@@ -1019,7 +2213,6 @@ class TestProposalEdgeCases:
                 proposal_id=mock_proposal.id, data=data,
                 current_user=mock_company_user, db=mock_db,
             )
-        # Should fail because sent->sent is an invalid transition
         assert exc_info.value.status_code == 400
 
     @pytest.mark.asyncio
@@ -1069,3 +2262,26 @@ class TestProposalEdgeCases:
             )
         assert exc_info.value.status_code == 400
         assert "Invalid status transition" in exc_info.value.detail
+
+
+# --- ProposalUpdate schema validation ---
+
+
+class TestProposalUpdateSchema:
+    """Tests for ProposalUpdate schema validation."""
+
+    def test_hiring_notes_accepted(self):
+        """ProposalUpdate should accept hiring_notes field."""
+        data = ProposalUpdate(status="hired", hiring_notes="Great candidate")
+        assert data.hiring_notes == "Great candidate"
+
+    def test_hired_status_accepted(self):
+        """ProposalUpdate should accept 'hired' status."""
+        data = ProposalUpdate(status="hired")
+        assert data.status == "hired"
+
+    def test_invalid_status_rejected(self):
+        """ProposalUpdate should reject invalid status values."""
+        from pydantic import ValidationError
+        with pytest.raises(ValidationError):
+            ProposalUpdate(status="invalid_status")

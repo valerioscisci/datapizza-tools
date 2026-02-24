@@ -298,6 +298,9 @@ def mock_proposal(mock_company_user, mock_user):
     proposal.status = "sent"
     proposal.message = "We are interested in your profile."
     proposal.budget_range = "5000-8000"
+    proposal.total_xp = 0
+    proposal.hired_at = None
+    proposal.hiring_notes = None
     proposal.created_at = datetime(2024, 7, 1, tzinfo=timezone.utc)
     proposal.updated_at = datetime(2024, 7, 1, tzinfo=timezone.utc)
     return proposal
@@ -316,5 +319,42 @@ def mock_proposal_course(mock_proposal, mock_course):
     pc.order = 0
     pc.is_completed = 0
     pc.completed_at = None
+    pc.started_at = None
+    pc.talent_notes = None
+    pc.company_notes = None
+    pc.deadline = None
+    pc.xp_earned = 0
     pc.created_at = datetime(2024, 7, 1, tzinfo=timezone.utc)
     return pc
+
+
+@pytest.fixture
+def mock_milestone(mock_proposal):
+    """Mock proposal milestone.
+
+    Returns a MagicMock that mimics a SQLAlchemy ProposalMilestone model instance.
+    """
+    m = MagicMock()
+    m.id = str(uuid4())
+    m.proposal_id = mock_proposal.id
+    m.milestone_type = "course_completed"
+    m.title = "Corso completato"
+    m.description = None
+    m.xp_reward = 200
+    m.achieved_at = datetime(2024, 8, 1, tzinfo=timezone.utc)
+    return m
+
+
+@pytest.fixture
+def mock_message(mock_proposal, mock_company_user):
+    """Mock proposal message.
+
+    Returns a MagicMock that mimics a SQLAlchemy ProposalMessage model instance.
+    """
+    msg = MagicMock()
+    msg.id = str(uuid4())
+    msg.proposal_id = mock_proposal.id
+    msg.sender_id = mock_company_user.id
+    msg.content = "Hello, how is the training going?"
+    msg.created_at = datetime(2024, 8, 1, tzinfo=timezone.utc)
+    return msg

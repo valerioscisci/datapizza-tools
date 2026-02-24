@@ -11,6 +11,8 @@ import { ProposalCard } from './ProposalCard';
 export function PropostePage() {
   const t = useTranslations('proposals');
   const tStatus = useTranslations('proposals.status');
+  const tMilestones = useTranslations('proposals.milestones');
+  const tHire = useTranslations('proposals.hire');
   const router = useRouter();
   const { user, accessToken, loading, isCompany } = useAuth();
 
@@ -133,6 +135,48 @@ export function PropostePage() {
     }
   };
 
+  const handleStartCourse = async (proposalId: string, courseId: string) => {
+    if (!accessToken) return;
+    setActionFeedback(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/proposals/${proposalId}/courses/${courseId}/start`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (res.ok) {
+        fetchProposals();
+      } else {
+        showErrorFeedback();
+      }
+    } catch {
+      showErrorFeedback();
+    }
+  };
+
+  const handleSaveTalentNotes = async (proposalId: string, courseId: string, notes: string) => {
+    if (!accessToken) return;
+    setActionFeedback(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/proposals/${proposalId}/courses/${courseId}/notes`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ talent_notes: notes }),
+      });
+      if (res.ok) {
+        fetchProposals();
+      } else {
+        showErrorFeedback();
+      }
+    } catch {
+      showErrorFeedback();
+    }
+  };
+
   if (loading || !user || isCompany) return null;
 
   return (
@@ -201,8 +245,12 @@ export function PropostePage() {
                     onAccept={handleAccept}
                     onReject={handleReject}
                     onMarkCourseComplete={handleMarkCourseComplete}
+                    onStartCourse={handleStartCourse}
+                    onSaveTalentNotes={handleSaveTalentNotes}
                     t={t}
                     tStatus={tStatus}
+                    tMilestones={tMilestones}
+                    tHire={tHire}
                   />
                 ))}
               </div>

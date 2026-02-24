@@ -3,21 +3,33 @@
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/use-auth';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Briefcase, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { API_BASE, STATUS_TABS, type ProposalListResponse, type Proposal } from '../_utils/constants';
 import { CompanyProposalCard } from './CompanyProposalCard';
+import { HireConfirmationModal } from './HireConfirmationModal';
 
 export function AziendaPropostePage() {
   const t = useTranslations('proposals');
   const tStatus = useTranslations('proposals.status');
+  const tMilestones = useTranslations('proposals.milestones');
+  const tHire = useTranslations('proposals.hire');
   const router = useRouter();
   const { user, accessToken, loading, isCompany } = useAuth();
 
   const [activeTab, setActiveTab] = useState<string>('all');
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [fetching, setFetching] = useState(true);
+  const [hireTarget, setHireTarget] = useState<Proposal | null>(null);
+  const [hireSuccess, setHireSuccess] = useState(false);
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -55,6 +67,46 @@ export function AziendaPropostePage() {
     }
   }, [accessToken, isCompany, fetchProposals]);
 
+  const handleSaveCompanyUpdate = async (proposalId: string, courseId: string, companyNotes: string, deadline: string | null) => {
+    if (!accessToken) return;
+    try {
+      await fetch(`${API_BASE}/api/v1/proposals/${proposalId}/courses/${courseId}/company-update`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ company_notes: companyNotes, deadline: deadline || null }),
+      });
+      fetchProposals();
+    } catch {
+      // Error handled silently
+    }
+  };
+
+  const handleHireConfirm = async (hiringNotes: string) => {
+    if (!accessToken || !hireTarget) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/proposals/${hireTarget.id}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'hired', hiring_notes: hiringNotes || null }),
+      });
+      if (res.ok) {
+        setHireTarget(null);
+        setHireSuccess(true);
+        if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+        feedbackTimerRef.current = setTimeout(() => setHireSuccess(false), 4000);
+        fetchProposals();
+      }
+    } catch {
+      // Error handled silently
+    }
+  };
+
   if (loading || !user || !isCompany) return null;
 
   return (
@@ -74,6 +126,13 @@ export function AziendaPropostePage() {
       {/* Tabs + Proposals */}
       <section className="py-8 sm:py-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Success toast */}
+          {hireSuccess && (
+            <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-600 font-medium">
+              {tHire('success')}
+            </div>
+          )}
+
           {/* Tabs */}
           <div className="flex flex-wrap gap-2 mb-8">
             {STATUS_TABS.map((tab) => (
@@ -119,8 +178,12 @@ export function AziendaPropostePage() {
                   <CompanyProposalCard
                     key={proposal.id}
                     proposal={proposal}
+                    onSaveCompanyUpdate={handleSaveCompanyUpdate}
+                    onHire={setHireTarget}
                     t={t}
                     tStatus={tStatus}
+                    tMilestones={tMilestones}
+                    tHire={tHire}
                   />
                 ))}
               </div>
@@ -128,6 +191,16 @@ export function AziendaPropostePage() {
           </div>
         </div>
       </section>
+
+      {/* Hire Confirmation Modal */}
+      {hireTarget && (
+        <HireConfirmationModal
+          proposal={hireTarget}
+          onConfirm={handleHireConfirm}
+          onCancel={() => setHireTarget(null)}
+          tHire={tHire}
+        />
+      )}
     </>
   );
 }

@@ -485,7 +485,7 @@ test.describe('Talent Proposals Dashboard', () => {
     await expect(page.locator('.bg-neutral-50').first()).toBeVisible({ timeout: 5000 });
   });
 
-  test('accepted proposal shows "Segna come completato" on courses', async ({ page }) => {
+  test('accepted proposal shows course action buttons (Inizia / Completa Corso)', async ({ page }) => {
     await page.goto('/it/proposte');
     await expect(page.locator('h1')).toContainText('Le mie Proposte', { timeout: 15000 });
     await page.waitForTimeout(1000);
@@ -499,8 +499,11 @@ test.describe('Talent Proposals Dashboard', () => {
     await expect(coursesBtn).toBeVisible({ timeout: 10000 });
     await coursesBtn.click();
 
-    // "Segna come completato" button should be visible for incomplete courses
-    await expect(page.getByRole('button', { name: 'Segna come completato' }).first()).toBeVisible({ timeout: 5000 });
+    // With gamification flow: not-started courses show "Inizia", started courses show "Completa Corso"
+    // The seeded accepted proposal has both types — wait for either to appear in the DOM
+    const actionButton = page.locator('button', { hasText: /^(Inizia|Completa Corso)$/ }).first();
+    await actionButton.scrollIntoViewIfNeeded();
+    await expect(actionButton).toBeVisible({ timeout: 5000 });
   });
 
   test('talent proposals show budget and progress', async ({ page }) => {

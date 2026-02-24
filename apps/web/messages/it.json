@@ -383,14 +383,19 @@
       "sent": "Inviate",
       "accepted": "Accettate",
       "rejected": "Rifiutate",
-      "completed": "Completate"
+      "completed": "Completate",
+      "hired": "Assunti"
+    },
+    "companyTabs": {
+      "hired": "Assunti"
     },
     "status": {
       "draft": "Bozza",
       "sent": "Inviata",
       "accepted": "Accettata",
       "rejected": "Rifiutata",
-      "completed": "Completata"
+      "completed": "Completata",
+      "hired": "Assunto"
     },
     "card": {
       "from": "Da",
@@ -399,7 +404,62 @@
       "progress": "Progresso",
       "courses": "Corsi",
       "coursesCompleted": "{completed} di {total} corsi completati",
-      "message": "Messaggio"
+      "message": "Messaggio",
+      "xp": "XP",
+      "startCourse": "Inizia",
+      "inProgress": "In corso",
+      "goToCourse": "Vai al Corso",
+      "completeCourse": "Completa Corso",
+      "deadline": "Scadenza",
+      "deadlineIn": "Scadenza tra {days} giorni",
+      "overdue": "Scaduto!",
+      "companyNotes": "Istruzioni dell'azienda",
+      "talentNotes": "Le tue note",
+      "saveNotes": "Salva note",
+      "addInstructions": "Aggiungi istruzioni",
+      "editInstructions": "Modifica istruzioni",
+      "saveInstructions": "Salva istruzioni",
+      "deadlineLabel": "Scadenza",
+      "milestones": "Traguardi"
+    },
+    "detail": {
+      "title": "Dettaglio Proposta",
+      "learningPath": "Percorso Formativo",
+      "notStarted": "Non iniziato",
+      "backToList": "Torna alle proposte"
+    },
+    "chat": {
+      "title": "Messaggi",
+      "placeholder": "Scrivi un messaggio...",
+      "send": "Invia",
+      "empty": "Nessun messaggio. Inizia la conversazione!",
+      "unavailable": "Chat disponibile dopo l'accettazione della proposta"
+    },
+    "hire": {
+      "button": "Assumi Talento",
+      "modalTitle": "Conferma Assunzione",
+      "progress": "Progresso: {completed} di {total} corsi completati",
+      "xpEarned": "{xp} XP guadagnati",
+      "incompleteWarning": "Attenzione: il talento non ha completato tutti i corsi ({completed}/{total}). Vuoi procedere comunque?",
+      "notesLabel": "Note di assunzione (opzionale)",
+      "notesPlaceholder": "Aggiungi note sull'assunzione...",
+      "confirm": "Conferma Assunzione",
+      "cancel": "Annulla",
+      "success": "Talento assunto con successo!",
+      "congratulations": "Congratulazioni!",
+      "hiredBy": "Sei stato assunto da {company}!",
+      "hiredAt": "Assunto il {date}",
+      "hiredNotes": "Note dall'azienda"
+    },
+    "milestones": {
+      "course_started": "Corso Iniziato",
+      "course_completed": "Corso Completato",
+      "first_course": "Primo Corso!",
+      "25_percent": "25% Completato",
+      "50_percent": "Meta' Strada!",
+      "75_percent": "75% Completato",
+      "all_complete": "Tutti i Corsi Completati!",
+      "streak_3": "Serie di 3!"
     },
     "actions": {
       "accept": "Accetta",
