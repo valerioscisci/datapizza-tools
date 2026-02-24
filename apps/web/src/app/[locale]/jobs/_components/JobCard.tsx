@@ -1,17 +1,24 @@
+'use client';
+
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Briefcase, ChevronDown } from 'lucide-react';
 import { formatSalary, workModeLabel } from '@/lib/job-utils';
 import { TechTag } from '@/components/ui/TechTag';
-import { experienceLevelEmoji } from '../_utils/constants';
-import type { Job } from '../_utils/types';
+import { experienceLevelEmoji, matchBadgeStyle } from '../_utils/constants';
+import type { Job, JobMatchResult } from '../_utils/types';
 import { Badge } from './Badge';
 
 export interface JobCardProps {
   job: Job;
+  match?: JobMatchResult;
   onClick: () => void;
 }
 
-export function JobCard({ job, onClick }: JobCardProps) {
+export function JobCard({ job, match, onClick }: JobCardProps) {
+  const t = useTranslations('jobs');
   const salary = formatSalary(job.salary_min, job.salary_max);
+  const [showTooltip, setShowTooltip] = useState(false);
 
   return (
     <div
@@ -19,8 +26,48 @@ export function JobCard({ job, onClick }: JobCardProps) {
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
       tabIndex={0}
       role="button"
-      className="p-6 bg-white rounded-2xl border border-neutral-200 hover:border-azure-300 hover:shadow-lg transition-all duration-300 cursor-pointer group"
+      className="relative p-6 bg-white rounded-2xl border border-neutral-200 hover:border-azure-300 hover:shadow-lg transition-all duration-300 cursor-pointer group"
     >
+      {/* AI Match Score Badge */}
+      {match && (
+        <div
+          className="absolute top-4 right-4 z-10"
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+          onFocus={() => setShowTooltip(true)}
+          onBlur={() => setShowTooltip(false)}
+          tabIndex={0}
+          aria-describedby={showTooltip ? `match-tooltip-${job.id}` : undefined}
+        >
+          <span
+            className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full border ${matchBadgeStyle(match.score)}`}
+          >
+            {match.score}% {t('aiMatch.scoreLabel')}
+          </span>
+
+          {/* Tooltip with reasons */}
+          {showTooltip && match.reasons.length > 0 && (
+            <div
+              id={`match-tooltip-${job.id}`}
+              role="tooltip"
+              className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-neutral-200 p-3 z-20"
+            >
+              <p className="text-xs font-semibold text-neutral-700 mb-2">
+                {t('aiMatch.reasons')}
+              </p>
+              <ul className="space-y-1">
+                {match.reasons.map((reason) => (
+                  <li key={reason} className="text-xs text-neutral-600 flex items-start gap-1.5">
+                    <span className="text-azure-600 mt-0.5 shrink-0">&#8226;</span>
+                    {reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex items-start gap-4">
         {/* Company Logo */}
         <div className="w-14 h-14 bg-neutral-100 rounded-full flex items-center justify-center shrink-0 border border-neutral-200">
@@ -35,8 +82,10 @@ export function JobCard({ job, onClick }: JobCardProps) {
           <p className="text-sm text-azure-600 font-medium mt-0.5">{job.company}</p>
         </div>
 
-        {/* Expand hint */}
-        <ChevronDown className="w-5 h-5 text-neutral-300 group-hover:text-azure-400 transition-colors shrink-0 mt-1" />
+        {/* Expand hint — shift left if match badge present */}
+        {!match && (
+          <ChevronDown className="w-5 h-5 text-neutral-300 group-hover:text-azure-400 transition-colors shrink-0 mt-1" />
+        )}
       </div>
 
       {/* Info Badges */}

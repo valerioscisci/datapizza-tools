@@ -221,6 +221,18 @@
       "previous": "Precedente",
       "next": "Successiva",
       "page": "Pagina {current} di {total}"
+    },
+    "aiMatch": {
+      "button": "AI Match",
+      "loading": "Analisi in corso...",
+      "sortBestMatch": "Migliori Match",
+      "scoreLabel": "Match",
+      "reasons": "Perche' questo match",
+      "noMatches": "Nessun match disponibile",
+      "error": "Errore durante l'analisi AI",
+      "unavailable": "Servizio AI non disponibile",
+      "generatedAt": "Analisi generata il {date}",
+      "matchDetails": "Dettagli AI Match"
     }
   },
   "news": {
@@ -370,6 +382,24 @@
       "master": "Laurea Magistrale",
       "phd": "Dottorato",
       "certificate": "Certificazione"
+    },
+    "aiAdvisor": {
+      "title": "AI Career Advisor",
+      "generate": "Genera consigli",
+      "regenerate": "Rigenera",
+      "loading": "Generazione consigli in corso...",
+      "careerDirection": "Direzione Carriera",
+      "skillGaps": "Competenze da Sviluppare",
+      "recommendedCourses": "Corsi Consigliati",
+      "recommendedArticles": "Articoli Consigliati",
+      "reason": "Perche'",
+      "goToCourse": "Vai al Corso",
+      "readArticle": "Leggi Articolo",
+      "generatedAt": "Generato il {date}",
+      "error": "Errore durante la generazione dei consigli",
+      "unavailable": "Servizio AI non disponibile al momento",
+      "fillProfile": "Completa il tuo profilo (aggiungi competenze ed esperienze) per ricevere consigli personalizzati",
+      "noSkills": "Aggiungi almeno alcune competenze al tuo profilo per attivare l'AI Advisor"
     }
   },
   "proposals": {

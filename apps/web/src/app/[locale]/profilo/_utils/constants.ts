@@ -77,6 +77,33 @@ export interface EducationFormData {
   description: string;
 }
 
+// --- AI Career Advice Types ---
+
+export interface RecommendedCourse {
+  course_id: string;
+  reason: string;
+  title?: string;
+  provider?: string;
+  level?: string;
+}
+
+export interface RecommendedArticle {
+  news_id: string;
+  reason: string;
+  title?: string;
+  source?: string;
+  source_url?: string;
+}
+
+export interface CareerAdviceResponse {
+  career_direction: string;
+  recommended_courses: RecommendedCourse[];
+  recommended_articles: RecommendedArticle[];
+  skill_gaps: string[];
+  generated_at: string;
+  model_used: string;
+}
+
 // --- Helpers ---
 
 export function formatMonthYear(month: number | null, year: number): string {

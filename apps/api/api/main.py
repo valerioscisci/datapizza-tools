@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.database.connection import engine, Base
@@ -11,6 +14,7 @@ from api.routes.courses import router as courses_router
 from api.routes.profile import router as profile_router
 from api.routes.talents import router as talents_router
 from api.routes.proposals import router as proposals_router
+from api.routes.ai import router as ai_router
 
 app = FastAPI(
     title="Datapizza Tools API",
@@ -38,6 +42,7 @@ app.include_router(courses_router, prefix="/api/v1")
 app.include_router(profile_router, prefix="/api/v1")
 app.include_router(talents_router, prefix="/api/v1")
 app.include_router(proposals_router, prefix="/api/v1")
+app.include_router(ai_router, prefix="/api/v1")
 
 @app.get("/health")
 async def health_check():

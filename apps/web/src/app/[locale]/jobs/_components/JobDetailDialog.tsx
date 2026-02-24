@@ -4,19 +4,20 @@ import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/use-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Briefcase, ExternalLink, X, Check } from 'lucide-react';
+import { Briefcase, ExternalLink, X, Check, Sparkles } from 'lucide-react';
 import { formatSalary, formatDate, workModeLabel } from '@/lib/job-utils';
 import { TechTag } from '@/components/ui/TechTag';
-import { API_BASE, experienceLevelEmoji } from '../_utils/constants';
-import type { Job } from '../_utils/types';
+import { API_BASE, experienceLevelEmoji, matchBadgeStyle } from '../_utils/constants';
+import type { Job, JobMatchResult } from '../_utils/types';
 import { Badge } from './Badge';
 
 export interface JobDetailDialogProps {
   job: Job;
+  match?: JobMatchResult;
   onClose: () => void;
 }
 
-export function JobDetailDialog({ job, onClose }: JobDetailDialogProps) {
+export function JobDetailDialog({ job, match, onClose }: JobDetailDialogProps) {
   const tApps = useTranslations('applications');
   const tJobs = useTranslations('jobs');
   const { user, accessToken } = useAuth();
@@ -104,6 +105,33 @@ export function JobDetailDialog({ job, onClose }: JobDetailDialogProps) {
               </p>
             </div>
           </div>
+
+          {/* AI Match Details */}
+          {match && (
+            <div className="mt-6 p-4 rounded-xl border border-azure-200 bg-azure-50">
+              <div className="flex items-center gap-3 mb-3">
+                <Sparkles className="w-5 h-5 text-azure-600" aria-hidden="true" />
+                <h3 className="text-sm font-semibold text-azure-700">
+                  {tJobs('aiMatch.matchDetails')}
+                </h3>
+                <span
+                  className={`ml-auto inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold rounded-full border ${matchBadgeStyle(match.score)}`}
+                >
+                  {match.score}% {tJobs('aiMatch.scoreLabel')}
+                </span>
+              </div>
+              {match.reasons.length > 0 && (
+                <ul className="space-y-1.5">
+                  {match.reasons.map((reason, i) => (
+                    <li key={i} className="text-sm text-azure-700 flex items-start gap-2">
+                      <span className="text-azure-500 mt-0.5 shrink-0">&#8226;</span>
+                      {reason}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
 
           {/* Badges */}
           <div className="flex flex-wrap gap-2 mt-6">

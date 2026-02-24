@@ -25,3 +25,15 @@ export interface JobListResponse {
   page: number;
   page_size: number;
 }
+
+export interface JobMatchResult {
+  job_id: string;
+  score: number;
+  reasons: string[];
+}
+
+export interface JobMatchResponse {
+  matches: JobMatchResult[];
+  generated_at: string;
+  model_used: string;
+}
