@@ -14,13 +14,13 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from api.routes.applications import (
+from api.routes.applications.router import (
     create_application,
     list_applications,
     get_application,
     _build_application_response,
 )
-from api.schemas.application import ApplicationCreate
+from api.routes.applications.schemas import ApplicationCreate
 
 
 class TestBuildApplicationResponse:

@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from api.database.connection import get_db
 from api.database.models import News
-from api.schemas.news import NewsResponse, NewsListResponse
+from api.routes.news.schemas import NewsResponse, NewsListResponse
 from api.utils import safe_parse_json_list
 
-router = APIRouter(tags=["News"])
+router = APIRouter(prefix="/news", tags=["News"])
 
 
 def _to_news_response(news: News) -> NewsResponse:
@@ -27,7 +27,7 @@ def _to_news_response(news: News) -> NewsResponse:
     )
 
 
-@router.get("/news", response_model=NewsListResponse)
+@router.get("", response_model=NewsListResponse)
 async def list_news(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=50),
@@ -53,7 +53,7 @@ async def list_news(
     )
 
 
-@router.get("/news/{news_id}", response_model=NewsResponse)
+@router.get("/{news_id}", response_model=NewsResponse)
 async def get_news(
     news_id: str,
     db: Session = Depends(get_db),

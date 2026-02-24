@@ -14,7 +14,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from api.routes.talents import list_talents, get_talent, _escape_ilike
+from api.routes.talents.router import list_talents, get_talent, _escape_ilike
 
 
 class TestListTalents:

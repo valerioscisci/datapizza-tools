@@ -12,11 +12,11 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from api.schemas.job import JobResponse
-from api.schemas.profile import ProfileUpdate
-from api.schemas.experience import ExperienceCreate
-from api.schemas.education import EducationCreate
-from api.schemas.proposal import ProposalCreate, ProposalUpdate
+from api.routes.jobs.schemas import JobResponse
+from api.routes.profile.schemas import ProfileUpdate
+from api.routes.profile.experiences.schemas import ExperienceCreate
+from api.routes.profile.educations.schemas import EducationCreate
+from api.routes.proposals.schemas import ProposalCreate, ProposalUpdate
 
 
 class TestJobResponse:

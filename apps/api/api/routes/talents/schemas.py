@@ -4,8 +4,8 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
-from api.schemas.experience import ExperienceResponse
-from api.schemas.education import EducationResponse
+from api.routes.profile.experiences.schemas import ExperienceResponse
+from api.routes.profile.educations.schemas import EducationResponse
 
 
 class TalentCardResponse(BaseModel):

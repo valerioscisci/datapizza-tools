@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from api.database.connection import get_db
 from api.database.models import User
-from api.schemas.auth import SignupRequest, LoginRequest, TokenResponse, UserResponse
+from api.routes.auth.schemas import SignupRequest, LoginRequest, TokenResponse, UserResponse
 from api.auth import hash_password, verify_password, create_access_token, get_current_user
 from api.utils import safe_parse_json_list
 

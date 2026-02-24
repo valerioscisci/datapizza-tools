@@ -15,22 +15,26 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from api.routes.profile import (
+from api.routes.profile.router import (
     get_profile,
     update_profile,
+    _build_profile_response,
+)
+from api.routes.profile.experiences.router import (
     create_experience,
     update_experience,
     delete_experience,
+    _experience_to_response,
+)
+from api.routes.profile.educations.router import (
     create_education,
     update_education,
     delete_education,
-    _experience_to_response,
     _education_to_response,
-    _build_profile_response,
 )
-from api.schemas.profile import ProfileUpdate
-from api.schemas.experience import ExperienceCreate, ExperienceUpdate
-from api.schemas.education import EducationCreate, EducationUpdate
+from api.routes.profile.schemas import ProfileUpdate
+from api.routes.profile.experiences.schemas import ExperienceCreate, ExperienceUpdate
+from api.routes.profile.educations.schemas import EducationCreate, EducationUpdate
 
 
 class TestHelperFunctions:

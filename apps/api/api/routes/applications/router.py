@@ -7,8 +7,8 @@ from sqlalchemy import func
 
 from api.database.connection import get_db
 from api.database.models import Application, Job, User
-from api.schemas.application import ApplicationCreate, ApplicationResponse, ApplicationListResponse
-from api.schemas.job import JobResponse
+from api.routes.applications.schemas import ApplicationCreate, ApplicationResponse, ApplicationListResponse
+from api.routes.jobs.schemas import JobResponse
 from api.auth import get_current_user
 from api.utils import safe_parse_json_list
 

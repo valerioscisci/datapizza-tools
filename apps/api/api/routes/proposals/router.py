@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from api.database.connection import get_db
 from api.database.models import User, Course, Proposal, ProposalCourse
-from api.schemas.proposal import (
+from api.routes.proposals.schemas import (
     ProposalCreate,
     ProposalUpdate,
     ProposalResponse,

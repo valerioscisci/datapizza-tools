@@ -60,12 +60,11 @@ datapizza-tools/
 │   │   ├── e2e/              # Playwright E2E tests (auth, jobs, applications, profile)
 │   │   └── messages/it.json  # Italian translations
 │   └── api/                 # FastAPI backend (port 8003)
-│       ├── api/routes/       # API endpoints (/api/v1/jobs, /api/v1/auth, /api/v1/applications, /api/v1/news, /api/v1/courses, /api/v1/profile, /api/v1/talents, /api/v1/proposals)
+│       ├── api/routes/       # Domain-driven API endpoints (each feature = folder with router.py + schemas.py, children as subfolders)
 │       ├── api/database/     # SQLAlchemy models (Job, User, Application, News, Course, Experience, Education, Proposal, ProposalCourse), connection, seed
 │       ├── api/scrapers/     # Content fetching CLI (insert_content.py — used by GitHub Action agent)
-│       ├── api/schemas/      # Pydantic response models
 │       ├── api/auth.py       # JWT authentication utilities
-│       └── tests/            # pytest unit test suite (194 tests)
+│       └── tests/            # pytest unit test suite (209 tests)
 ├── THOUGHT_PROCESS.MD       # Development thought process log (in Italian)
 └── README.md
 ```
@@ -102,7 +101,7 @@ This project uses a structured AI-assisted development workflow to maximize prod
 - GitHub Action for nightly content fetching (disabled, showcase) — uses Claude Code agent to fetch from HN, TLDR, Coursera, Udemy
 - Public Developer Profiles (Browse Talents) API — GET /talents (list with search, filters, pagination) and GET /talents/{id} (detail with experiences/educations), public endpoints with privacy protection (is_public flag, no email/phone leak, 404 for private users)
 - Company Accounts & Contact Flow (Backend) — Dual user types (talent/company), company signup with validation, Proposal and ProposalCourse models, 5 proposal endpoints (POST/GET list/GET detail/PATCH update/PATCH course complete), role-based access control, status transitions (draft/sent/accepted/rejected/completed), auto-complete on all courses done, 3 seeded company users and 3 sample proposals
-- **Backend unit test suite** — 194 pytest tests covering auth, routes (auth, jobs, news, courses, profile, applications, talents, proposals), schemas, and utilities with full mocking (no real DB)
+- **Backend unit test suite** — 209 pytest tests covering auth, routes (auth, jobs, news, courses, profile, applications, talents, proposals), schemas, and utilities with full mocking (no real DB)
 - **Frontend E2E test suite** — Playwright tests covering auth flow, jobs page, applications, profile page, talents marketplace (list, search, filters, detail, privacy, navigation), profile privacy toggle, and company accounts & proposals flow (company signup, login redirects, role-based navbar, talent detail CTA, proposal creation, company/talent proposals dashboards, auth guards) (65 tests total)
 - **Company Accounts & Contact Flow (Frontend)** — Dual user types (talent/company) with type-aware signup form, login redirect logic, and role-based navigation. Company users see "Le mie Proposte" and can propose training paths to talents. Talent users see received proposals with accept/reject/course-completion flow. Full proposals CRUD: talent proposals page (`/it/proposte`), company proposals page (`/it/azienda/proposte`), proposal creation page (`/it/azienda/proposte/nuova`) with course selection, reordering, message, and budget range. Navbar adapts to user type showing relevant links. Talent detail page shows company-specific CTA "Proponi un Percorso" for authenticated company users
 

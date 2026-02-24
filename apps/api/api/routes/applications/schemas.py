@@ -3,7 +3,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
-from api.schemas.job import JobResponse
+from api.routes.jobs.schemas import JobResponse
 
 
 class ApplicationCreate(BaseModel):

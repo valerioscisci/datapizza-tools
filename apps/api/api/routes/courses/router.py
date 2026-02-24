@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from api.database.connection import get_db
 from api.database.models import Course
-from api.schemas.course import CourseResponse, CourseListResponse
+from api.routes.courses.schemas import CourseResponse, CourseListResponse
 from api.utils import safe_parse_json_list
 
-router = APIRouter(tags=["Courses"])
+router = APIRouter(prefix="/courses", tags=["Courses"])
 
 
 def _to_course_response(course: Course) -> CourseResponse:
@@ -32,7 +32,7 @@ def _to_course_response(course: Course) -> CourseResponse:
     )
 
 
-@router.get("/courses", response_model=CourseListResponse)
+@router.get("", response_model=CourseListResponse)
 async def list_courses(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=50),
@@ -62,7 +62,7 @@ async def list_courses(
     )
 
 
-@router.get("/courses/{course_id}", response_model=CourseResponse)
+@router.get("/{course_id}", response_model=CourseResponse)
 async def get_course(
     course_id: str,
     db: Session = Depends(get_db),

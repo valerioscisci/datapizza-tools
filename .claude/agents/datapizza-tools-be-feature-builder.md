@@ -136,6 +136,82 @@ logger.warning("rate_limit_approaching", remaining=10)
 logger.error("email_send_failed", error=str(e), item_id=item.id)
 ```
 
+### Rule 6: Domain-Driven API Architecture
+Each API feature lives in its own folder under `routes/` with co-located schemas. Child resources nest as subfolders under their parent.
+
+```
+routes/
+├── __init__.py           # Re-exports all top-level routers
+├── auth/
+│   ├── __init__.py       # Re-exports router
+│   ├── router.py         # Route handlers
+│   └── schemas.py        # Pydantic request/response models
+├── profile/
+│   ├── __init__.py       # Re-exports router (includes child routers)
+│   ├── router.py         # Profile CRUD handlers
+│   ├── schemas.py        # Profile Pydantic models
+│   ├── experiences/
+│   │   ├── __init__.py
+│   │   ├── router.py     # Experience CRUD handlers
+│   │   └── schemas.py    # Experience Pydantic models
+│   └── educations/
+│       ├── __init__.py
+│       ├── router.py     # Education CRUD handlers
+│       └── schemas.py    # Education Pydantic models
+├── jobs/
+│   ├── __init__.py
+│   ├── router.py
+│   └── schemas.py
+├── applications/
+│   ├── __init__.py
+│   ├── router.py
+│   └── schemas.py
+├── talents/
+│   ├── __init__.py
+│   ├── router.py
+│   └── schemas.py
+├── proposals/
+│   ├── __init__.py
+│   ├── router.py
+│   └── schemas.py
+├── news/
+│   ├── __init__.py
+│   ├── router.py
+│   └── schemas.py
+└── courses/
+    ├── __init__.py
+    ├── router.py
+    └── schemas.py
+```
+
+**Key principles:**
+
+1. **Co-location** — Schemas live alongside their router, NOT in a separate `schemas/` folder
+2. **Parent includes children** — Parent `__init__.py` composes child routers:
+   ```python
+   # routes/profile/__init__.py
+   from .router import router
+   from .experiences.router import router as experiences_router
+   from .educations.router import router as educations_router
+
+   router.include_router(experiences_router)
+   router.include_router(educations_router)
+   ```
+3. **main.py is minimal** — Only imports top-level feature routers, never child routers directly
+4. **`__init__.py` re-exports** — Each `__init__.py` exports `router` for clean imports:
+   ```python
+   # routes/jobs/__init__.py
+   from .router import router
+   ```
+5. **URL paths stay consistent** — Router prefixes and tags are defined in `router.py`:
+   ```python
+   # routes/profile/router.py
+   router = APIRouter(prefix="/profile", tags=["Profile"])
+
+   # routes/profile/experiences/router.py
+   router = APIRouter(prefix="/experiences", tags=["Profile - Experiences"])
+   ```
+
 ## Feature Development Workflow
 
 ### Step 1: Requirements Gathering
@@ -418,15 +494,42 @@ async def delete_item(
     service.delete(item)
 ```
 
-### Step 7: Register Routes
+### Step 7: Register Routes (Domain-Driven)
 
+**For a new top-level feature** (e.g., `routes/jobs/`):
 ```python
-# main.py
-from routes.my_feature import router as my_feature_router
+# routes/jobs/__init__.py
+from .router import router
 
-# Add to existing router includes
-app.include_router(my_feature_router, prefix="/api/v1")
+# routes/jobs/router.py
+from fastapi import APIRouter
+router = APIRouter(prefix="/jobs", tags=["Jobs"])
+
+# routes/jobs/schemas.py
+from pydantic import BaseModel
+# ... schemas here
+
+# main.py — only imports top-level
+from routes.jobs import router as jobs_router
+app.include_router(jobs_router, prefix="/api/v1")
 ```
+
+**For a child resource** (e.g., `routes/profile/experiences/`):
+```python
+# routes/profile/experiences/__init__.py
+from .router import router
+
+# routes/profile/experiences/router.py
+from fastapi import APIRouter
+router = APIRouter(prefix="/experiences", tags=["Profile - Experiences"])
+
+# routes/profile/__init__.py — parent includes child
+from .router import router
+from .experiences.router import router as experiences_router
+router.include_router(experiences_router)
+```
+
+**main.py only ever includes top-level routers.** Child routers are composed by their parent.
 
 ## External Integration Patterns
 
@@ -548,6 +651,11 @@ Before completing any feature:
 - [ ] Soft delete implemented (not hard delete)
 - [ ] No SQL injection vulnerabilities
 - [ ] Input validation with Pydantic validators
+- [ ] **Feature uses domain-driven folder structure** (`routes/feature_name/router.py + schemas.py`)
+- [ ] **Schemas are co-located** with their router (not in a flat `schemas/` folder)
+- [ ] **`__init__.py` re-exports** the router for clean imports
+- [ ] **Child resources** are nested subfolders included by parent `__init__.py`
+- [ ] **main.py only imports top-level routers** (never child routers directly)
 
 ## Communication Style
 

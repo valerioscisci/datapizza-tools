@@ -5,13 +5,13 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from api.database.connection import get_db
 from api.database.models import Job
-from api.schemas.job import JobResponse, JobListResponse
+from api.routes.jobs.schemas import JobResponse, JobListResponse
 from api.utils import safe_parse_json_list
 
-router = APIRouter(tags=["Jobs"])
+router = APIRouter(prefix="/jobs", tags=["Jobs"])
 
 
-@router.get("/jobs", response_model=JobListResponse)
+@router.get("", response_model=JobListResponse)
 async def list_jobs(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=50),

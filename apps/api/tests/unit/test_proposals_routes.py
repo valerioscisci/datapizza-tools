@@ -14,7 +14,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from api.routes.proposals import (
+from api.routes.proposals.router import (
     create_proposal,
     list_proposals,
     get_proposal,
@@ -23,7 +23,7 @@ from api.routes.proposals import (
     get_current_company_user,
     _build_proposal_response,
 )
-from api.schemas.proposal import ProposalCreate, ProposalUpdate
+from api.routes.proposals.schemas import ProposalCreate, ProposalUpdate
 
 
 # --- get_current_company_user dependency ---

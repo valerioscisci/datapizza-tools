@@ -6,6 +6,7 @@ Covers signup (user creation, duplicate email, validation), login
 
 from __future__ import annotations
 
+import importlib
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
@@ -13,8 +14,10 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from api.routes.auth import signup, login, get_me, _user_to_response
-from api.schemas.auth import SignupRequest, LoginRequest
+# Import the router module explicitly to allow patch.object (avoids __init__.py shadowing)
+_auth_router_mod = importlib.import_module("api.routes.auth.router")
+from api.routes.auth.router import signup, login, get_me, _user_to_response
+from api.routes.auth.schemas import SignupRequest, LoginRequest
 
 
 class TestUserToResponse:
@@ -67,7 +70,7 @@ class TestSignup:
 
         mock_db.refresh.side_effect = mock_refresh
 
-        with patch("api.routes.auth.create_access_token", return_value="fake-jwt-token"):
+        with patch.object(_auth_router_mod, "create_access_token", return_value="fake-jwt-token"):
             result = await signup(data=data, db=mock_db)
 
         assert result.access_token == "fake-jwt-token"
@@ -127,8 +130,8 @@ class TestLogin:
 
         data = LoginRequest(email="test@email.it", password="password123")
 
-        with patch("api.routes.auth.verify_password", return_value=True), \
-             patch("api.routes.auth.create_access_token", return_value="fake-jwt-token"):
+        with patch.object(_auth_router_mod, "verify_password", return_value=True), \
+             patch.object(_auth_router_mod, "create_access_token", return_value="fake-jwt-token"):
             result = await login(data=data, db=mock_db)
 
         assert result.access_token == "fake-jwt-token"
@@ -141,7 +144,7 @@ class TestLogin:
 
         data = LoginRequest(email="test@email.it", password="wrong_password")
 
-        with patch("api.routes.auth.verify_password", return_value=False):
+        with patch.object(_auth_router_mod, "verify_password", return_value=False):
             with pytest.raises(HTTPException) as exc_info:
                 await login(data=data, db=mock_db)
         assert exc_info.value.status_code == 401
@@ -206,7 +209,7 @@ class TestCompanySignup:
 
         mock_db.refresh.side_effect = mock_refresh
 
-        with patch("api.routes.auth.create_access_token", return_value="fake-jwt-token"):
+        with patch.object(_auth_router_mod, "create_access_token", return_value="fake-jwt-token"):
             result = await signup(data=data, db=mock_db)
 
         assert result.access_token == "fake-jwt-token"

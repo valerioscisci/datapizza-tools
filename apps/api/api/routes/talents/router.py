@@ -7,11 +7,12 @@ from sqlalchemy.orm import Session
 
 from api.database.connection import get_db
 from api.database.models import User, Experience, Education
-from api.schemas.talent import TalentCardResponse, TalentCardListResponse, TalentDetailResponse
-from api.routes.profile import _experience_to_response, _education_to_response
+from api.routes.talents.schemas import TalentCardResponse, TalentCardListResponse, TalentDetailResponse
+from api.routes.profile.experiences.router import _experience_to_response
+from api.routes.profile.educations.router import _education_to_response
 from api.utils import safe_parse_json_list
 
-router = APIRouter(tags=["Talents"])
+router = APIRouter(prefix="/talents", tags=["Talents"])
 
 
 def _escape_ilike(value: str) -> str:
@@ -19,7 +20,7 @@ def _escape_ilike(value: str) -> str:
     return value.replace("%", r"\%").replace("_", r"\_")
 
 
-@router.get("/talents", response_model=TalentCardListResponse)
+@router.get("", response_model=TalentCardListResponse)
 async def list_talents(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=50),
@@ -94,7 +95,7 @@ async def list_talents(
     )
 
 
-@router.get("/talents/{talent_id}", response_model=TalentDetailResponse)
+@router.get("/{talent_id}", response_model=TalentDetailResponse)
 async def get_talent(
     talent_id: str,
     db: Session = Depends(get_db),
