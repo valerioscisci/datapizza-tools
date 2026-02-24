@@ -1,23 +1,46 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import { Loader2, Sparkles } from 'lucide-react';
+import { useAuth } from '@/lib/auth/use-auth';
 import { WORK_MODE_FILTERS } from '../_utils/constants';
 import { useJobsData } from '../_hooks/useJobsData';
+import { useAIJobMatch } from '../_hooks/useAIJobMatch';
 import type { Job } from '../_utils/types';
 import { JobCard } from './JobCard';
 import { JobDetailDialog } from './JobDetailDialog';
 
 export function JobsPage() {
   const t = useTranslations('jobs');
+  const { isAuthenticated } = useAuth();
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<string>('all');
+  const [sortByMatch, setSortByMatch] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const { jobs, total, loading, fetchJobs } = useJobsData();
+  const {
+    loading: matchLoading,
+    error: matchError,
+    generatedAt,
+    generateMatches,
+    getMatchForJob,
+    hasMatches,
+  } = useAIJobMatch();
 
   useEffect(() => {
     fetchJobs(page, filter);
   }, [page, filter, fetchJobs]);
+
+  // Sort jobs by match score when sortByMatch is active
+  const displayJobs = useMemo(() => {
+    if (!sortByMatch || !hasMatches) return jobs;
+    return [...jobs].sort((a, b) => {
+      const scoreA = getMatchForJob(a.id)?.score ?? -1;
+      const scoreB = getMatchForJob(b.id)?.score ?? -1;
+      return scoreB - scoreA;
+    });
+  }, [jobs, sortByMatch, hasMatches, getMatchForJob]);
 
   return (
     <>
@@ -36,8 +59,8 @@ export function JobsPage() {
       {/* Filters + Jobs */}
       <section className="py-8 sm:py-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Filters */}
-          <div className="flex flex-wrap gap-2 mb-8">
+          {/* Filters Row */}
+          <div className="flex flex-wrap items-center gap-2 mb-8">
             {WORK_MODE_FILTERS.map((mode) => (
               <button
                 key={mode}
@@ -52,7 +75,72 @@ export function JobsPage() {
                 {t(`filters.${mode}`)}
               </button>
             ))}
+
+            {/* Sort by Best Match button — only when matches are loaded */}
+            {hasMatches && (
+              <button
+                onClick={() => setSortByMatch((prev) => !prev)}
+                aria-pressed={sortByMatch}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+                  sortByMatch
+                    ? 'bg-azure-600 text-white'
+                    : 'bg-white text-neutral-600 border border-neutral-200 hover:border-azure-300 hover:text-azure-600'
+                }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4" aria-hidden="true" />
+                  {t('aiMatch.sortBestMatch')}
+                </span>
+              </button>
+            )}
+
+            {/* Spacer to push AI Match button to the right */}
+            <div className="flex-1" />
+
+            {/* AI Match Button — only visible when logged in */}
+            {isAuthenticated && (
+              <button
+                onClick={generateMatches}
+                disabled={matchLoading}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-azure-600 text-white hover:bg-azure-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {matchLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                    {t('aiMatch.loading')}
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" aria-hidden="true" />
+                    {t('aiMatch.button')}
+                  </>
+                )}
+              </button>
+            )}
           </div>
+
+          {/* Match error */}
+          {matchError && (
+            <div className="mb-4 px-4 py-2 rounded-lg bg-red-50 text-red-600 text-sm border border-red-200">
+              {t('aiMatch.error')}
+            </div>
+          )}
+
+          {/* Generated at info */}
+          {generatedAt && (
+            <div className="mb-4 px-4 py-2 rounded-lg bg-azure-50 text-azure-700 text-sm border border-azure-200 flex items-center gap-2">
+              <Sparkles className="w-4 h-4" aria-hidden="true" />
+              {t('aiMatch.generatedAt', {
+                date: new Date(generatedAt).toLocaleDateString('it-IT', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
+              })}
+            </div>
+          )}
 
           {/* Job Cards */}
           <div aria-live="polite">
@@ -66,10 +154,11 @@ export function JobsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {jobs.map((job) => (
+              {displayJobs.map((job) => (
                 <JobCard
                   key={job.id}
                   job={job}
+                  match={getMatchForJob(job.id)}
                   onClick={() => setSelectedJob(job)}
                 />
               ))}
@@ -106,6 +195,7 @@ export function JobsPage() {
       {selectedJob && (
         <JobDetailDialog
           job={selectedJob}
+          match={getMatchForJob(selectedJob.id)}
           onClose={() => setSelectedJob(null)}
         />
       )}

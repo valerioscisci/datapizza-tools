@@ -10,6 +10,7 @@ import { SkillsSection } from './SkillsSection';
 import { ExperienceSection } from './ExperienceSection';
 import { EducationSection } from './EducationSection';
 import { ProfileEditModal } from './ProfileEditModal';
+import { AICareerAdvisor } from './AICareerAdvisor';
 
 export function ProfiloPage() {
   const t = useTranslations('profile');
@@ -113,6 +114,9 @@ export function ProfiloPage() {
             onUpdate={fetchProfile}
             t={t}
           />
+
+          {/* AI Career Advisor */}
+          <AICareerAdvisor profile={profile} />
         </div>
       </section>
 
