@@ -13,7 +13,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from api.routes.news import list_news, get_news, _to_news_response
+from api.routes.news.router import list_news, get_news, _to_news_response
 
 
 class TestToNewsResponse:

@@ -42,6 +42,7 @@ Review code across these dimensions:
 
 | Category | Weight | Focus Areas |
 |----------|--------|-------------|
+| **Page Architecture** | Critical | Feature-scoped directory structure, ultra-thin page.tsx, sections/hooks separation |
 | **Type Safety** | Critical | No `any`, proper interfaces, strict null checks |
 | **API Usage** | Critical | Proper API hooks, cache invalidation, no raw fetch |
 | **No Barrel Files** | Critical | No index.ts re-exports, direct imports only |
@@ -49,7 +50,7 @@ Review code across these dimensions:
 | **Security** | High | XSS prevention, auth checks, sensitive data handling |
 | **Performance** | Medium | Unnecessary re-renders, memo usage, bundle size, duplicate queries |
 | **Accessibility** | Medium | ARIA, keyboard nav, semantic HTML |
-| **i18n** | Medium | All strings translated, all locales |
+| **i18n** | Medium | All strings translated, Italian only |
 | **Style Consistency** | Low | Naming, formatting, patterns |
 
 ## Datapizza Design System Reference
@@ -411,6 +412,95 @@ return <Display data={data} />;
 
 ALL buttons, clickable badges, links, and interactive elements MUST have `cursor-pointer`.
 
+### Page Architecture Review (Critical — Zero Tolerance)
+
+Every page route MUST follow the Feature-Scoped, Layered Component Architecture.
+
+#### page.tsx must be ultra-thin (≤15 lines)
+```typescript
+// REJECT: page.tsx with business logic, state, or UI markup
+'use client';
+export default function JobsPage() {
+  const [jobs, setJobs] = useState([]);
+  const [filters, setFilters] = useState({});
+  // ... 300 lines of code
+}
+
+// APPROVE: Ultra-thin page.tsx
+import { JobsPage } from './_components/JobsPage';
+
+export default function Page() {
+  return <JobsPage />;
+}
+```
+
+#### Feature-scoped directory structure required
+```
+// REJECT: All code in a single page.tsx file
+app/[locale]/jobs/
+└── page.tsx              # 500 lines of everything
+
+// APPROVE: Feature-scoped directories
+app/[locale]/jobs/
+├── page.tsx              # ≤15 lines
+├── _components/
+│   ├── JobsPage.tsx      # Orchestrator
+│   ├── JobsFilters.tsx   # Filter section
+│   ├── JobsList.tsx      # List section
+│   └── JobCard.tsx       # Presentational component
+├── _hooks/
+│   └── useJobsData.ts   # Data fetching hook
+└── _utils/
+    └── constants.ts      # Page constants
+```
+
+#### Business logic must live in sections or hooks
+```typescript
+// REJECT: API calls in page.tsx or presentational components
+// page.tsx
+'use client';
+export default function Page() {
+  const [data, setData] = useState([]);
+  useEffect(() => { fetch('/api/v1/jobs').then(...) }, []);
+}
+
+// APPROVE: Data fetching in custom hook, used by section
+// _hooks/useJobsData.ts
+export function useJobsData(filters: JobFilters) {
+  // All data fetching logic here
+}
+
+// _components/JobsList.tsx
+export function JobsList() {
+  const { jobs, isLoading } = useJobsData(filters);
+  // Render logic here
+}
+```
+
+#### Props interfaces must be in .props.ts files
+```typescript
+// REJECT: Complex inline props
+function JobCard({ title, company, location, salary, tags, onClick, isSelected }:
+  { title: string; company: string; location: string; salary: string; tags: string[];
+    onClick: () => void; isSelected: boolean }) {}
+
+// APPROVE: Props in separate file
+// JobCard.props.ts
+export interface JobCardProps {
+  title: string;
+  company: string;
+  location: string;
+  salary: string;
+  tags: string[];
+  onClick: () => void;
+  isSelected: boolean;
+}
+
+// JobCard.tsx
+import { JobCardProps } from './JobCard.props';
+export function JobCard({ title, company, ...rest }: JobCardProps) {}
+```
+
 ### Component Structure Review
 
 ```typescript
@@ -419,14 +509,15 @@ function ItemPage() {
   // 300+ lines of mixed concerns
 }
 
-// APPROVE: Separated concerns
+// APPROVE: Separated concerns using feature-scoped architecture
+// _components/ItemPage.tsx (orchestrator)
 function ItemPage() {
   return (
-    <ItemProvider>
+    <main>
       <ItemHeader />
       <ItemContent />
       <ItemActions />
-    </ItemProvider>
+    </main>
   );
 }
 ```
@@ -434,10 +525,10 @@ function ItemPage() {
 ### File Organization Review
 
 ```typescript
-// REJECT: Props defined inline
+// REJECT: Props defined inline for complex components
 function MyComponent({ name, age, onClick }: { name: string; age: number; onClick: () => void }) {}
 
-// APPROVE: Props in separate file (for complex props)
+// APPROVE: Props in separate .props.ts file
 // MyComponent.props.ts
 export interface MyComponentProps {
   name: string;
@@ -567,14 +658,18 @@ After completing all code review fixes:
 ## Self-Verification Checklist
 
 Before completing a review:
+- [ ] **Verified page.tsx is ultra-thin** (≤15 lines, just imports + renders `*Page`)
+- [ ] **Verified feature-scoped directory structure** (`_components/`, `_hooks/`, `_utils/`, `_context/`)
+- [ ] **Verified business logic in sections/hooks**, NOT in page.tsx
+- [ ] **Verified .props.ts files** for all complex component props
+- [ ] **Verified no monolithic page components** (>200 lines must be split)
 - [ ] Ran TypeScript check (`pnpm typecheck`)
 - [ ] Ran ESLint (`pnpm lint`)
 - [ ] Checked all changed files
 - [ ] Verified no `any` types introduced
 - [ ] Verified hook ordering in all components
 - [ ] Checked for security issues
-- [ ] Verified translations exist for new strings
-- [ ] Tested dark mode compatibility (if UI changes)
+- [ ] Verified translations exist for new strings (Italian only)
 - [ ] **Verified E2E tests exist for all new/modified pages**
 - [ ] **Created missing E2E tests if needed (following `e2e/` pattern)**
 - [ ] **Verified mutations use `.isPending`** (not manual loading state)

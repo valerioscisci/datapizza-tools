@@ -102,6 +102,11 @@ export default function Footer() {
                     {t('nav.courses')}
                   </Link>
                 </li>
+                <li>
+                  <Link href="/it/talenti" className="text-sm text-neutral-500 hover:text-azure-600 transition-colors cursor-pointer">
+                    {t('nav.browseTalents')}
+                  </Link>
+                </li>
               </ul>
             </div>
 

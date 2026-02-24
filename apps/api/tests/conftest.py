@@ -55,6 +55,49 @@ def mock_user():
     user.linkedin_url = None
     user.github_url = None
     user.portfolio_url = None
+    user.user_type = "talent"
+    user.company_name = None
+    user.company_website = None
+    user.company_size = None
+    user.industry = None
+    user.is_public = 0
+    user.is_active = 1
+    user.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    user.updated_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    return user
+
+
+@pytest.fixture
+def mock_public_user():
+    """Mock public user with is_public=1 for talent browsing tests.
+
+    Returns a MagicMock that mimics a SQLAlchemy User model instance
+    with is_public=1 and realistic Italian developer profile data.
+    """
+    user = MagicMock()
+    user.id = str(uuid4())
+    user.email = "public@email.it"
+    user.password_hash = "$2b$12$fake_hash"
+    user.full_name = "Public Developer"
+    user.phone = "+39 333 9999999"
+    user.bio = "A public developer profile for testing."
+    user.location = "Roma"
+    user.experience_level = "senior"
+    user.experience_years = "5+ anni"
+    user.current_role = "Backend Engineer"
+    user.skills_json = '["Python", "FastAPI", "Docker"]'
+    user.availability_status = "available"
+    user.reskilling_status = None
+    user.adopted_by_company = None
+    user.linkedin_url = "https://linkedin.com/in/public-dev"
+    user.github_url = "https://github.com/publicdev"
+    user.portfolio_url = None
+    user.user_type = "talent"
+    user.company_name = None
+    user.company_website = None
+    user.company_size = None
+    user.industry = None
+    user.is_public = 1
     user.is_active = 1
     user.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
     user.updated_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
@@ -203,3 +246,115 @@ def mock_application(mock_user, mock_job):
     app.applied_at = datetime(2024, 7, 1, tzinfo=timezone.utc)
     app.updated_at = datetime(2024, 7, 1, tzinfo=timezone.utc)
     return app
+
+
+@pytest.fixture
+def mock_company_user():
+    """Mock company user account for proposal tests.
+
+    Returns a MagicMock that mimics a SQLAlchemy User model instance
+    with user_type='company' and company-specific fields populated.
+    """
+    user = MagicMock()
+    user.id = str(uuid4())
+    user.email = "hr@techflow.it"
+    user.password_hash = "$2b$12$fake_hash"
+    user.full_name = "Laura Verdi"
+    user.phone = "+39 02 1234567"
+    user.bio = "HR Manager presso TechFlow Italia."
+    user.location = "Milano"
+    user.experience_level = None
+    user.experience_years = None
+    user.current_role = None
+    user.skills_json = "[]"
+    user.availability_status = "available"
+    user.reskilling_status = None
+    user.adopted_by_company = None
+    user.linkedin_url = None
+    user.github_url = None
+    user.portfolio_url = None
+    user.user_type = "company"
+    user.company_name = "TechFlow Italia"
+    user.company_website = "https://techflow.it"
+    user.company_size = "51-200"
+    user.industry = "Software & Technology"
+    user.is_public = 0
+    user.is_active = 1
+    user.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    user.updated_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    return user
+
+
+@pytest.fixture
+def mock_proposal(mock_company_user, mock_user):
+    """Mock proposal linking a company to a talent.
+
+    Returns a MagicMock that mimics a SQLAlchemy Proposal model instance.
+    """
+    proposal = MagicMock()
+    proposal.id = str(uuid4())
+    proposal.company_id = mock_company_user.id
+    proposal.talent_id = mock_user.id
+    proposal.status = "sent"
+    proposal.message = "We are interested in your profile."
+    proposal.budget_range = "5000-8000"
+    proposal.total_xp = 0
+    proposal.hired_at = None
+    proposal.hiring_notes = None
+    proposal.created_at = datetime(2024, 7, 1, tzinfo=timezone.utc)
+    proposal.updated_at = datetime(2024, 7, 1, tzinfo=timezone.utc)
+    return proposal
+
+
+@pytest.fixture
+def mock_proposal_course(mock_proposal, mock_course):
+    """Mock proposal-course link.
+
+    Returns a MagicMock that mimics a SQLAlchemy ProposalCourse model instance.
+    """
+    pc = MagicMock()
+    pc.id = str(uuid4())
+    pc.proposal_id = mock_proposal.id
+    pc.course_id = mock_course.id
+    pc.order = 0
+    pc.is_completed = 0
+    pc.completed_at = None
+    pc.started_at = None
+    pc.talent_notes = None
+    pc.company_notes = None
+    pc.deadline = None
+    pc.xp_earned = 0
+    pc.created_at = datetime(2024, 7, 1, tzinfo=timezone.utc)
+    return pc
+
+
+@pytest.fixture
+def mock_milestone(mock_proposal):
+    """Mock proposal milestone.
+
+    Returns a MagicMock that mimics a SQLAlchemy ProposalMilestone model instance.
+    """
+    m = MagicMock()
+    m.id = str(uuid4())
+    m.proposal_id = mock_proposal.id
+    m.milestone_type = "course_completed"
+    m.title = "Corso completato"
+    m.description = None
+    m.xp_reward = 200
+    m.achieved_at = datetime(2024, 8, 1, tzinfo=timezone.utc)
+    return m
+
+
+@pytest.fixture
+def mock_message(mock_proposal, mock_company_user):
+    """Mock proposal message.
+
+    Returns a MagicMock that mimics a SQLAlchemy ProposalMessage model instance.
+    """
+    msg = MagicMock()
+    msg.id = str(uuid4())
+    msg.proposal_id = mock_proposal.id
+    msg.sender_id = mock_company_user.id
+    msg.content = "Hello, how is the training going?"
+    msg.created_at = datetime(2024, 8, 1, tzinfo=timezone.utc)
+    return msg

@@ -6,6 +6,7 @@ Covers signup (user creation, duplicate email, validation), login
 
 from __future__ import annotations
 
+import importlib
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
@@ -13,8 +14,10 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from api.routes.auth import signup, login, get_me, _user_to_response
-from api.schemas.auth import SignupRequest, LoginRequest
+# Import the router module explicitly to allow patch.object (avoids __init__.py shadowing)
+_auth_router_mod = importlib.import_module("api.routes.auth.router")
+from api.routes.auth.router import signup, login, get_me, _user_to_response
+from api.routes.auth.schemas import SignupRequest, LoginRequest
 
 
 class TestUserToResponse:
@@ -67,7 +70,7 @@ class TestSignup:
 
         mock_db.refresh.side_effect = mock_refresh
 
-        with patch("api.routes.auth.create_access_token", return_value="fake-jwt-token"):
+        with patch.object(_auth_router_mod, "create_access_token", return_value="fake-jwt-token"):
             result = await signup(data=data, db=mock_db)
 
         assert result.access_token == "fake-jwt-token"
@@ -127,8 +130,8 @@ class TestLogin:
 
         data = LoginRequest(email="test@email.it", password="password123")
 
-        with patch("api.routes.auth.verify_password", return_value=True), \
-             patch("api.routes.auth.create_access_token", return_value="fake-jwt-token"):
+        with patch.object(_auth_router_mod, "verify_password", return_value=True), \
+             patch.object(_auth_router_mod, "create_access_token", return_value="fake-jwt-token"):
             result = await login(data=data, db=mock_db)
 
         assert result.access_token == "fake-jwt-token"
@@ -141,7 +144,7 @@ class TestLogin:
 
         data = LoginRequest(email="test@email.it", password="wrong_password")
 
-        with patch("api.routes.auth.verify_password", return_value=False):
+        with patch.object(_auth_router_mod, "verify_password", return_value=False):
             with pytest.raises(HTTPException) as exc_info:
                 await login(data=data, db=mock_db)
         assert exc_info.value.status_code == 401
@@ -171,3 +174,86 @@ class TestGetMe:
         assert result.email == mock_user.email
         assert result.full_name == mock_user.full_name
         assert result.skills == ["Python", "FastAPI"]
+
+    @pytest.mark.asyncio
+    async def test_get_me_returns_company_fields(self, mock_company_user):
+        """get_me should include company fields for company users."""
+        result = await get_me(current_user=mock_company_user)
+        assert result.user_type == "company"
+        assert result.company_name == "TechFlow Italia"
+        assert result.company_website == "https://techflow.it"
+        assert result.company_size == "51-200"
+        assert result.industry == "Software & Technology"
+
+
+class TestCompanySignup:
+    """Tests for company-specific signup behavior."""
+
+    @pytest.mark.asyncio
+    async def test_company_signup_creates_company_user(self, mock_db):
+        """Signup with user_type='company' should create a company user."""
+        mock_db.query.return_value.filter.return_value.first.return_value = None
+
+        data = SignupRequest(
+            email="company@example.it",
+            password="password123",
+            full_name="Company Admin",
+            user_type="company",
+            company_name="Test Corp",
+            company_website="https://testcorp.it",
+            industry="Technology",
+        )
+
+        def mock_refresh(user):
+            user.id = str(uuid4())
+
+        mock_db.refresh.side_effect = mock_refresh
+
+        with patch.object(_auth_router_mod, "create_access_token", return_value="fake-jwt-token"):
+            result = await signup(data=data, db=mock_db)
+
+        assert result.access_token == "fake-jwt-token"
+        # Verify the user was created with company fields
+        added_user = mock_db.add.call_args[0][0]
+        assert added_user.user_type == "company"
+        assert added_user.company_name == "Test Corp"
+        assert added_user.company_website == "https://testcorp.it"
+        assert added_user.industry == "Technology"
+
+    def test_company_signup_requires_company_name(self):
+        """Signup with user_type='company' but no company_name should fail validation."""
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError) as exc_info:
+            SignupRequest(
+                email="company@example.it",
+                password="password123",
+                full_name="Company Admin",
+                user_type="company",
+                # missing company_name
+            )
+        errors = exc_info.value.errors()
+        assert any("company_name" in str(e) for e in errors)
+
+    def test_talent_signup_does_not_require_company_name(self):
+        """Signup with user_type='talent' should not require company_name."""
+        data = SignupRequest(
+            email="talent@example.it",
+            password="password123",
+            full_name="Talent User",
+            user_type="talent",
+        )
+        assert data.user_type == "talent"
+        assert data.company_name is None
+
+    def test_signup_invalid_user_type(self):
+        """Signup with invalid user_type should fail validation."""
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            SignupRequest(
+                email="test@example.it",
+                password="password123",
+                full_name="Test User",
+                user_type="admin",
+            )

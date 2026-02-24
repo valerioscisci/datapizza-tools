@@ -13,7 +13,7 @@ from uuid import uuid4
 
 import pytest
 
-from api.routes.jobs import list_jobs
+from api.routes.jobs.router import list_jobs
 
 
 class TestListJobs:

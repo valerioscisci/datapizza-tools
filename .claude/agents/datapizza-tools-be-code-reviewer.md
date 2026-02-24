@@ -46,6 +46,7 @@ python -m py_compile <file_path>
 | **Type Safety** | High | Pydantic schemas, type hints |
 | **Performance** | Medium | N+1 queries, pagination, caching |
 | **Testing** | Medium | Test coverage, edge cases |
+| **API Architecture** | Critical | Domain-driven folders, co-located schemas, parent-child composition |
 | **Code Quality** | Low | Naming, structure, DRY |
 
 ## Review Checklist
@@ -342,6 +343,75 @@ After completing all code review fixes:
 3. Run the full test suite to verify no regressions
 4. Report test coverage gaps as MAJOR issues
 
+### API Architecture (Critical)
+
+#### Domain-Driven Folder Structure
+```python
+# REJECT: Flat structure with separate schemas/ folder
+routes/
+├── auth.py
+├── profile.py          # 300+ lines with experiences + educations
+├── jobs.py
+schemas/
+├── auth.py
+├── profile.py
+
+# APPROVE: Domain-driven folders with co-located schemas
+routes/
+├── auth/
+│   ├── __init__.py     # Re-exports router
+│   ├── router.py       # Route handlers only
+│   └── schemas.py      # Co-located Pydantic models
+├── profile/
+│   ├── __init__.py     # Includes child routers
+│   ├── router.py       # Profile CRUD only
+│   ├── schemas.py      # Profile schemas only
+│   ├── experiences/
+│   │   ├── __init__.py
+│   │   ├── router.py
+│   │   └── schemas.py
+│   └── educations/
+│       ├── __init__.py
+│       ├── router.py
+│       └── schemas.py
+```
+
+#### Schema Co-location
+```python
+# REJECT: Schemas in a separate flat folder
+from schemas.profile import ProfileResponse  # ← separate schemas/ folder
+
+# APPROVE: Schemas co-located with router
+from routes.profile.schemas import ProfileResponse  # ← same folder as router
+```
+
+#### Parent-Child Router Composition
+```python
+# REJECT: main.py imports child routers directly
+app.include_router(profile_router, prefix="/api/v1")
+app.include_router(experiences_router, prefix="/api/v1")  # child as top-level!
+
+# APPROVE: Parent includes children, main.py only imports top-level
+# routes/profile/__init__.py
+from .router import router
+from .experiences.router import router as experiences_router
+router.include_router(experiences_router)
+
+# main.py
+from routes.profile import router as profile_router
+app.include_router(profile_router, prefix="/api/v1")  # children auto-included
+```
+
+#### Router File Size
+```python
+# REJECT: Single router file with multiple unrelated resources (>200 lines)
+# routes/profile.py with profile CRUD + experiences CRUD + educations CRUD
+
+# APPROVE: Each resource in its own router.py (<150 lines per file)
+# routes/profile/router.py — profile CRUD only
+# routes/profile/experiences/router.py — experiences CRUD only
+```
+
 ### Code Quality (Low Priority)
 
 #### Naming Conventions
@@ -541,6 +611,11 @@ Before completing a review:
 - [ ] **Verified all endpoints have `response_model`**
 - [ ] **Verified Pydantic schemas have proper types** (no `dict`, `Any`)
 - [ ] **Checked for breaking changes** to existing API contracts
+- [ ] **Verified domain-driven folder structure** (each feature = folder with router.py + schemas.py)
+- [ ] **Verified schemas are co-located** with their routers (not in separate schemas/ folder)
+- [ ] **Verified parent-child composition** (children included via parent __init__.py)
+- [ ] **Verified main.py only imports top-level routers**
+- [ ] **Verified router files are <150 lines** (split large files into child resources)
 
 ## Communication Style
 

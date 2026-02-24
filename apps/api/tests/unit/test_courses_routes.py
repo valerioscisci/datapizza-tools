@@ -13,7 +13,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from api.routes.courses import list_courses, get_course, _to_course_response
+from api.routes.courses.router import list_courses, get_course, _to_course_response
 
 
 class TestToCourseResponse:

@@ -15,22 +15,26 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from api.routes.profile import (
+from api.routes.profile.router import (
     get_profile,
     update_profile,
+    _build_profile_response,
+)
+from api.routes.profile.experiences.router import (
     create_experience,
     update_experience,
     delete_experience,
+    _experience_to_response,
+)
+from api.routes.profile.educations.router import (
     create_education,
     update_education,
     delete_education,
-    _experience_to_response,
     _education_to_response,
-    _build_profile_response,
 )
-from api.schemas.profile import ProfileUpdate
-from api.schemas.experience import ExperienceCreate, ExperienceUpdate
-from api.schemas.education import EducationCreate, EducationUpdate
+from api.routes.profile.schemas import ProfileUpdate
+from api.routes.profile.experiences.schemas import ExperienceCreate, ExperienceUpdate
+from api.routes.profile.educations.schemas import EducationCreate, EducationUpdate
 
 
 class TestHelperFunctions:
@@ -187,6 +191,36 @@ class TestUpdateProfile:
         # bio should remain unchanged
         assert mock_user.bio == original_bio
         assert mock_user.location == "Torino"
+
+    @pytest.mark.asyncio
+    async def test_update_is_public_to_true(self, mock_db, mock_user):
+        """update_profile with is_public=True should set is_public to 1 (SQLite integer)."""
+        mock_user.is_public = 0
+        data = ProfileUpdate(is_public=True)
+
+        empty_query = MagicMock()
+        empty_query.order_by.return_value.all.return_value = []
+        mock_db.query.return_value.filter.return_value = empty_query
+
+        result = await update_profile(data=data, current_user=mock_user, db=mock_db)
+
+        assert mock_user.is_public == 1
+        mock_db.commit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_update_is_public_to_false(self, mock_db, mock_user):
+        """update_profile with is_public=False should set is_public to 0 (SQLite integer)."""
+        mock_user.is_public = 1
+        data = ProfileUpdate(is_public=False)
+
+        empty_query = MagicMock()
+        empty_query.order_by.return_value.all.return_value = []
+        mock_db.query.return_value.filter.return_value = empty_query
+
+        result = await update_profile(data=data, current_user=mock_user, db=mock_db)
+
+        assert mock_user.is_public == 0
+        mock_db.commit.assert_called_once()
 
 
 class TestExperienceCRUD:
