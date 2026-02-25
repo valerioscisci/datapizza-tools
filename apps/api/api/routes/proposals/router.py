@@ -164,7 +164,18 @@ def _create_milestone(db: Session, proposal_id: str, milestone_type: str, title:
     return milestone
 
 
-@router.post("", response_model=ProposalResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=ProposalResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a training proposal",
+    responses={
+        400: {"description": "Validation error (self-proposal, duplicate courses, etc.)"},
+        401: {"description": "Not authenticated"},
+        403: {"description": "Only company accounts can create proposals"},
+        404: {"description": "Talent or one or more courses not found"},
+    },
+)
 async def create_proposal(
     data: ProposalCreate,
     current_user: User = Depends(get_current_company_user),
@@ -247,7 +258,14 @@ async def create_proposal(
     return _build_proposal_response(proposal, current_user, talent, proposal_courses, courses_map, [])
 
 
-@router.get("", response_model=ProposalListResponse)
+@router.get(
+    "",
+    response_model=ProposalListResponse,
+    summary="List my proposals",
+    responses={
+        401: {"description": "Not authenticated"},
+    },
+)
 async def list_proposals(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=50),
@@ -288,7 +306,16 @@ async def list_proposals(
     )
 
 
-@router.get("/{proposal_id}", response_model=ProposalResponse)
+@router.get(
+    "/{proposal_id}",
+    response_model=ProposalResponse,
+    summary="Get proposal details",
+    responses={
+        401: {"description": "Not authenticated"},
+        403: {"description": "Not authorized to view this proposal"},
+        404: {"description": "Proposal not found"},
+    },
+)
 async def get_proposal(
     proposal_id: str,
     current_user: User = Depends(get_current_user),
@@ -323,7 +350,16 @@ async def get_proposal(
     return _build_proposal_response(proposal, company, talent, proposal_courses, courses_map, milestones)
 
 
-@router.get("/{proposal_id}/dashboard", response_model=ProposalResponse)
+@router.get(
+    "/{proposal_id}/dashboard",
+    response_model=ProposalResponse,
+    summary="Get proposal delivery dashboard",
+    responses={
+        401: {"description": "Not authenticated"},
+        403: {"description": "Not authorized to view this proposal"},
+        404: {"description": "Proposal not found"},
+    },
+)
 async def get_proposal_dashboard(
     proposal_id: str,
     current_user: User = Depends(get_current_user),
@@ -356,7 +392,16 @@ async def get_proposal_dashboard(
     return _build_proposal_response(proposal, company, talent, proposal_courses, courses_map, milestones)
 
 
-@router.patch("/{proposal_id}", response_model=ProposalResponse)
+@router.patch(
+    "/{proposal_id}",
+    response_model=ProposalResponse,
+    summary="Update proposal status or details",
+    responses={
+        401: {"description": "Not authenticated"},
+        403: {"description": "Not authorized to update this proposal"},
+        404: {"description": "Proposal not found"},
+    },
+)
 async def update_proposal(
     proposal_id: str,
     data: ProposalUpdate,
@@ -461,7 +506,16 @@ async def update_proposal(
     return _build_proposal_response(proposal, company, talent, proposal_courses, courses_map, milestones)
 
 
-@router.patch("/{proposal_id}/courses/{course_id}", response_model=ProposalResponse)
+@router.patch(
+    "/{proposal_id}/courses/{course_id}",
+    response_model=ProposalResponse,
+    summary="Mark a proposal course as completed",
+    responses={
+        401: {"description": "Not authenticated"},
+        403: {"description": "Only talents can mark courses as completed"},
+        404: {"description": "Proposal or course not found"},
+    },
+)
 async def complete_proposal_course(
     proposal_id: str,
     course_id: str,
@@ -589,7 +643,16 @@ async def complete_proposal_course(
     return _build_proposal_response(proposal, company, talent, proposal_courses_all, courses_map, milestones)
 
 
-@router.patch("/{proposal_id}/courses/{course_id}/start", response_model=ProposalResponse)
+@router.patch(
+    "/{proposal_id}/courses/{course_id}/start",
+    response_model=ProposalResponse,
+    summary="Start a proposal course",
+    responses={
+        401: {"description": "Not authenticated"},
+        403: {"description": "Only talents can start courses"},
+        404: {"description": "Proposal or course not found"},
+    },
+)
 async def start_proposal_course(
     proposal_id: str,
     course_id: str,
@@ -677,7 +740,16 @@ async def start_proposal_course(
     return _build_proposal_response(proposal, company, talent, proposal_courses_all, courses_map, milestones)
 
 
-@router.patch("/{proposal_id}/courses/{course_id}/notes", response_model=ProposalResponse)
+@router.patch(
+    "/{proposal_id}/courses/{course_id}/notes",
+    response_model=ProposalResponse,
+    summary="Update talent notes on a course",
+    responses={
+        401: {"description": "Not authenticated"},
+        403: {"description": "Only talents can update course notes"},
+        404: {"description": "Proposal or course not found"},
+    },
+)
 async def update_course_notes(
     proposal_id: str,
     course_id: str,
@@ -734,7 +806,16 @@ async def update_course_notes(
     return _build_proposal_response(proposal, company, talent, proposal_courses_all, courses_map, milestones)
 
 
-@router.patch("/{proposal_id}/courses/{course_id}/company-update", response_model=ProposalResponse)
+@router.patch(
+    "/{proposal_id}/courses/{course_id}/company-update",
+    response_model=ProposalResponse,
+    summary="Update company notes and deadline on a course",
+    responses={
+        401: {"description": "Not authenticated"},
+        403: {"description": "Only companies can update company course details"},
+        404: {"description": "Proposal or course not found"},
+    },
+)
 async def update_course_company(
     proposal_id: str,
     course_id: str,

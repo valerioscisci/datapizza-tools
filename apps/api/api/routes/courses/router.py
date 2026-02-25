@@ -32,7 +32,12 @@ def _to_course_response(course: Course) -> CourseResponse:
     )
 
 
-@router.get("", response_model=CourseListResponse)
+@router.get(
+    "",
+    response_model=CourseListResponse,
+    summary="List training courses",
+    openapi_extra={"security": []},
+)
 async def list_courses(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=50),
@@ -62,7 +67,12 @@ async def list_courses(
     )
 
 
-@router.get("/{course_id}", response_model=CourseResponse)
+@router.get(
+    "/{course_id}",
+    response_model=CourseResponse,
+    summary="Get a course by ID",
+    openapi_extra={"security": []},
+)
 async def get_course(
     course_id: str,
     db: Session = Depends(get_db),

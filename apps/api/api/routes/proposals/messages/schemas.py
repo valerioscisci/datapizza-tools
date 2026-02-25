@@ -5,20 +5,20 @@ from datetime import datetime
 
 
 class MessageCreate(BaseModel):
-    content: str = Field(..., min_length=1, max_length=2000)
+    content: str = Field(..., min_length=1, max_length=2000, description="Message text (1-2000 characters)")
 
 
 class MessageResponse(BaseModel):
-    id: str
-    sender_id: str
-    sender_name: str
-    sender_type: str  # "company" or "talent"
-    content: str
-    created_at: datetime
+    id: str = Field(description="Unique message identifier")
+    sender_id: str = Field(description="User ID of the sender")
+    sender_name: str = Field(description="Display name of the sender")
+    sender_type: str = Field(description="Sender role: 'company' or 'talent'")
+    content: str = Field(description="Message text content")
+    created_at: datetime = Field(description="When the message was sent")
 
 
 class MessageListResponse(BaseModel):
-    items: list[MessageResponse]
-    total: int
-    page: int
-    page_size: int
+    items: list[MessageResponse] = Field(description="List of messages for the current page")
+    total: int = Field(description="Total number of messages in this proposal")
+    page: int = Field(description="Current page number (1-based)")
+    page_size: int = Field(description="Number of items per page")

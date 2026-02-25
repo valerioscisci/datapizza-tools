@@ -51,12 +51,23 @@ def _build_application_response(app: Application, job: Job) -> ApplicationRespon
     )
 
 
-@router.post("", response_model=ApplicationResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=ApplicationResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Apply to a job listing",
+    responses={
+        401: {"description": "Not authenticated"},
+        404: {"description": "Job not found"},
+        409: {"description": "Already applied to this job"},
+    },
+)
 async def create_application(
     data: ApplicationCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Submit an application to an active job listing. A user can only apply once per job."""
     job = db.query(Job).filter(Job.id == data.job_id, Job.is_active == 1).first()
     if not job:
         raise HTTPException(
@@ -87,7 +98,14 @@ async def create_application(
     return _build_application_response(application, job)
 
 
-@router.get("", response_model=ApplicationListResponse)
+@router.get(
+    "",
+    response_model=ApplicationListResponse,
+    summary="List my job applications",
+    responses={
+        401: {"description": "Not authenticated"},
+    },
+)
 async def list_applications(
     status_filter: Optional[Literal["proposta", "da_completare", "attiva", "archiviata"]] = Query(None, alias="status"),
     current_user: User = Depends(get_current_user),
@@ -121,7 +139,15 @@ async def list_applications(
     )
 
 
-@router.get("/{application_id}", response_model=ApplicationResponse)
+@router.get(
+    "/{application_id}",
+    response_model=ApplicationResponse,
+    summary="Get application details",
+    responses={
+        401: {"description": "Not authenticated"},
+        404: {"description": "Application not found"},
+    },
+)
 async def get_application(
     application_id: str,
     current_user: User = Depends(get_current_user),

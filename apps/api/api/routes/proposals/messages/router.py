@@ -37,7 +37,16 @@ def _validate_message_access(proposal: Proposal, current_user: User):
         )
 
 
-@router.get("", response_model=MessageListResponse)
+@router.get(
+    "",
+    response_model=MessageListResponse,
+    summary="List messages in a proposal",
+    responses={
+        401: {"description": "Not authenticated"},
+        403: {"description": "Not authorized to access messages for this proposal"},
+        404: {"description": "Proposal not found"},
+    },
+)
 async def list_messages(
     proposal_id: str,
     page: int = Query(1, ge=1),
@@ -92,7 +101,17 @@ async def list_messages(
     )
 
 
-@router.post("", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=MessageResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Send a message in a proposal",
+    responses={
+        401: {"description": "Not authenticated"},
+        403: {"description": "Not authorized to send messages on this proposal"},
+        404: {"description": "Proposal not found"},
+    },
+)
 async def create_message(
     proposal_id: str,
     data: MessageCreate,

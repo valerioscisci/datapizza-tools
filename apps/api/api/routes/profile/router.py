@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from api.database.connection import get_db
@@ -51,7 +51,14 @@ def _build_profile_response(user: User, experiences: list[Experience], education
 
 # --- Profile endpoints ---
 
-@router.get("", response_model=ProfileResponse)
+@router.get(
+    "",
+    response_model=ProfileResponse,
+    summary="Get my profile",
+    responses={
+        401: {"description": "Not authenticated"},
+    },
+)
 async def get_profile(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -67,7 +74,14 @@ async def get_profile(
     return _build_profile_response(current_user, experiences, educations)
 
 
-@router.patch("", response_model=ProfileResponse)
+@router.patch(
+    "",
+    response_model=ProfileResponse,
+    summary="Update my profile",
+    responses={
+        401: {"description": "Not authenticated"},
+    },
+)
 async def update_profile(
     data: ProfileUpdate,
     current_user: User = Depends(get_current_user),
