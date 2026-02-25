@@ -124,6 +124,7 @@ This project uses a structured AI-assisted development workflow to maximize prod
 - **Email Notifications + Daily Digest (Backend)** — Local-only email notification system (no SMTP, stored in DB). New models: EmailLog (recipient, email_type, subject, body_html/text, related_proposal_id, is_read), NotificationPreference (email_notifications, daily_digest, channel per user). EmailService with 9 notification methods: proposal received/accepted/rejected, course started/completed, milestone reached, hiring confirmation (both parties), daily digest with AI cache fallback to recent courses. 8 notification REST endpoints: GET/email list with pagination/filtering, GET email detail (auto-mark read), PATCH mark read (single/all), GET unread count, GET/PATCH preferences, POST trigger digest. Integrated into proposals router with try/except wrappers (notification failures never block main flow). Seed data: notification preferences for all users + 5 sample email logs. 44 new unit tests (377 total)
 - **Email Notifications + Daily Digest (Frontend)** — Full notification center page (`/it/notifiche`) with email list, tab filters (All/Unread/Proposals/Courses/Milestones/Hiring/Digest), email detail dialog with HTML body rendering, pagination, mark-as-read (single + batch). Notification preferences collapsible panel with toggle switches for email notifications and daily digest, generate-digest-on-demand button, channel display. Navbar integration with Bell icon and red unread count badge (60s polling via shared `useUnreadCount` hook). Profile page integration with `NotificationPreferencesSection` card. 3 custom hooks (`useEmails`, shared `useUnreadCount`, shared `useNotificationPreferences`), 6 components, 50+ i18n keys. Feature-scoped directory structure under `notifiche/` with `_components/`, `_hooks/`, `_utils/`
 - **Craft Your Developer Flow Completion (Frontend)** — Enhanced training execution with gamification UI (XP counter, milestone badges per proposal), per-course actions (start course, save talent notes, company instructions with deadlines, "go to course" external link, deadline badges with overdue/warning states). Proposal detail pages with vertical timeline layout for both talent (`/it/proposte/[id]`) and company (`/it/azienda/proposte/[id]`) views. Real-time chat system (ChatSection component with polling, chat bubbles, auto-scroll) available after proposal acceptance. Hire after training flow: company can hire talent via confirmation modal with progress summary, XP display, incomplete course warning, and optional hiring notes; talent sees celebration header with confetti-style gradient on hired status. New "hired" proposal status with emerald badge styling. Navigation links from proposal cards to detail pages. 100+ new i18n translation keys
+- **Vercel Deployment** — Both frontend ([web-ten-zeta-68.vercel.app](https://web-ten-zeta-68.vercel.app)) and backend API ([api-three-beta-80.vercel.app](https://api-three-beta-80.vercel.app)) deployed on Vercel. Backend uses `@vercel/python` runtime with bundled SQLite DB auto-copied to `/tmp` for read-write access on Vercel's read-only filesystem. Dynamic CORS via `ALLOWED_ORIGINS` env var. Gemini AI features fully working with `GOOGLE_API_KEY`. E2E verified: jobs, login (talent+company), news, courses, CYD flow (browse talents, create proposal, accept, courses, chat, hire), AI Job Match (Gemini scores on all 10 jobs), AI Career Advisor (career direction, skill gaps, course/article recommendations)
 
 ## Getting Started
 
@@ -168,3 +169,21 @@ To enable AI features:
    Default model is `gemini-2.0-flash` if not specified.
 
 4. Restart the backend — AI endpoints will now return real Gemini-powered results, cached for 24h per user.
+
+### Vercel Deployment
+
+Both frontend and backend are deployed on Vercel:
+
+- **Frontend**: [web-ten-zeta-68.vercel.app](https://web-ten-zeta-68.vercel.app)
+- **Backend API**: [api-three-beta-80.vercel.app](https://api-three-beta-80.vercel.app)
+
+The backend uses `@vercel/python` runtime with SQLite. On Vercel's read-only filesystem, the bundled `datapizza.db` is automatically copied to `/tmp` for read-write access. Environment variables (`JWT_SECRET`, `ALLOWED_ORIGINS`, `GOOGLE_API_KEY`) are configured via the Vercel project settings.
+
+To redeploy:
+```bash
+# Backend
+cd apps/api && vercel --prod
+
+# Frontend
+cd apps/web && vercel --prod
+```

@@ -3,6 +3,8 @@ from __future__ import annotations
 from dotenv import load_dotenv
 load_dotenv()
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.database.connection import engine, Base
@@ -25,9 +27,17 @@ app = FastAPI(
     openapi_tags=TAGS_METADATA,
 )
 
+_allowed_origins = [
+    "http://localhost:3003",
+]
+# Allow Vercel frontend URLs
+_extra = os.getenv("ALLOWED_ORIGINS", "")
+if _extra:
+    _allowed_origins.extend(o.strip() for o in _extra.split(",") if o.strip())
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3003"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
