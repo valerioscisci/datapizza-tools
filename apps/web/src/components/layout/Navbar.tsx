@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ChevronDown, LogOut } from 'lucide-react';
+import { Menu, X, ChevronDown, LogOut, Bell } from 'lucide-react';
 import { useAuth } from '@/lib/auth/use-auth';
+import { useUnreadCount } from '@/lib/hooks/useUnreadCount';
 
 export default function Navbar() {
   const t = useTranslations();
@@ -15,6 +16,7 @@ export default function Navbar() {
   const [talentsOpen, setTalentsOpen] = useState(false);
   const companiesRef = useRef<HTMLDivElement>(null);
   const talentsRef = useRef<HTMLDivElement>(null);
+  const { count: unreadCount } = useUnreadCount();
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -176,6 +178,19 @@ export default function Navbar() {
                         </Link>
                       </>
                     )}
+                    {/* Notifications link with unread badge */}
+                    <Link
+                      href="/it/notifiche"
+                      className="relative px-3 py-2 text-sm font-medium text-neutral-700 hover:text-azure-600 transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <Bell className="w-4 h-4" aria-hidden="true" />
+                      {t('nav.notifications')}
+                      {unreadCount > 0 && (
+                        <span className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </Link>
                     <button
                       onClick={logout}
                       className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-neutral-500 hover:text-red-600 transition-colors cursor-pointer"
@@ -315,6 +330,20 @@ export default function Navbar() {
                         {t('nav.companyProposals')}
                       </Link>
                     )}
+                    {/* Mobile Notifications link */}
+                    <Link
+                      href="/it/notifiche"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 rounded-lg transition-colors"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <Bell className="w-4 h-4" aria-hidden="true" />
+                      {t('nav.notifications')}
+                      {unreadCount > 0 && (
+                        <span className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </Link>
                     <button
                       onClick={() => { logout(); setMobileOpen(false); }}
                       className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"

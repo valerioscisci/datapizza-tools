@@ -293,7 +293,7 @@ class TestCreateProposal:
         assert result.status == "sent"
         assert len(result.courses) == 1
         mock_db.add.assert_called()
-        mock_db.commit.assert_called_once()
+        mock_db.commit.assert_called()  # May be called multiple times due to email notifications
 
     @pytest.mark.asyncio
     async def test_create_proposal_talent_not_found(self, mock_db, mock_company_user, mock_course):
@@ -637,7 +637,7 @@ class TestUpdateProposal:
             current_user=mock_user, db=mock_db,
         )
         assert mock_proposal.status == "accepted"
-        mock_db.commit.assert_called_once()
+        mock_db.commit.assert_called()  # May be called multiple times due to email notifications
 
     @pytest.mark.asyncio
     async def test_talent_rejects_proposal(self, mock_db, mock_user, mock_proposal, mock_company_user, mock_course, mock_proposal_course):

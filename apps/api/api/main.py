@@ -16,6 +16,7 @@ from api.routes.profile import router as profile_router
 from api.routes.talents import router as talents_router
 from api.routes.proposals import router as proposals_router
 from api.routes.ai import router as ai_router
+from api.routes.notifications import router as notifications_router
 
 app = FastAPI(
     title="Datapizza Tools API",
@@ -45,6 +46,7 @@ app.include_router(profile_router, prefix="/api/v1")
 app.include_router(talents_router, prefix="/api/v1")
 app.include_router(proposals_router, prefix="/api/v1")
 app.include_router(ai_router, prefix="/api/v1")
+app.include_router(notifications_router, prefix="/api/v1")
 
 app.openapi = lambda: custom_openapi(app)
 

@@ -13,7 +13,8 @@
     "news": "News Tech",
     "courses": "Corsi di Formazione",
     "myProposals": "Le mie Proposte",
-    "companyProposals": "Le mie Proposte"
+    "companyProposals": "Le mie Proposte",
+    "notifications": "Notifiche"
   },
   "auth": {
     "login": "Accedi",
@@ -541,5 +542,66 @@
     "dataAnalytics": "Data & Analytics",
     "consulting": "Consulenza",
     "other": "Altro"
+  },
+  "notifications": {
+    "title": "Notifiche",
+    "subtitle": "Le tue notifiche email dalla piattaforma",
+    "tabs": {
+      "all": "Tutte",
+      "unread": "Non lette",
+      "proposals": "Proposte",
+      "courses": "Corsi",
+      "milestones": "Traguardi",
+      "hiring": "Assunzioni",
+      "digest": "Digest"
+    },
+    "empty": "Nessuna notifica",
+    "emptyDescription": "Non hai ancora ricevuto notifiche.",
+    "loading": "Caricamento notifiche...",
+    "markAllRead": "Segna tutte come lette",
+    "markRead": "Segna come letta",
+    "unreadCount": "{count} non lette",
+    "emailTypes": {
+      "proposal_received": "Proposta Ricevuta",
+      "proposal_accepted": "Proposta Accettata",
+      "proposal_rejected": "Proposta Rifiutata",
+      "course_started": "Corso Iniziato",
+      "course_completed": "Corso Completato",
+      "milestone_reached": "Traguardo Raggiunto",
+      "hiring_confirmation": "Conferma Assunzione",
+      "daily_digest": "Digest Giornaliero"
+    },
+    "detail": {
+      "close": "Chiudi",
+      "goToProposal": "Vai alla Proposta",
+      "from": "Da",
+      "type": "Tipo",
+      "receivedAt": "Ricevuta il"
+    },
+    "preferences": {
+      "title": "Preferenze Notifiche",
+      "emailNotifications": "Notifiche Email",
+      "emailNotificationsDescription": "Ricevi email automatiche per eventi importanti (proposte, corsi, traguardi, assunzioni).",
+      "dailyDigest": "Digest Giornaliero",
+      "dailyDigestDescription": "Ricevi un riepilogo giornaliero con corsi suggeriti e risorse di reskilling personalizzate.",
+      "channel": "Canale di notifica",
+      "channelEmail": "Email",
+      "channelTelegram": "Telegram (in arrivo)",
+      "generateDigest": "Genera Digest Ora",
+      "generateDigestLoading": "Generazione in corso...",
+      "generateDigestSuccess": "Digest generato! Controlla la tua inbox.",
+      "saved": "Preferenze salvate!"
+    },
+    "pagination": {
+      "previous": "Precedente",
+      "next": "Successiva",
+      "page": "Pagina {current} di {total}"
+    },
+    "time": {
+      "now": "Adesso",
+      "minutesAgo": "{count} min fa",
+      "hoursAgo": "{count} ore fa",
+      "daysAgo": "{count} giorni fa"
+    }
   }
 }

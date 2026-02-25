@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 from api.database.connection import SessionLocal, engine, Base
-from api.database.models import Job, User, Application, News, Course, Experience, Education, Proposal, ProposalCourse, ProposalMilestone, ProposalMessage
+from api.database.models import Job, User, Application, News, Course, Experience, Education, Proposal, ProposalCourse, ProposalMilestone, ProposalMessage, EmailLog, NotificationPreference
 from api.auth import hash_password
 
 
@@ -465,106 +465,107 @@ def seed_news():
         db.commit()
 
         news_items = [
-            # --- Hacker News (real stories from HN API, Feb 2026) ---
+            # --- Hacker News (verified real articles, Feb 2026) ---
             News(
-                title="Steerling-8B: un modello che spiega ogni token generato",
-                summary="GuideLabs ha rilasciato Steerling-8B, un language model open-source capace di spiegare ogni singolo token che genera. Il modello offre trasparenza senza precedenti nel processo decisionale dell'AI, un passo importante verso l'interpretabilita' dei LLM.",
-                source="Hacker News",
-                source_url="https://news.ycombinator.com/item?id=47131225",
-                category="AI",
-                tags_json=json.dumps(["AI", "LLM", "Open Source", "Interpretability"]),
-                author="adebayoj",
+                title="Firefox 148: protezione XSS con la nuova Sanitizer API",
+                summary="Firefox 148 e' il primo browser a implementare la Sanitizer API standardizzata, che aiuta gli sviluppatori a prevenire attacchi cross-site scripting (XSS). Il nuovo metodo setHTML() offre un'alternativa piu' semplice e sicura rispetto all'uso error-prone di innerHTML.",
+                source="Mozilla Hacks",
+                source_url="https://hacks.mozilla.org/2026/02/goodbye-innerhtml-hello-sethtml-stronger-xss-protection-in-firefox-148/",
+                category="tech",
+                tags_json=json.dumps(["Firefox", "Web Security", "XSS", "Browser"]),
+                author="Tom Schuster",
                 published_at=datetime.now(timezone.utc) - timedelta(hours=6),
             ),
             News(
-                title="Making Wolfram Tech Available as a Foundation Tool for LLM Systems",
-                summary="Stephen Wolfram annuncia l'integrazione della tecnologia Wolfram come strumento fondamentale per i sistemi LLM. L'obiettivo e' fornire capacita' computazionali precise e conoscenza strutturata ai modelli linguistici, colmando il gap tra ragionamento linguistico e calcolo esatto.",
-                source="Hacker News",
-                source_url="https://news.ycombinator.com/item?id=47129727",
-                category="AI",
-                tags_json=json.dumps(["AI", "LLM", "Wolfram", "Computation"]),
-                author="surprisetalk",
+                title="Stripe raggiunge una valutazione di 159 miliardi di dollari",
+                summary="Stripe ha annunciato una valutazione di 159 miliardi di dollari tramite un'offerta pubblica. Le aziende sulla piattaforma Stripe hanno generato 1,9 trilioni di dollari in volume, un aumento del 34% anno su anno, e la suite Revenue ha raggiunto un miliardo di dollari di run rate annuale.",
+                source="Stripe Newsroom",
+                source_url="https://stripe.com/newsroom/news/stripe-2025-update",
+                category="tech",
+                tags_json=json.dumps(["Fintech", "Stripe", "Valuation", "Payments"]),
+                author="Stripe",
                 published_at=datetime.now(timezone.utc) - timedelta(hours=12),
             ),
             News(
-                title="Firefox 148 introduce l'AI Kill Switch e altri miglioramenti",
-                summary="Mozilla rilascia Firefox 148 con una nuova funzionalita' 'AI Kill Switch' che permette agli utenti di disabilitare completamente le funzioni AI integrate nel browser. Un approccio controcorrente rispetto alla tendenza di integrare AI ovunque.",
+                title="Diode: progetta, programma e simula hardware nel browser",
+                summary="Diode e' una piattaforma browser-based che permette di progettare e testare circuiti elettronici senza componenti fisici. Un'esperienza di laboratorio virtuale con accesso a componenti come resistori, condensatori, transistor e LED per prototipare progetti hardware online.",
                 source="Hacker News",
-                source_url="https://news.ycombinator.com/item?id=47133313",
+                source_url="https://www.withdiode.com/",
                 category="tech",
-                tags_json=json.dumps(["Firefox", "Browser", "AI", "Privacy"]),
-                author="shaunpud",
+                tags_json=json.dumps(["Hardware", "Simulation", "Electronics", "Maker"]),
+                author="WithDiode",
                 published_at=datetime.now(timezone.utc) - timedelta(days=1),
             ),
             News(
-                title="The Age Verification Trap: verificare l'eta' mina la protezione dei dati",
-                summary="Un'analisi di IEEE Spectrum spiega come i sistemi di verifica dell'eta' online compromettano la privacy di tutti gli utenti, non solo dei minori. Le implicazioni per la protezione dei dati personali sono profonde e spesso sottovalutate dai legislatori.",
-                source="Hacker News",
-                source_url="https://news.ycombinator.com/item?id=47122715",
+                title="Lettera aperta a Google sulla registrazione obbligatoria degli sviluppatori",
+                summary="Una lettera aperta firmata da 37 organizzazioni, tra cui EFF e Free Software Foundation, si oppone alla policy di Google che richiede a tutti gli sviluppatori Android di registrarsi con Google per distribuire app fuori dal Play Store. La registrazione obbligatoria crea barriere all'innovazione.",
+                source="Keep Android Open",
+                source_url="https://keepandroidopen.org/open-letter/",
                 category="tech",
-                tags_json=json.dumps(["Privacy", "Security", "Data Protection", "Policy"]),
-                author="oldnetguy",
+                tags_json=json.dumps(["Android", "Google", "Open Source", "Privacy"]),
+                author="EFF & FSF Coalition",
                 published_at=datetime.now(timezone.utc) - timedelta(days=1, hours=5),
             ),
             News(
-                title="enveil: nascondi i segreti .env dagli occhi indiscreti dell'AI",
-                summary="Un nuovo tool open-source su GitHub che protegge i file .env dall'essere letti accidentalmente da assistenti AI e coding agent. Una soluzione pratica al crescente rischio di leak di credenziali durante lo sviluppo assistito da AI.",
-                source="Hacker News",
-                source_url="https://news.ycombinator.com/item?id=47133055",
+                title="Il piu' grande data breach della storia USA: 190 milioni di americani esposti",
+                summary="L'attacco informatico a Change Healthcare ha esposto i dati sanitari e assicurativi di circa 190 milioni di americani. Gli aggressori hanno sfruttato un portale Citrix privo di autenticazione multifattore per infiltrarsi nei sistemi di UnitedHealth Group.",
+                source="Morning Overview",
+                source_url="https://morningoverview.com/massive-federal-data-breach-may-be-the-biggest-hack-in-us-history/",
                 category="tech",
-                tags_json=json.dumps(["Security", "DevTools", "AI", "Open Source"]),
-                author="parkaboy",
+                tags_json=json.dumps(["Cybersecurity", "Data Breach", "Healthcare", "Hacking"]),
+                author="Cassian Holt",
                 published_at=datetime.now(timezone.utc) - timedelta(days=2),
             ),
-            # --- TLDR Tech (real articles from tldr.tech newsletter, Feb 2026) ---
+            # --- TLDR Tech (verified real articles, Feb 2026) ---
             News(
-                title="Meta' del mercato AI Agent e' una sola categoria. Il resto e' tutto da conquistare",
-                summary="Un'analisi del mercato degli AI agent rivela che la meta' delle startup si concentra su una singola categoria, lasciando enormi opportunita' inesplorate. Per chi cerca lavoro nel settore AI, capire dove si concentra l'innovazione e' fondamentale per posizionarsi strategicamente.",
+                title="OpenAI riuscira' a costruire Alexa prima che Amazon costruisca ChatGPT?",
+                summary="Un'analisi sulla partnership di OpenAI con il team di design LoveFrom di Jony Ive per sviluppare uno smart speaker competitivo. Il dispositivo in arrivo, con un prezzo tra 200 e 300 dollari e capacita' fotografiche, potrebbe ridefinire il mercato della smart home.",
                 source="TLDR Tech",
-                source_url="https://garryslist.org/posts/half-the-ai-agent-market-is-one-category-the-rest-is-wide-open",
+                source_url="https://spyglass.org/openai-smart-speaker/",
                 category="AI",
-                tags_json=json.dumps(["AI", "Agents", "Startup", "Market"]),
-                author="TLDR Newsletter",
+                tags_json=json.dumps(["OpenAI", "Smart Speaker", "Amazon", "Hardware"]),
+                author="M.G. Siegler",
                 published_at=datetime.now(timezone.utc) - timedelta(days=2, hours=10),
             ),
             News(
-                title="Come lavora il team Codex di OpenAI sfruttando l'AI",
-                summary="Un articolo dettagliato su come il team di engineering di OpenAI che sviluppa Codex opera con la velocita' di una startup trattando l'AI come un 'teammate di prima classe'. Uno sguardo dentro le pratiche di sviluppo AI-first che stanno ridefinendo il modo di lavorare.",
+                title="Code Mode: dai agli agenti AI un'intera API in 1.000 token",
+                summary="Cloudflare ha introdotto Code Mode, una tecnica che comprime l'accesso all'intera API di Cloudflare (oltre 2.500 endpoint) in soli due tool che consumano circa 1.000 token. Invece di elencare ogni operazione API, gli agenti scrivono codice JavaScript contro un SDK tipizzato.",
                 source="TLDR Tech",
-                source_url="https://newsletter.eng-leadership.com/p/how-openais-codex-team-works-and",
-                category="careers",
-                tags_json=json.dumps(["AI", "OpenAI", "Engineering", "Carriera"]),
-                author="TLDR Newsletter",
+                source_url="https://blog.cloudflare.com/code-mode-mcp/",
+                category="AI",
+                tags_json=json.dumps(["Cloudflare", "MCP", "AI Agents", "API"]),
+                author="Matt Carey",
                 published_at=datetime.now(timezone.utc) - timedelta(days=3),
             ),
             News(
-                title="Apple lavora a smart glasses con AI integrata",
-                summary="Secondo fonti affidabili, Apple sta sviluppando smart glasses con funzionalita' AI avanzate. Il progetto sembra piu' ambizioso del previsto e potrebbe ridefinire il mercato dei dispositivi indossabili e creare nuove opportunita' per sviluppatori di app AR/AI.",
+                title="Smettila di pensare all'AI come un collega. E' un esoscheletro.",
+                summary="Le organizzazioni che vedono l'AI come agenti autonomi spesso rimangono deluse, mentre quelle che la trattano come amplificatore di capacita' ottengono risultati migliori. Un framework dove gli strumenti AI potenziano il processo decisionale umano piuttosto che sostituirlo.",
                 source="TLDR Tech",
-                source_url="https://9to5mac.com/2026/02/21/apple-ai-smart-glasses-rumors-sounding-more-exciting/",
-                category="tech",
-                tags_json=json.dumps(["Apple", "AI", "AR", "Wearables"]),
-                author="TLDR Newsletter",
+                source_url="https://www.kasava.dev/blog/ai-as-exoskeleton",
+                category="AI",
+                tags_json=json.dumps(["AI Strategy", "Productivity", "Human-AI", "Management"]),
+                author="Ben Gregory",
                 published_at=datetime.now(timezone.utc) - timedelta(days=4),
             ),
+            # --- TechCrunch (verified real articles, Feb 2026) ---
             News(
-                title="X86CSS: un emulatore CPU x86 scritto interamente in CSS",
-                summary="Un progetto incredibile che implementa un emulatore di CPU x86 usando solo CSS, senza JavaScript. Dimostra le capacita' computazionali nascoste dei CSS e la creativita' della community di sviluppatori. Un esercizio di ingegneria impressionante.",
-                source="Hacker News",
-                source_url="https://news.ycombinator.com/item?id=47132102",
-                category="tech",
-                tags_json=json.dumps(["CSS", "x86", "Emulator", "Creative Coding"]),
-                author="rebane2001",
+                title="Particle: l'app AI che ascolta i podcast per te ed estrae i momenti chiave",
+                summary="Particle, un'applicazione di notizie alimentata dall'AI, ha introdotto una funzionalita' che estrae momenti significativi dai podcast e mostra clip audio rilevanti accanto alle notizie correlate. Accesso rapido ai segmenti pertinenti senza ascoltare interi episodi.",
+                source="TechCrunch",
+                source_url="https://techcrunch.com/2026/02/23/particles-ai-news-app-listens-to-podcasts-for-interesting-clips-so-you-you-dont-have-to/",
+                category="AI",
+                tags_json=json.dumps(["AI News", "Podcasts", "Startup", "Media"]),
+                author="Sarah Perez",
                 published_at=datetime.now(timezone.utc) - timedelta(days=5),
             ),
             News(
-                title="Coreboot portato sul ThinkPad X270: firmware libero per tutti",
-                summary="Uno sviluppatore ha portato con successo Coreboot sul ThinkPad X270, rendendo disponibile un firmware completamente open-source per uno dei laptop piu' popolari tra gli sviluppatori. Un passo avanti per la liberta' del software a livello hardware.",
-                source="Hacker News",
-                source_url="https://news.ycombinator.com/item?id=47130860",
-                category="tech",
-                tags_json=json.dumps(["Open Source", "Firmware", "Hardware", "Linux"]),
-                author="todsacerdoti",
+                title="VP di Google avverte: due tipi di startup AI potrebbero non sopravvivere",
+                summary="Secondo un VP di Google, due categorie di startup AI affrontano minacce esistenziali. I wrapper LLM e gli aggregatori AI stanno lottando con margini in calo e differenziazione limitata, mettendo in discussione la loro sostenibilita' a lungo termine nel mercato.",
+                source="TechCrunch",
+                source_url="https://techcrunch.com/2026/02/21/google-vp-warns-that-two-types-of-ai-startups-may-not-survive/",
+                category="careers",
+                tags_json=json.dumps(["AI Startups", "Google", "Venture Capital", "Market Trends"]),
+                author="Rebecca Bellan",
                 published_at=datetime.now(timezone.utc) - timedelta(days=6),
             ),
         ]
@@ -586,10 +587,58 @@ def seed_courses():
         db.commit()
 
         courses = [
-            # --- Coursera (verified real URLs) ---
+            # --- Coursera (all URLs verified via WebFetch, Feb 2026) ---
+            Course(
+                title="Machine Learning Specialization",
+                description="Programma fondamentale di 3 corsi creato da Andrew Ng in collaborazione con Stanford University e DeepLearning.AI. Copre regressione, classificazione, sistemi di raccomandazione, apprendimento per rinforzo e le best practice del machine learning. Ideale per chi vuole iniziare una carriera nell'AI.",
+                provider="Coursera",
+                url="https://www.coursera.org/specializations/machine-learning-introduction",
+                instructor="Andrew Ng",
+                level="beginner",
+                duration="3 mesi (~5 ore/settimana)",
+                price="Gratis (audit)",
+                rating="4.9",
+                students_count=4800000,
+                category="ML",
+                tags_json=json.dumps(["Machine Learning", "Python", "Regression", "Neural Networks"]),
+                image_url=None,
+                created_at=datetime.now(timezone.utc) - timedelta(days=1),
+            ),
+            Course(
+                title="Deep Learning Specialization",
+                description="Specializzazione di 5 corsi che copre reti neurali, CNN, RNN, modelli sequenziali e le tecniche avanzate del deep learning. Insegna a costruire e addestrare architetture di deep learning con TensorFlow, preparando gli studenti allo sviluppo di applicazioni AI all'avanguardia.",
+                provider="Coursera",
+                url="https://www.coursera.org/specializations/deep-learning",
+                instructor="Andrew Ng",
+                level="intermediate",
+                duration="5 mesi (~5 ore/settimana)",
+                price="Gratis (audit)",
+                rating="4.9",
+                students_count=120000,
+                category="AI",
+                tags_json=json.dumps(["Deep Learning", "Neural Networks", "TensorFlow", "CNN"]),
+                image_url=None,
+                created_at=datetime.now(timezone.utc) - timedelta(days=2),
+            ),
+            Course(
+                title="Prompt Engineering for ChatGPT",
+                description="Corso della Vanderbilt University che insegna a scrivere prompt efficaci per ChatGPT e altri modelli di linguaggio. Si parte dalle basi fino a tecniche sofisticate per risolvere problemi in qualsiasi dominio, inclusi scrittura, pianificazione, simulazione e programmazione.",
+                provider="Coursera",
+                url="https://www.coursera.org/learn/prompt-engineering",
+                instructor="Dr. Jules White",
+                level="beginner",
+                duration="~18 ore",
+                price="Gratis (audit)",
+                rating="4.8",
+                students_count=631907,
+                category="AI",
+                tags_json=json.dumps(["Prompt Engineering", "ChatGPT", "LLM", "Generative AI"]),
+                image_url=None,
+                created_at=datetime.now(timezone.utc) - timedelta(days=3),
+            ),
             Course(
                 title="Generative AI with Large Language Models",
-                description="Impara come funziona l'AI generativa e come deployarla in applicazioni reali. Il corso copre il lifecycle dei LLM dalla raccolta dati al deployment, l'architettura transformer, fine-tuning e reinforcement learning. Include prompt engineering, RAG e laboratori pratici su AWS.",
+                description="Corso intermedio sviluppato da DeepLearning.AI e AWS che insegna i fondamenti dell'AI generativa e dei Large Language Models. Copre il ciclo di vita completo di un progetto LLM: scoping, selezione del modello, fine-tuning, ottimizzazione e deployment in applicazioni reali.",
                 provider="Coursera",
                 url="https://www.coursera.org/learn/generative-ai-with-llms",
                 instructor="Chris Fregly",
@@ -597,154 +646,106 @@ def seed_courses():
                 duration="3 settimane (~16 ore)",
                 price="Gratis (audit)",
                 rating="4.8",
-                students_count=427226,
+                students_count=427349,
                 category="AI",
-                tags_json=json.dumps(["LLM", "Generative AI", "Transformer", "AWS"]),
-                image_url=None,
-                created_at=datetime.now(timezone.utc) - timedelta(days=1),
-            ),
-            Course(
-                title="AI For Everyone",
-                description="Corso introduttivo all'intelligenza artificiale per professionisti non tecnici e leader aziendali. Spiega il significato della terminologia AI comune (reti neurali, machine learning, deep learning), le applicazioni realistiche e i limiti dell'AI, e come costruire una strategia AI in azienda.",
-                provider="Coursera",
-                url="https://www.coursera.org/learn/ai-for-everyone",
-                instructor="Andrew Ng",
-                level="beginner",
-                duration="4 settimane (~7 ore)",
-                price="Gratis (audit)",
-                rating="4.8",
-                students_count=2411058,
-                category="AI",
-                tags_json=json.dumps(["AI", "Business", "Strategy", "Non-Technical"]),
-                image_url=None,
-                created_at=datetime.now(timezone.utc) - timedelta(days=2),
-            ),
-            Course(
-                title="Deep Learning Specialization",
-                description="Specializzazione in 5 corsi che copre le fondamenta del deep learning. Impara a costruire e addestrare reti neurali profonde, CNN per computer vision, RNN per sequenze, e modelli sequence-to-sequence. Include progetti hands-on con applicazioni reali.",
-                provider="Coursera",
-                url="https://www.coursera.org/specializations/deep-learning",
-                instructor="Andrew Ng",
-                level="intermediate",
-                duration="5 mesi",
-                price="Gratis (audit)",
-                rating="4.9",
-                students_count=920000,
-                category="ML",
-                tags_json=json.dumps(["Deep Learning", "Neural Networks", "CNN", "RNN"]),
-                image_url=None,
-                created_at=datetime.now(timezone.utc) - timedelta(days=3),
-            ),
-            Course(
-                title="Prompt Engineering for ChatGPT",
-                description="Impara a padroneggiare i Large Language Models come ChatGPT con tecniche di prompt engineering. Copre prompt patterns, few-shot examples, e strategie avanzate. Applicazioni pratiche dal tutoring allo sviluppo software e cybersecurity. Oltre 631.000 studenti iscritti.",
-                provider="Coursera",
-                url="https://www.coursera.org/learn/prompt-engineering",
-                instructor="Dr. Jules White",
-                level="beginner",
-                duration="~19 ore",
-                price="Gratis (audit)",
-                rating="4.8",
-                students_count=631245,
-                category="AI",
-                tags_json=json.dumps(["Prompt Engineering", "ChatGPT", "LLM", "AI"]),
+                tags_json=json.dumps(["LLM", "Generative AI", "Fine-tuning", "AWS"]),
                 image_url=None,
                 created_at=datetime.now(timezone.utc) - timedelta(days=4),
             ),
             Course(
-                title="Machine Learning Engineering for Production (MLOps)",
-                description="Specializzazione in MLOps che copre l'intero lifecycle di un progetto ML in produzione. Data pipelines, model training, deployment, monitoring e continuous training. Usa TensorFlow Extended (TFX) e Google Cloud Vertex AI.",
+                title="AI For Everyone",
+                description="Corso introduttivo di Andrew Ng pensato per un pubblico non tecnico che vuole capire l'intelligenza artificiale. Insegna il significato dei termini AI, come identificare opportunita' per applicare l'AI nella propria organizzazione e come costruire una strategia AI, affrontando anche le questioni etiche.",
                 provider="Coursera",
-                url="https://www.coursera.org/specializations/machine-learning-engineering-for-production-mlops",
-                instructor="Robert Crowe",
-                level="advanced",
-                duration="4 mesi",
+                url="https://www.coursera.org/learn/ai-for-everyone",
+                instructor="Andrew Ng",
+                level="beginner",
+                duration="~7 ore",
                 price="Gratis (audit)",
-                rating="4.7",
-                students_count=150000,
-                category="ML",
-                tags_json=json.dumps(["MLOps", "TFX", "Model Deployment", "ML Pipeline"]),
+                rating="4.8",
+                students_count=2410000,
+                category="AI",
+                tags_json=json.dumps(["AI Fundamentals", "AI Strategy", "Non-Technical", "Business AI"]),
                 image_url=None,
                 created_at=datetime.now(timezone.utc) - timedelta(days=5),
             ),
-            # --- Udemy (verified real URLs from web search) ---
+            # --- Udemy (verified real course slugs, Feb 2026) ---
             Course(
                 title="Machine Learning A-Z: AI, Python & R + ChatGPT Prize [2026]",
-                description="Il corso di Machine Learning piu' popolare su Udemy con oltre 1 milione di studenti. Copre regressione, classificazione, clustering, deep learning e NLP con implementazioni pratiche in Python e R. Include bonus ChatGPT e progetti reali.",
+                description="Corso bestseller con oltre 1 milione di studenti che copre machine learning supervisionato, non supervisionato e per rinforzo usando Python e R. Include implementazioni pratiche di regressione, classificazione, clustering, NLP e deep learning con esercizi hands-on.",
                 provider="Udemy",
                 url="https://www.udemy.com/course/machinelearning/",
                 instructor="Kirill Eremenko, Hadelin de Ponteves",
-                level="beginner",
-                duration="40+ ore",
-                price="\u20ac49.99",
+                level="intermediate",
+                duration="42,5 ore",
+                price="\u20ac89.99",
                 rating="4.5",
-                students_count=1000000,
+                students_count=1171036,
                 category="ML",
-                tags_json=json.dumps(["Machine Learning", "Python", "R", "Deep Learning"]),
+                tags_json=json.dumps(["Machine Learning", "Python", "R", "Scikit-Learn"]),
                 image_url=None,
                 created_at=datetime.now(timezone.utc) - timedelta(days=6),
             ),
             Course(
-                title="The AI Engineer Course 2026: Complete AI Engineer Bootcamp",
-                description="Bootcamp completo per diventare AI Engineer. Copre l'intero pipeline di LLM engineering, dall'architettura transformer alle applicazioni in produzione. Include LangChain, RAG, vector databases e deployment. Oltre 204.000 studenti con badge Bestseller.",
+                title="Deep Learning A-Z 2026: Neural Networks, AI & ChatGPT Prize",
+                description="Corso pratico che insegna a costruire reti neurali artificiali, convoluzionali e ricorrenti da zero. Copre ANN, CNN, RNN, Self-Organizing Maps, Boltzmann Machines e AutoEncoders con applicazioni reali come il riconoscimento di immagini e l'analisi di testo.",
                 provider="Udemy",
-                url="https://www.udemy.com/course/the-ai-engineer-course-complete-ai-engineer-bootcamp/",
-                instructor="Ed Donner",
+                url="https://www.udemy.com/course/deeplearning/",
+                instructor="Kirill Eremenko, Hadelin de Ponteves",
                 level="intermediate",
-                duration="35+ ore",
-                price="\u20ac49.99",
-                rating="4.7",
-                students_count=204000,
+                duration="22 ore",
+                price="\u20ac89.99",
+                rating="4.5",
+                students_count=350000,
                 category="AI",
-                tags_json=json.dumps(["AI Engineer", "LLM", "LangChain", "RAG"]),
+                tags_json=json.dumps(["Deep Learning", "Neural Networks", "CNN", "RNN"]),
                 image_url=None,
                 created_at=datetime.now(timezone.utc) - timedelta(days=7),
             ),
             Course(
-                title="LLM Engineering, RAG, & AI Agents Masterclass [2026]",
-                description="Masterclass su LLM engineering che copre il pipeline completo: fondamenti LLM, LangChain, LlamaIndex, sistemi RAG, vector databases, prompt engineering e costruzione di AI agents. Oltre 110.000 studenti.",
+                title="Python for Data Science and Machine Learning Bootcamp",
+                description="Bootcamp completo che insegna ad usare Python per la data science e il machine learning. Copre NumPy, Pandas, Matplotlib, Seaborn, Plotly, Scikit-Learn, reti neurali con TensorFlow e tecniche di machine learning con progetti pratici su dataset reali.",
                 provider="Udemy",
-                url="https://www.udemy.com/course/become-an-llm-agentic-ai-engineer-14-day-bootcamp-2025/",
-                instructor="Ligency Team",
-                level="intermediate",
-                duration="35+ ore",
-                price="\u20ac49.99",
+                url="https://www.udemy.com/course/python-for-data-science-and-machine-learning-bootcamp/",
+                instructor="Jose Portilla",
+                level="beginner",
+                duration="25 ore",
+                price="\u20ac89.99",
                 rating="4.6",
-                students_count=110000,
-                category="AI",
-                tags_json=json.dumps(["LLM", "RAG", "AI Agents", "LangChain"]),
+                students_count=803210,
+                category="ML",
+                tags_json=json.dumps(["Python", "Data Science", "Pandas", "Scikit-Learn"]),
                 image_url=None,
                 created_at=datetime.now(timezone.utc) - timedelta(days=8),
             ),
             Course(
-                title="The Complete Prompt Engineering for AI Bootcamp (2026)",
-                description="Bootcamp completo di prompt engineering per AI. Impara tecniche avanzate di prompting per ChatGPT, Claude, Gemini e altri LLM. Copre zero-shot, few-shot, chain-of-thought, e come costruire applicazioni basate su prompt.",
+                title="AI Engineer Core Track: LLM Engineering, RAG, QLoRA, Agents",
+                description="Percorso pratico di 8 settimane per diventare un LLM Engineer. Si costruiscono 8 applicazioni AI reali esplorando oltre 20 modelli, padroneggiando tecniche all'avanguardia come RAG, fine-tuning con QLoRA e sistemi multi-agente autonomi.",
                 provider="Udemy",
-                url="https://www.udemy.com/course/prompt-engineering-for-ai/",
-                instructor="Mike Taylor",
-                level="beginner",
-                duration="12+ ore",
-                price="\u20ac39.99",
-                rating="4.6",
-                students_count=85000,
+                url="https://www.udemy.com/course/llm-engineering-master-ai-and-large-language-models/",
+                instructor="Ed Donner",
+                level="intermediate",
+                duration="46 ore",
+                price="\u20ac89.99",
+                rating="4.7",
+                students_count=50000,
                 category="AI",
-                tags_json=json.dumps(["Prompt Engineering", "ChatGPT", "AI", "LLM"]),
+                tags_json=json.dumps(["LLM", "RAG", "QLoRA", "AI Agents"]),
                 image_url=None,
                 created_at=datetime.now(timezone.utc) - timedelta(days=9),
             ),
             Course(
                 title="Complete A.I. & Machine Learning, Data Science Bootcamp",
-                description="Bootcamp completo che copre Python, machine learning, deep learning e data science. Include progetti pratici con TensorFlow, PyTorch, Pandas e scikit-learn. Dalla regressione lineare alle reti neurali e ai modelli generativi.",
+                description="Bootcamp completo che parte da zero e arriva fino al deep learning e TensorFlow 2.0. Copre l'intero workflow della data science: esplorazione dati, visualizzazione, ingegnerizzazione delle feature, addestramento modelli e deployment.",
                 provider="Udemy",
                 url="https://www.udemy.com/course/complete-machine-learning-and-data-science-zero-to-mastery/",
                 instructor="Andrei Neagoie, Daniel Bourke",
                 level="beginner",
-                duration="40+ ore",
-                price="\u20ac49.99",
+                duration="44 ore",
+                price="\u20ac89.99",
                 rating="4.6",
                 students_count=200000,
                 category="ML",
-                tags_json=json.dumps(["Python", "Machine Learning", "Data Science", "TensorFlow"]),
+                tags_json=json.dumps(["Data Science", "TensorFlow", "Python", "Machine Learning"]),
                 image_url=None,
                 created_at=datetime.now(timezone.utc) - timedelta(days=10),
             ),
@@ -1363,6 +1364,148 @@ def seed_companies_and_proposals():
         db.close()
 
 
+def seed_notification_preferences():
+    """Seed notification preferences for all users (all enabled by default)."""
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        db.query(NotificationPreference).delete()
+        db.commit()
+
+        users = db.query(User).all()
+        prefs = []
+        for user in users:
+            prefs.append(NotificationPreference(
+                user_id=user.id,
+                email_notifications=1,
+                daily_digest=1,
+                channel="email",
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
+            ))
+        db.add_all(prefs)
+        db.commit()
+        print(f"Seeded {len(prefs)} notification preferences successfully.")
+    finally:
+        db.close()
+
+
+def seed_email_logs():
+    """Seed sample email log entries."""
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        db.query(EmailLog).delete()
+        db.commit()
+
+        # Fetch first talent (Marco Rossi) and first company (TechFlow Italia)
+        talents = db.query(User).filter(User.user_type == "talent", User.is_public == 1).order_by(User.created_at.asc()).all()
+        companies = db.query(User).filter(User.user_type == "company").order_by(User.created_at.asc()).all()
+        proposals = db.query(Proposal).order_by(Proposal.created_at.asc()).all()
+
+        if not talents or not companies:
+            print("No users found, skipping email log seeding.")
+            return
+
+        talent = talents[0]  # Marco Rossi
+        company = companies[0]  # TechFlow Italia (Laura Verdi)
+        proposal = proposals[0] if proposals else None
+
+        from api.services.email_service import _email_wrapper
+
+        emails = [
+            EmailLog(
+                recipient_id=talent.id,
+                recipient_email=talent.email,
+                sender_label="Datapizza",
+                email_type="proposal_received",
+                subject=f"Nuova proposta formativa da {company.company_name or company.full_name}",
+                body_html=_email_wrapper(
+                    f"<h2 style='margin-top: 0;'>Hai ricevuto una nuova proposta!</h2>"
+                    f"<p>Ciao <strong>{talent.full_name}</strong>,</p>"
+                    f"<p><strong>{company.company_name}</strong> ti ha inviato una proposta formativa personalizzata.</p>"
+                    f"<p style='margin-top: 24px; color: #6b7280; font-size: 14px;'>— Il team Datapizza</p>"
+                ),
+                body_text=f"Nuova proposta formativa da {company.company_name}.",
+                related_proposal_id=proposal.id if proposal else None,
+                is_read=1,
+                created_at=datetime.now(timezone.utc) - timedelta(days=9),
+            ),
+            EmailLog(
+                recipient_id=company.id,
+                recipient_email=company.email,
+                sender_label="Datapizza",
+                email_type="proposal_accepted",
+                subject=f"{talent.full_name} ha accettato la tua proposta",
+                body_html=_email_wrapper(
+                    f"<h2 style='margin-top: 0;'>Proposta accettata!</h2>"
+                    f"<p><strong>{talent.full_name}</strong> ha accettato la tua proposta formativa.</p>"
+                    f"<p style='margin-top: 24px; color: #6b7280; font-size: 14px;'>— Il team Datapizza</p>"
+                ),
+                body_text=f"{talent.full_name} ha accettato la tua proposta.",
+                related_proposal_id=proposal.id if proposal else None,
+                is_read=0,
+                created_at=datetime.now(timezone.utc) - timedelta(days=8),
+            ),
+            EmailLog(
+                recipient_id=company.id,
+                recipient_email=company.email,
+                sender_label="Datapizza",
+                email_type="course_started",
+                subject=f"{talent.full_name} ha iniziato il corso: Introduzione al Machine Learning",
+                body_html=_email_wrapper(
+                    f"<h2 style='margin-top: 0;'>Corso iniziato</h2>"
+                    f"<p><strong>{talent.full_name}</strong> ha iniziato un nuovo corso nel percorso formativo.</p>"
+                    f"<p style='margin-top: 24px; color: #6b7280; font-size: 14px;'>— Il team Datapizza</p>"
+                ),
+                body_text=f"{talent.full_name} ha iniziato il corso.",
+                related_proposal_id=proposal.id if proposal else None,
+                is_read=0,
+                created_at=datetime.now(timezone.utc) - timedelta(days=7),
+            ),
+            EmailLog(
+                recipient_id=talent.id,
+                recipient_email=talent.email,
+                sender_label="Datapizza",
+                email_type="daily_digest",
+                subject="Il tuo digest giornaliero — Datapizza",
+                body_html=_email_wrapper(
+                    f"<h2 style='margin-top: 0;'>Buongiorno {talent.full_name}!</h2>"
+                    f"<p>Ecco il tuo digest giornaliero con suggerimenti personalizzati.</p>"
+                    f"<h3>Corsi in evidenza</h3>"
+                    f"<ul><li><strong>AI Fundamentals</strong> (Coursera) — Livello: beginner</li></ul>"
+                    f"<p style='margin-top: 24px; color: #6b7280; font-size: 14px;'>— Il team Datapizza</p>"
+                ),
+                body_text=f"Digest giornaliero per {talent.full_name}.",
+                is_read=0,
+                created_at=datetime.now(timezone.utc) - timedelta(days=1),
+            ),
+            EmailLog(
+                recipient_id=talent.id,
+                recipient_email=talent.email,
+                sender_label="Datapizza",
+                email_type="milestone_reached",
+                subject="Traguardo raggiunto! +200 XP",
+                body_html=_email_wrapper(
+                    f"<h2 style='margin-top: 0;'>Congratulazioni!</h2>"
+                    f"<p>Ciao <strong>{talent.full_name}</strong>,</p>"
+                    f"<p>Hai raggiunto un nuovo traguardo: <strong>course_completed</strong></p>"
+                    f"<p>Hai guadagnato <strong>+200 XP</strong>!</p>"
+                    f"<p style='margin-top: 24px; color: #6b7280; font-size: 14px;'>— Il team Datapizza</p>"
+                ),
+                body_text="Traguardo raggiunto: course_completed. +200 XP",
+                related_proposal_id=proposal.id if proposal else None,
+                is_read=0,
+                created_at=datetime.now(timezone.utc) - timedelta(days=5),
+            ),
+        ]
+        db.add_all(emails)
+        db.commit()
+        print(f"Seeded {len(emails)} email log entries successfully.")
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     job_ids = seed_jobs()
     seed_users(job_ids)
@@ -1370,3 +1513,5 @@ if __name__ == "__main__":
     seed_courses()
     seed_experiences_and_educations()
     seed_companies_and_proposals()
+    seed_notification_preferences()
+    seed_email_logs()
