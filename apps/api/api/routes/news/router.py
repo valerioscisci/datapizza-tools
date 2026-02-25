@@ -27,7 +27,12 @@ def _to_news_response(news: News) -> NewsResponse:
     )
 
 
-@router.get("", response_model=NewsListResponse)
+@router.get(
+    "",
+    response_model=NewsListResponse,
+    summary="List tech news articles",
+    openapi_extra={"security": []},
+)
 async def list_news(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=50),
@@ -53,7 +58,12 @@ async def list_news(
     )
 
 
-@router.get("/{news_id}", response_model=NewsResponse)
+@router.get(
+    "/{news_id}",
+    response_model=NewsResponse,
+    summary="Get a news article by ID",
+    openapi_extra={"security": []},
+)
 async def get_news(
     news_id: str,
     db: Session = Depends(get_db),

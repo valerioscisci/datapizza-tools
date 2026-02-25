@@ -6,6 +6,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.database.connection import engine, Base
+from api.openapi import TAGS_METADATA, custom_openapi
 from api.routes.jobs import router as jobs_router
 from api.routes.auth import router as auth_router
 from api.routes.applications import router as applications_router
@@ -20,6 +21,7 @@ app = FastAPI(
     title="Datapizza Tools API",
     description="API for the Datapizza Tools platform",
     version="0.1.0",
+    openapi_tags=TAGS_METADATA,
 )
 
 app.add_middleware(
@@ -44,6 +46,16 @@ app.include_router(talents_router, prefix="/api/v1")
 app.include_router(proposals_router, prefix="/api/v1")
 app.include_router(ai_router, prefix="/api/v1")
 
-@app.get("/health")
+app.openapi = lambda: custom_openapi(app)
+
+
+@app.get(
+    "/health",
+    tags=["Health"],
+    summary="Health check",
+    description="Returns API health status. No authentication required.",
+    responses={200: {"description": "API is healthy", "content": {"application/json": {"example": {"status": "ok"}}}}},
+)
 async def health_check():
+    """Check if the API is running and healthy."""
     return {"status": "ok"}

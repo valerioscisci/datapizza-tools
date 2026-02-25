@@ -11,7 +11,12 @@ from api.utils import safe_parse_json_list
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
 
 
-@router.get("", response_model=JobListResponse)
+@router.get(
+    "",
+    response_model=JobListResponse,
+    summary="List active job listings",
+    openapi_extra={"security": []},
+)
 async def list_jobs(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=50),

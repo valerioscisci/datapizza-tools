@@ -6,21 +6,21 @@ from datetime import datetime
 
 
 class CourseResponse(BaseModel):
-    id: str
-    title: str
-    description: str
-    provider: str
-    url: str
-    instructor: Optional[str] = None
-    level: str
-    duration: Optional[str] = None
-    price: Optional[str] = None
-    rating: Optional[str] = None
-    students_count: Optional[int] = None
-    category: str
-    tags: list[str] = Field(default_factory=list)
-    image_url: Optional[str] = None
-    created_at: datetime
+    id: str = Field(..., description="Unique course identifier")
+    title: str = Field(..., description="Course title")
+    description: str = Field(..., description="Course description")
+    provider: str = Field(..., description="Course provider (e.g. Udemy, Coursera)")
+    url: str = Field(..., description="Link to the course page")
+    instructor: Optional[str] = Field(None, description="Course instructor name")
+    level: str = Field(..., description="Difficulty level: beginner, intermediate, advanced")
+    duration: Optional[str] = Field(None, description="Estimated course duration")
+    price: Optional[str] = Field(None, description="Course price")
+    rating: Optional[str] = Field(None, description="Average rating")
+    students_count: Optional[int] = Field(None, description="Number of enrolled students")
+    category: str = Field(..., description="Category: AI, ML, frontend, backend, devops")
+    tags: list[str] = Field(default_factory=list, description="Topic tags")
+    image_url: Optional[str] = Field(None, description="Course thumbnail URL")
+    created_at: datetime = Field(..., description="Record creation timestamp")
     updated_at: Optional[datetime] = None
 
     class Config:
@@ -28,7 +28,7 @@ class CourseResponse(BaseModel):
 
 
 class CourseListResponse(BaseModel):
-    items: list[CourseResponse]
-    total: int
-    page: int
-    page_size: int
+    items: list[CourseResponse] = Field(..., description="List of courses")
+    total: int = Field(..., description="Total number of matching courses")
+    page: int = Field(..., description="Current page number")
+    page_size: int = Field(..., description="Number of items per page")

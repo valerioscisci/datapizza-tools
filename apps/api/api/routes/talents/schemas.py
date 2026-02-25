@@ -11,39 +11,39 @@ from api.routes.profile.educations.schemas import EducationResponse
 class TalentCardResponse(BaseModel):
     """Public-safe summary for talent list. NEVER includes email, phone, password_hash."""
 
-    id: str
-    full_name: str
-    current_role: Optional[str] = None
-    location: Optional[str] = None
-    skills: list[str] = Field(default_factory=list)
-    experience_level: Optional[str] = None
-    experience_years: Optional[str] = None
-    availability_status: str = "available"
-    bio: Optional[str] = None
+    id: str = Field(description="Unique talent identifier")
+    full_name: str = Field(description="Talent's display name")
+    current_role: Optional[str] = Field(None, description="Current job title or role")
+    location: Optional[str] = Field(None, description="City or region")
+    skills: list[str] = Field(default_factory=list, description="List of technical and soft skills")
+    experience_level: Optional[str] = Field(None, description="Seniority level (junior, mid, senior)")
+    experience_years: Optional[str] = Field(None, description="Years of professional experience")
+    availability_status: str = Field("available", description="Current availability: available, open_to_offers, employed")
+    bio: Optional[str] = Field(None, description="Short biography")
 
 
 class TalentCardListResponse(BaseModel):
-    items: list[TalentCardResponse]
-    total: int
-    page: int
-    page_size: int
+    items: list[TalentCardResponse] = Field(description="List of talent cards for the current page")
+    total: int = Field(description="Total number of matching talents")
+    page: int = Field(description="Current page number (1-based)")
+    page_size: int = Field(description="Number of items per page")
 
 
 class TalentDetailResponse(BaseModel):
     """Full public profile. NEVER includes email, phone, password_hash, reskilling_status, adopted_by_company."""
 
-    id: str
-    full_name: str
-    bio: Optional[str] = None
-    current_role: Optional[str] = None
-    location: Optional[str] = None
-    experience_level: Optional[str] = None
-    experience_years: Optional[str] = None
-    skills: list[str] = Field(default_factory=list)
-    availability_status: str = "available"
-    linkedin_url: Optional[str] = None
-    github_url: Optional[str] = None
-    portfolio_url: Optional[str] = None
-    experiences: list[ExperienceResponse] = Field(default_factory=list)
-    educations: list[EducationResponse] = Field(default_factory=list)
-    created_at: datetime
+    id: str = Field(description="Unique talent identifier")
+    full_name: str = Field(description="Talent's display name")
+    bio: Optional[str] = Field(None, description="Short biography")
+    current_role: Optional[str] = Field(None, description="Current job title or role")
+    location: Optional[str] = Field(None, description="City or region")
+    experience_level: Optional[str] = Field(None, description="Seniority level (junior, mid, senior)")
+    experience_years: Optional[str] = Field(None, description="Years of professional experience")
+    skills: list[str] = Field(default_factory=list, description="List of technical and soft skills")
+    availability_status: str = Field("available", description="Current availability: available, open_to_offers, employed")
+    linkedin_url: Optional[str] = Field(None, description="LinkedIn profile URL")
+    github_url: Optional[str] = Field(None, description="GitHub profile URL")
+    portfolio_url: Optional[str] = Field(None, description="Personal portfolio or website URL")
+    experiences: list[ExperienceResponse] = Field(default_factory=list, description="Work experience entries")
+    educations: list[EducationResponse] = Field(default_factory=list, description="Education entries")
+    created_at: datetime = Field(description="When the talent profile was created")

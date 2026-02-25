@@ -28,12 +28,21 @@ def _education_to_response(edu: Education) -> EducationResponse:
     )
 
 
-@router.post("", response_model=EducationResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=EducationResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add an education entry",
+    responses={
+        401: {"description": "Not authenticated"},
+    },
+)
 async def create_education(
     data: EducationCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Add a new education entry to the authenticated user's profile."""
     education = Education(
         user_id=current_user.id,
         institution=data.institution,
@@ -52,7 +61,15 @@ async def create_education(
     return _education_to_response(education)
 
 
-@router.patch("/{education_id}", response_model=EducationResponse)
+@router.patch(
+    "/{education_id}",
+    response_model=EducationResponse,
+    summary="Update an education entry",
+    responses={
+        401: {"description": "Not authenticated"},
+        404: {"description": "Education entry not found"},
+    },
+)
 async def update_education(
     education_id: str,
     data: EducationUpdate,
@@ -88,7 +105,15 @@ async def update_education(
     return _education_to_response(education)
 
 
-@router.delete("/{education_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{education_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete an education entry",
+    responses={
+        401: {"description": "Not authenticated"},
+        404: {"description": "Education entry not found"},
+    },
+)
 async def delete_education(
     education_id: str,
     current_user: User = Depends(get_current_user),

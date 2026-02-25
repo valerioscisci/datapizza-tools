@@ -20,7 +20,12 @@ def _escape_ilike(value: str) -> str:
     return value.replace("%", r"\%").replace("_", r"\_")
 
 
-@router.get("", response_model=TalentCardListResponse)
+@router.get(
+    "",
+    response_model=TalentCardListResponse,
+    summary="Browse the talent directory",
+    openapi_extra={"security": []},
+)
 async def list_talents(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=50),
@@ -95,7 +100,13 @@ async def list_talents(
     )
 
 
-@router.get("/{talent_id}", response_model=TalentDetailResponse)
+@router.get(
+    "/{talent_id}",
+    response_model=TalentDetailResponse,
+    summary="Get talent profile details",
+    openapi_extra={"security": []},
+    responses={404: {"description": "Talent not found or profile is private"}},
+)
 async def get_talent(
     talent_id: str,
     db: Session = Depends(get_db),

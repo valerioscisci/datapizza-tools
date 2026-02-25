@@ -39,8 +39,19 @@ def _user_to_response(user: User) -> UserResponse:
     )
 
 
-@router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/signup",
+    response_model=TokenResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new user account",
+    responses={
+        400: {"description": "Invalid request data"},
+        409: {"description": "Email already registered"},
+        422: {"description": "Validation error"},
+    },
+)
 async def signup(data: SignupRequest, db: Session = Depends(get_db)):
+    """Create a new user account (talent or company) and return an access token."""
     existing = db.query(User).filter(User.email == data.email).first()
     if existing:
         raise HTTPException(
@@ -65,8 +76,16 @@ async def signup(data: SignupRequest, db: Session = Depends(get_db)):
     return TokenResponse(access_token=token)
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    summary="Authenticate and get access token",
+    responses={
+        401: {"description": "Invalid credentials"},
+    },
+)
 async def login(data: LoginRequest, db: Session = Depends(get_db)):
+    """Authenticate with email and password. Returns a JWT bearer token."""
     user = db.query(User).filter(User.email == data.email, User.is_active == 1).first()
     if not user or not verify_password(data.password, user.password_hash):
         raise HTTPException(
@@ -78,6 +97,14 @@ async def login(data: LoginRequest, db: Session = Depends(get_db)):
     return TokenResponse(access_token=token)
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    summary="Get current authenticated user",
+    responses={
+        401: {"description": "Not authenticated or invalid token"},
+    },
+)
 async def get_me(current_user: User = Depends(get_current_user)):
+    """Return the full profile of the currently authenticated user."""
     return _user_to_response(current_user)

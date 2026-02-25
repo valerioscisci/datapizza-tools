@@ -30,12 +30,21 @@ def _experience_to_response(exp: Experience) -> ExperienceResponse:
     )
 
 
-@router.post("", response_model=ExperienceResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=ExperienceResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a work experience",
+    responses={
+        401: {"description": "Not authenticated"},
+    },
+)
 async def create_experience(
     data: ExperienceCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Add a new work experience entry to the authenticated user's profile."""
     experience = Experience(
         user_id=current_user.id,
         title=data.title,
@@ -56,7 +65,15 @@ async def create_experience(
     return _experience_to_response(experience)
 
 
-@router.patch("/{experience_id}", response_model=ExperienceResponse)
+@router.patch(
+    "/{experience_id}",
+    response_model=ExperienceResponse,
+    summary="Update a work experience",
+    responses={
+        401: {"description": "Not authenticated"},
+        404: {"description": "Experience not found"},
+    },
+)
 async def update_experience(
     experience_id: str,
     data: ExperienceUpdate,
@@ -93,7 +110,15 @@ async def update_experience(
     return _experience_to_response(experience)
 
 
-@router.delete("/{experience_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{experience_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a work experience",
+    responses={
+        401: {"description": "Not authenticated"},
+        404: {"description": "Experience not found"},
+    },
+)
 async def delete_experience(
     experience_id: str,
     current_user: User = Depends(get_current_user),

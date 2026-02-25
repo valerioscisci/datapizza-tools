@@ -161,7 +161,15 @@ def _save_cache(
 # --- POST /ai/job-matches ---
 
 
-@router.post("/job-matches", response_model=JobMatchResponse)
+@router.post(
+    "/job-matches",
+    response_model=JobMatchResponse,
+    summary="Generate AI job match scores",
+    responses={
+        401: {"description": "Not authenticated"},
+        503: {"description": "AI service unavailable or failed to generate matches"},
+    },
+)
 async def generate_job_matches(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -229,7 +237,15 @@ async def generate_job_matches(
 # --- GET /ai/job-matches ---
 
 
-@router.get("/job-matches", response_model=JobMatchResponse)
+@router.get(
+    "/job-matches",
+    response_model=JobMatchResponse,
+    summary="Get cached AI job matches",
+    responses={
+        401: {"description": "Not authenticated"},
+        404: {"description": "No cached job matches found — generate new matches first"},
+    },
+)
 async def get_cached_job_matches(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -267,7 +283,15 @@ async def get_cached_job_matches(
 # --- POST /ai/career-advice ---
 
 
-@router.post("/career-advice", response_model=CareerAdviceResponse)
+@router.post(
+    "/career-advice",
+    response_model=CareerAdviceResponse,
+    summary="Generate AI career recommendations",
+    responses={
+        401: {"description": "Not authenticated"},
+        503: {"description": "AI service unavailable or failed to generate career advice"},
+    },
+)
 async def generate_career_advice(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -362,7 +386,15 @@ async def generate_career_advice(
 # --- GET /ai/career-advice ---
 
 
-@router.get("/career-advice", response_model=CareerAdviceResponse)
+@router.get(
+    "/career-advice",
+    response_model=CareerAdviceResponse,
+    summary="Get cached AI career advice",
+    responses={
+        401: {"description": "Not authenticated"},
+        404: {"description": "No cached career advice found — generate new advice first"},
+    },
+)
 async def get_cached_career_advice(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
