@@ -381,7 +381,10 @@ async def telegram_webhook(update: TelegramUpdate, request: Request):
     chat_id = str(update.message.chat.id)
     text = update.message.text.strip()
 
-    if text == "/start":
+    logger.info("telegram_webhook_received", chat_id=chat_id, text=text)
+
+    # Match /start or /start@botname
+    if text == "/start" or text.startswith("/start@"):
         reply = (
             "<b>Ciao! Benvenuto su Datapizza Notify Bot.</b>\n\n"
             f"Il tuo Chat ID e': <code>{chat_id}</code>\n\n"
@@ -389,7 +392,7 @@ async def telegram_webhook(update: TelegramUpdate, request: Request):
             '"Collega Telegram" su Datapizza per attivare '
             "le notifiche Telegram."
         )
-        TelegramService.send_message(chat_id, reply)
-        logger.info("telegram_webhook_start_reply", chat_id=chat_id)
+        sent = TelegramService.send_message(chat_id, reply)
+        logger.info("telegram_webhook_start_reply", chat_id=chat_id, sent=sent)
 
     return {"ok": True}

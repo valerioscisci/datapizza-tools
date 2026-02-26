@@ -683,6 +683,26 @@ class TestTelegramWebhook:
         assert "99887766" in call_args[0][1]
 
     @pytest.mark.asyncio
+    async def test_start_with_botname_replies(self):
+        """Should reply when /start@botname is received."""
+        from api.routes.notifications.schemas import TelegramUpdate, TelegramMessage, TelegramChat
+
+        update = TelegramUpdate(
+            update_id=130,
+            message=TelegramMessage(chat=TelegramChat(id=99887766), text="/start@datapizza_notify_bot"),
+        )
+        mock_request = MagicMock()
+        mock_request.headers = {}
+
+        with patch.object(_router_module, "TelegramService") as mock_tg, \
+             patch.object(_router_module, "os") as mock_os:
+            mock_os.getenv.return_value = None
+            result = await telegram_webhook(update=update, request=mock_request)
+
+        assert result == {"ok": True}
+        mock_tg.send_message.assert_called_once()
+
+    @pytest.mark.asyncio
     async def test_ignores_non_start_messages(self):
         """Should return OK but not reply for non-/start messages."""
         from api.routes.notifications.schemas import TelegramUpdate, TelegramMessage, TelegramChat
