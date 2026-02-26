@@ -11,6 +11,7 @@ import { ExperienceSection } from './ExperienceSection';
 import { EducationSection } from './EducationSection';
 import { ProfileEditModal } from './ProfileEditModal';
 import { AICareerAdvisor } from './AICareerAdvisor';
+import { NotificationPreferencesSection } from './NotificationPreferencesSection';
 
 export function ProfiloPage() {
   const t = useTranslations('profile');
@@ -117,6 +118,9 @@ export function ProfiloPage() {
 
           {/* AI Career Advisor */}
           <AICareerAdvisor profile={profile} />
+
+          {/* Notification Preferences */}
+          <NotificationPreferencesSection />
         </div>
       </section>
 

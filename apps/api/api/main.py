@@ -3,6 +3,8 @@ from __future__ import annotations
 from dotenv import load_dotenv
 load_dotenv()
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.database.connection import engine, Base
@@ -16,6 +18,7 @@ from api.routes.profile import router as profile_router
 from api.routes.talents import router as talents_router
 from api.routes.proposals import router as proposals_router
 from api.routes.ai import router as ai_router
+from api.routes.notifications import router as notifications_router
 
 app = FastAPI(
     title="Datapizza Tools API",
@@ -24,9 +27,17 @@ app = FastAPI(
     openapi_tags=TAGS_METADATA,
 )
 
+_allowed_origins = [
+    "http://localhost:3003",
+]
+# Allow Vercel frontend URLs
+_extra = os.getenv("ALLOWED_ORIGINS", "")
+if _extra:
+    _allowed_origins.extend(o.strip() for o in _extra.split(",") if o.strip())
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3003"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -45,6 +56,7 @@ app.include_router(profile_router, prefix="/api/v1")
 app.include_router(talents_router, prefix="/api/v1")
 app.include_router(proposals_router, prefix="/api/v1")
 app.include_router(ai_router, prefix="/api/v1")
+app.include_router(notifications_router, prefix="/api/v1")
 
 app.openapi = lambda: custom_openapi(app)
 

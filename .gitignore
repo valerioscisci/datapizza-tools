@@ -46,6 +46,7 @@ htmlcov/
 
 # Database
 *.db
+!apps/api/datapizza.db
 
 # npm lockfile (using pnpm)
 package-lock.json
