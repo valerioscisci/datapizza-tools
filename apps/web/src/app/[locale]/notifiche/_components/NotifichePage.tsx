@@ -2,8 +2,9 @@
 
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/use-auth';
+import { useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { EMAIL_TYPE_FILTERS } from '../_utils/constants';
 import type { EmailLog, EmailType } from '../_utils/constants';
 import { useEmails } from '../_hooks/useEmails';
@@ -14,6 +15,7 @@ import { NotificationPreferences } from './NotificationPreferences';
 export function NotifichePage() {
   const t = useTranslations('notifications');
   const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
 
   const [activeFilter, setActiveFilter] = useState('all');
   const [page, setPage] = useState(1);
@@ -26,6 +28,7 @@ export function NotifichePage() {
     page: currentPage,
     pageSize,
     loading,
+    error,
     fetchEmails,
     markAsRead,
     markAllAsRead,
@@ -85,21 +88,20 @@ export function NotifichePage() {
     setPage(newPage);
   }, []);
 
-  if (authLoading) {
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/it/login');
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex items-center gap-2 text-neutral-500">
           <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
           <span>{t('loading')}</span>
         </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-neutral-500">{t('empty')}</p>
       </div>
     );
   }
@@ -121,6 +123,23 @@ export function NotifichePage() {
       {/* Filters + Email List */}
       <section className="py-8 sm:py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Error banner */}
+          {error && (
+            <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" aria-hidden="true" />
+                <p className="text-sm text-red-700">{t('errorLoading')}</p>
+              </div>
+              <button
+                onClick={() => fetchEmails(getFilterParams(activeFilter, page))}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
+              >
+                <RefreshCw className="w-4 h-4" aria-hidden="true" />
+                {t('retry')}
+              </button>
+            </div>
+          )}
+
           {/* Tab bar */}
           <div className="flex flex-wrap items-center gap-2 mb-8">
             {EMAIL_TYPE_FILTERS.map((filter) => (

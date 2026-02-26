@@ -1380,6 +1380,8 @@ def seed_notification_preferences():
                 email_notifications=1,
                 daily_digest=1,
                 channel="email",
+                telegram_chat_id=None,
+                telegram_notifications=0,
                 created_at=datetime.now(timezone.utc),
                 updated_at=datetime.now(timezone.utc),
             ))

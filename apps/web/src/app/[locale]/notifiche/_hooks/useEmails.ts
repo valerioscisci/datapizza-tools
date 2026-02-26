@@ -83,11 +83,14 @@ export function useEmails(): UseEmailsReturn {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (!res.ok) throw new Error(`API error: ${res.status}`);
-      // Update local state
-      setEmails((prev) =>
-        prev.map((e) => (e.id === emailId ? { ...e, is_read: true } : e))
-      );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      // Update local state — only decrement unread count if email was actually unread
+      setEmails((prev) => {
+        const existing = prev.find((e) => e.id === emailId);
+        if (existing && !existing.is_read) {
+          setUnreadCount((c) => Math.max(0, c - 1));
+        }
+        return prev.map((e) => (e.id === emailId ? { ...e, is_read: true } : e));
+      });
     } catch {
       // Silently ignore mark-as-read errors
     }
@@ -116,11 +119,14 @@ export function useEmails(): UseEmailsReturn {
       });
       if (!res.ok) throw new Error(`API error: ${res.status}`);
       const data: EmailLog = await res.json();
-      // Update local state to mark as read
-      setEmails((prev) =>
-        prev.map((e) => (e.id === emailId ? { ...e, is_read: true } : e))
-      );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      // Update local state and decrement unread count if it was previously unread
+      setEmails((prev) => {
+        const existing = prev.find((e) => e.id === emailId);
+        if (existing && !existing.is_read) {
+          setUnreadCount((c) => Math.max(0, c - 1));
+        }
+        return prev.map((e) => (e.id === emailId ? { ...e, is_read: true } : e));
+      });
       return data;
     } catch {
       return null;

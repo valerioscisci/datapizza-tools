@@ -1,17 +1,18 @@
 """Notification route handlers.
 
-Endpoints for viewing emails, managing read status, preferences, and daily digest.
-All endpoints require JWT auth via get_current_user.
+Endpoints for viewing emails, managing read status, preferences, daily digest,
+and Telegram webhook.
 """
 
 from __future__ import annotations
 
+import os
 import uuid
 from datetime import datetime, timezone
 from typing import Optional, Union
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from api.auth import get_current_user
@@ -19,15 +20,19 @@ from api.database.connection import get_db
 from api.database.models import EmailLog, NotificationPreference, User
 from api.routes.notifications.schemas import (
     DigestDisabledResponse,
+    EMAIL_TYPE_VALUES,
     EmailLogListResponse,
     EmailLogResponse,
     MarkAllReadResponse,
     NotificationPreferenceResponse,
     NotificationPreferenceUpdate,
     OkResponse,
+    TelegramLinkRequest,
+    TelegramUpdate,
     UnreadCountResponse,
 )
 from api.services.email_service import EmailService
+from api.services.telegram_service import TelegramService
 
 logger = structlog.get_logger()
 
@@ -38,7 +43,7 @@ router = APIRouter(prefix="/notifications", tags=["Notifications"])
 async def list_emails(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    email_type: Optional[list[str]] = Query(None),
+    email_type: Optional[list[EMAIL_TYPE_VALUES]] = Query(None),
     is_read: Optional[bool] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -124,6 +129,21 @@ async def get_email(
     )
 
 
+@router.patch("/emails/read-all", response_model=MarkAllReadResponse)
+async def mark_all_emails_read(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Mark all of the current user's unread emails as read."""
+    count = db.query(EmailLog).filter(
+        EmailLog.recipient_id == current_user.id,
+        EmailLog.is_read == 0,
+    ).update({"is_read": 1})
+    db.commit()
+
+    return {"ok": True, "count": count}
+
+
 @router.patch("/emails/{email_id}/read", response_model=OkResponse)
 async def mark_email_read(
     email_id: str,
@@ -148,21 +168,6 @@ async def mark_email_read(
     return {"ok": True}
 
 
-@router.patch("/emails/read-all", response_model=MarkAllReadResponse)
-async def mark_all_emails_read(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """Mark all of the current user's unread emails as read."""
-    count = db.query(EmailLog).filter(
-        EmailLog.recipient_id == current_user.id,
-        EmailLog.is_read == 0,
-    ).update({"is_read": 1})
-    db.commit()
-
-    return {"ok": True, "count": count}
-
-
 @router.get("/unread-count", response_model=UnreadCountResponse)
 async def get_unread_count(
     current_user: User = Depends(get_current_user),
@@ -175,6 +180,17 @@ async def get_unread_count(
     ).count()
 
     return {"count": count}
+
+
+def _pref_to_response(pref: NotificationPreference) -> NotificationPreferenceResponse:
+    """Convert a NotificationPreference model to a response schema."""
+    return NotificationPreferenceResponse(
+        email_notifications=bool(pref.email_notifications),
+        daily_digest=bool(pref.daily_digest),
+        channel=pref.channel or "email",
+        telegram_chat_id=pref.telegram_chat_id,
+        telegram_notifications=bool(pref.telegram_notifications),
+    )
 
 
 @router.get("/preferences", response_model=NotificationPreferenceResponse)
@@ -192,13 +208,11 @@ async def get_preferences(
             email_notifications=True,
             daily_digest=True,
             channel="email",
+            telegram_chat_id=None,
+            telegram_notifications=False,
         )
 
-    return NotificationPreferenceResponse(
-        email_notifications=bool(pref.email_notifications),
-        daily_digest=bool(pref.daily_digest),
-        channel=pref.channel or "email",
-    )
+    return _pref_to_response(pref)
 
 
 @router.patch("/preferences", response_model=NotificationPreferenceResponse)
@@ -219,6 +233,8 @@ async def update_preferences(
             email_notifications=1,
             daily_digest=1,
             channel="email",
+            telegram_chat_id=None,
+            telegram_notifications=0,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
@@ -230,16 +246,88 @@ async def update_preferences(
         pref.daily_digest = 1 if data.daily_digest else 0
     if data.channel is not None:
         pref.channel = data.channel
+    if data.telegram_notifications is not None:
+        pref.telegram_notifications = 1 if data.telegram_notifications else 0
 
     pref.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(pref)
 
-    return NotificationPreferenceResponse(
-        email_notifications=bool(pref.email_notifications),
-        daily_digest=bool(pref.daily_digest),
-        channel=pref.channel or "email",
-    )
+    return _pref_to_response(pref)
+
+
+@router.post("/telegram/link", response_model=NotificationPreferenceResponse)
+async def link_telegram(
+    data: TelegramLinkRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Link a Telegram chat to the user's notification preferences.
+
+    Saves the chat_id and enables telegram_notifications.
+    """
+    pref = db.query(NotificationPreference).filter(
+        NotificationPreference.user_id == current_user.id,
+    ).first()
+
+    if not pref:
+        pref = NotificationPreference(
+            id=str(uuid.uuid4()),
+            user_id=current_user.id,
+            email_notifications=1,
+            daily_digest=1,
+            channel="email",
+            telegram_chat_id=data.chat_id,
+            telegram_notifications=1,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        db.add(pref)
+    else:
+        pref.telegram_chat_id = data.chat_id
+        pref.telegram_notifications = 1
+        pref.updated_at = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(pref)
+
+    logger.info("telegram_linked", user_id=current_user.id, chat_id=data.chat_id)
+
+    return _pref_to_response(pref)
+
+
+@router.delete("/telegram/link", response_model=NotificationPreferenceResponse)
+async def unlink_telegram(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Unlink Telegram from the user's notification preferences.
+
+    Removes chat_id and disables telegram_notifications.
+    """
+    pref = db.query(NotificationPreference).filter(
+        NotificationPreference.user_id == current_user.id,
+    ).first()
+
+    if not pref:
+        return NotificationPreferenceResponse(
+            email_notifications=True,
+            daily_digest=True,
+            channel="email",
+            telegram_chat_id=None,
+            telegram_notifications=False,
+        )
+
+    pref.telegram_chat_id = None
+    pref.telegram_notifications = 0
+    pref.updated_at = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(pref)
+
+    logger.info("telegram_unlinked", user_id=current_user.id)
+
+    return _pref_to_response(pref)
 
 
 @router.post("/daily-digest", response_model=Union[EmailLogResponse, DigestDisabledResponse])
@@ -265,3 +353,43 @@ async def trigger_daily_digest(
         is_read=bool(result.is_read),
         created_at=result.created_at,
     )
+
+
+@router.post(
+    "/telegram/webhook",
+    response_model=OkResponse,
+    openapi_extra={"security": []},
+    summary="Telegram Bot webhook receiver",
+    description=(
+        "Receives updates from the Telegram Bot API. Public endpoint, no auth required. "
+        "When a user sends /start, the bot replies with their Chat ID."
+    ),
+)
+async def telegram_webhook(update: TelegramUpdate, request: Request):
+    """Handle incoming Telegram webhook updates."""
+    # Validate secret token if configured
+    expected_secret = os.getenv("TELEGRAM_WEBHOOK_SECRET")
+    if expected_secret:
+        received_secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+        if received_secret != expected_secret:
+            logger.warning("telegram_webhook_invalid_secret")
+            return {"ok": True}
+
+    if not update.message or not update.message.text:
+        return {"ok": True}
+
+    chat_id = str(update.message.chat.id)
+    text = update.message.text.strip()
+
+    if text == "/start":
+        reply = (
+            "<b>Ciao! Benvenuto su Datapizza Notify Bot.</b>\n\n"
+            f"Il tuo Chat ID e': <code>{chat_id}</code>\n\n"
+            "Copia questo ID e incollalo nella sezione "
+            '"Collega Telegram" su Datapizza per attivare '
+            "le notifiche Telegram."
+        )
+        TelegramService.send_message(chat_id, reply)
+        logger.info("telegram_webhook_start_reply", chat_id=chat_id)
+
+    return {"ok": True}

@@ -59,6 +59,10 @@ TAGS_METADATA = [
         "description": "AI-powered features using Google Gemini. Includes job matching with profile-based scoring and career advice with personalized recommendations.",
     },
     {
+        "name": "Notifications",
+        "description": "Email notification center and preferences. View emails, manage read status, configure notification channels (email, Telegram), and trigger daily digest.",
+    },
+    {
         "name": "Health",
         "description": "API health check endpoint.",
     },
@@ -122,7 +126,7 @@ Include the token in the `Authorization` header: `Bearer <token>`.
 
     # Servers
     openapi_schema["servers"] = [
-        {"url": "http://localhost:8000", "description": "Local development server"},
+        {"url": "http://localhost:8003", "description": "Local development server"},
     ]
 
     app.openapi_schema = openapi_schema

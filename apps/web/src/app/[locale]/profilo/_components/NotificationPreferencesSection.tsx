@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Bell, Check } from 'lucide-react';
+import Link from 'next/link';
+import { Bell, Check, MessageCircle } from 'lucide-react';
 import { useNotificationPreferences } from '@/lib/hooks/useNotificationPreferences';
 
 export function NotificationPreferencesSection() {
@@ -15,14 +16,20 @@ export function NotificationPreferencesSection() {
 
   const [savedFeedback, setSavedFeedback] = useState(false);
 
-  async function handleToggle(field: 'email_notifications' | 'daily_digest') {
+  async function handleToggle(field: 'email_notifications' | 'daily_digest' | 'telegram_notifications') {
     if (!preferences) return;
-    await updatePreferences({ [field]: !preferences[field] });
-    setSavedFeedback(true);
-    setTimeout(() => setSavedFeedback(false), 2000);
+    try {
+      await updatePreferences({ [field]: !preferences[field] });
+      setSavedFeedback(true);
+      setTimeout(() => setSavedFeedback(false), 2000);
+    } catch {
+      // Preferences not updated — don't show "saved" feedback
+    }
   }
 
   if (loading || !preferences) return null;
+
+  const isTelegramLinked = !!preferences.telegram_chat_id;
 
   return (
     <div className="border border-neutral-200 rounded-lg bg-white overflow-hidden p-5">
@@ -88,6 +95,44 @@ export function NotificationPreferencesSection() {
             />
           </button>
         </div>
+
+        {/* Telegram section */}
+        {isTelegramLinked ? (
+          <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-neutral-50">
+            <div>
+              <p className="text-sm font-semibold text-neutral-900 flex items-center gap-1.5">
+                <MessageCircle className="w-4 h-4 text-pastelgreen-600" aria-hidden="true" />
+                {t('telegramNotifications')}
+              </p>
+              <p className="text-xs text-neutral-500 mt-0.5">{t('telegramNotificationsDescription')}</p>
+            </div>
+            <button
+              onClick={() => handleToggle('telegram_notifications')}
+              role="switch"
+              aria-checked={preferences.telegram_notifications}
+              aria-label={t('telegramNotifications')}
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-300 cursor-pointer ${
+                preferences.telegram_notifications ? 'bg-azure-600' : 'bg-neutral-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-300 ${
+                  preferences.telegram_notifications ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-neutral-50">
+            <MessageCircle className="w-4 h-4 text-neutral-400" aria-hidden="true" />
+            <Link
+              href="/it/notifiche"
+              className="text-sm text-azure-600 hover:text-azure-700 hover:underline cursor-pointer"
+            >
+              {t('telegramLinkFromProfile')}
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

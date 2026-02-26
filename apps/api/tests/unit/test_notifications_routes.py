@@ -26,6 +26,9 @@ get_unread_count = _router_module.get_unread_count
 get_preferences = _router_module.get_preferences
 update_preferences = _router_module.update_preferences
 trigger_daily_digest = _router_module.trigger_daily_digest
+link_telegram = _router_module.link_telegram
+unlink_telegram = _router_module.unlink_telegram
+telegram_webhook = _router_module.telegram_webhook
 
 
 # --- Helpers ---
@@ -49,7 +52,8 @@ def _make_email(email_id=None, recipient_id=None, email_type="proposal_received"
     return e
 
 
-def _make_pref(user_id, email_notifications=1, daily_digest=1, channel="email"):
+def _make_pref(user_id, email_notifications=1, daily_digest=1, channel="email",
+               telegram_chat_id=None, telegram_notifications=0):
     """Create a mock NotificationPreference."""
     pref = MagicMock()
     pref.id = str(uuid4())
@@ -57,6 +61,8 @@ def _make_pref(user_id, email_notifications=1, daily_digest=1, channel="email"):
     pref.email_notifications = email_notifications
     pref.daily_digest = daily_digest
     pref.channel = channel
+    pref.telegram_chat_id = telegram_chat_id
+    pref.telegram_notifications = telegram_notifications
     return pref
 
 
@@ -296,11 +302,14 @@ class TestGetPreferences:
         assert result.email_notifications is True
         assert result.daily_digest is True
         assert result.channel == "email"
+        assert result.telegram_chat_id is None
+        assert result.telegram_notifications is False
 
     @pytest.mark.asyncio
     async def test_returns_saved_preferences(self, mock_db, mock_user):
         """Should return saved preferences when record exists."""
-        pref = _make_pref(mock_user.id, email_notifications=0, daily_digest=1, channel="telegram")
+        pref = _make_pref(mock_user.id, email_notifications=0, daily_digest=1, channel="telegram",
+                          telegram_chat_id="12345", telegram_notifications=1)
         mock_db.query.return_value.filter.return_value.first.return_value = pref
 
         result = await get_preferences(current_user=mock_user, db=mock_db)
@@ -308,6 +317,8 @@ class TestGetPreferences:
         assert result.email_notifications is False
         assert result.daily_digest is True
         assert result.channel == "telegram"
+        assert result.telegram_chat_id == "12345"
+        assert result.telegram_notifications is True
 
 
 # --- PATCH /notifications/preferences ---
@@ -450,10 +461,26 @@ class TestNotificationSchemas:
             email_notifications=True,
             daily_digest=False,
             channel="telegram",
+            telegram_chat_id="12345",
+            telegram_notifications=True,
         )
         assert resp.email_notifications is True
         assert resp.daily_digest is False
         assert resp.channel == "telegram"
+        assert resp.telegram_chat_id == "12345"
+        assert resp.telegram_notifications is True
+
+    def test_notification_preference_response_defaults(self):
+        """Should use defaults for optional telegram fields."""
+        from api.routes.notifications.schemas import NotificationPreferenceResponse
+
+        resp = NotificationPreferenceResponse(
+            email_notifications=True,
+            daily_digest=True,
+            channel="email",
+        )
+        assert resp.telegram_chat_id is None
+        assert resp.telegram_notifications is False
 
     def test_notification_preference_update_partial(self):
         """Should allow partial updates."""
@@ -463,6 +490,7 @@ class TestNotificationSchemas:
         assert data.email_notifications is False
         assert data.daily_digest is None
         assert data.channel is None
+        assert data.telegram_notifications is None
 
     def test_notification_preference_update_all_fields(self):
         """Should accept all fields."""
@@ -471,8 +499,302 @@ class TestNotificationSchemas:
         data = NotificationPreferenceUpdate(
             email_notifications=True,
             daily_digest=False,
-            channel="telegram",
+            channel="both",
+            telegram_notifications=True,
         )
         assert data.email_notifications is True
         assert data.daily_digest is False
-        assert data.channel == "telegram"
+        assert data.channel == "both"
+        assert data.telegram_notifications is True
+
+    def test_notification_preference_update_invalid_channel(self):
+        """Should reject invalid channel values."""
+        from api.routes.notifications.schemas import NotificationPreferenceUpdate
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            NotificationPreferenceUpdate(channel="sms")
+
+    def test_telegram_update_with_start_command(self):
+        """Should parse a valid /start update."""
+        from api.routes.notifications.schemas import TelegramUpdate, TelegramMessage, TelegramChat
+
+        update = TelegramUpdate(
+            update_id=123,
+            message=TelegramMessage(chat=TelegramChat(id=99887766), text="/start"),
+        )
+        assert update.message is not None
+        assert update.message.chat.id == 99887766
+        assert update.message.text == "/start"
+
+    def test_telegram_update_without_message(self):
+        """Should accept update without message field."""
+        from api.routes.notifications.schemas import TelegramUpdate
+
+        update = TelegramUpdate(update_id=124)
+        assert update.message is None
+
+    def test_telegram_update_message_without_text(self):
+        """Should accept message without text."""
+        from api.routes.notifications.schemas import TelegramUpdate, TelegramMessage, TelegramChat
+
+        update = TelegramUpdate(
+            update_id=125,
+            message=TelegramMessage(chat=TelegramChat(id=99887766)),
+        )
+        assert update.message is not None
+        assert update.message.text is None
+
+    def test_telegram_link_request(self):
+        """Should create a valid TelegramLinkRequest."""
+        from api.routes.notifications.schemas import TelegramLinkRequest
+
+        req = TelegramLinkRequest(chat_id="123456789")
+        assert req.chat_id == "123456789"
+
+    def test_telegram_link_request_negative_chat_id(self):
+        """Should accept negative chat_id (group chats)."""
+        from api.routes.notifications.schemas import TelegramLinkRequest
+
+        req = TelegramLinkRequest(chat_id="-100123456789")
+        assert req.chat_id == "-100123456789"
+
+    def test_telegram_link_request_rejects_empty(self):
+        """Should reject empty chat_id."""
+        from api.routes.notifications.schemas import TelegramLinkRequest
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            TelegramLinkRequest(chat_id="")
+
+    def test_telegram_link_request_rejects_non_numeric(self):
+        """Should reject non-numeric chat_id."""
+        from api.routes.notifications.schemas import TelegramLinkRequest
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            TelegramLinkRequest(chat_id="abc_not_a_number")
+
+    def test_telegram_link_request_rejects_too_long(self):
+        """Should reject chat_id longer than 50 characters."""
+        from api.routes.notifications.schemas import TelegramLinkRequest
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            TelegramLinkRequest(chat_id="1" * 51)
+
+
+# --- POST /notifications/telegram/link ---
+
+
+class TestLinkTelegram:
+    """Tests for the POST /notifications/telegram/link endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_link_creates_pref_when_none_exists(self, mock_db, mock_user):
+        """Should create a new preference record with telegram linked."""
+        from api.routes.notifications.schemas import TelegramLinkRequest
+
+        mock_db.query.return_value.filter.return_value.first.return_value = None
+
+        data = TelegramLinkRequest(chat_id="123456789")
+
+        result = await link_telegram(data=data, current_user=mock_user, db=mock_db)
+
+        mock_db.add.assert_called_once()
+        mock_db.commit.assert_called_once()
+        assert result.telegram_chat_id == "123456789"
+        assert result.telegram_notifications is True
+
+    @pytest.mark.asyncio
+    async def test_link_updates_existing_pref(self, mock_db, mock_user):
+        """Should update existing preference with telegram chat_id."""
+        from api.routes.notifications.schemas import TelegramLinkRequest
+
+        pref = _make_pref(mock_user.id, telegram_chat_id=None, telegram_notifications=0)
+        mock_db.query.return_value.filter.return_value.first.return_value = pref
+
+        data = TelegramLinkRequest(chat_id="987654321")
+
+        result = await link_telegram(data=data, current_user=mock_user, db=mock_db)
+
+        assert pref.telegram_chat_id == "987654321"
+        assert pref.telegram_notifications == 1
+        mock_db.commit.assert_called_once()
+
+
+# --- DELETE /notifications/telegram/link ---
+
+
+class TestUnlinkTelegram:
+    """Tests for the DELETE /notifications/telegram/link endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_unlink_removes_telegram(self, mock_db, mock_user):
+        """Should remove telegram_chat_id and disable telegram_notifications."""
+        pref = _make_pref(mock_user.id, telegram_chat_id="123456789", telegram_notifications=1)
+        mock_db.query.return_value.filter.return_value.first.return_value = pref
+
+        result = await unlink_telegram(current_user=mock_user, db=mock_db)
+
+        assert pref.telegram_chat_id is None
+        assert pref.telegram_notifications == 0
+        mock_db.commit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_unlink_returns_defaults_when_no_pref(self, mock_db, mock_user):
+        """Should return defaults when no preference record exists."""
+        mock_db.query.return_value.filter.return_value.first.return_value = None
+
+        result = await unlink_telegram(current_user=mock_user, db=mock_db)
+
+        assert result.telegram_chat_id is None
+        assert result.telegram_notifications is False
+        assert result.email_notifications is True
+
+
+# --- POST /notifications/telegram/webhook ---
+
+
+class TestTelegramWebhook:
+    """Tests for the POST /notifications/telegram/webhook endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_start_command_replies_with_chat_id(self):
+        """Should reply with chat ID when /start is received."""
+        from api.routes.notifications.schemas import TelegramUpdate, TelegramMessage, TelegramChat
+
+        update = TelegramUpdate(
+            update_id=123,
+            message=TelegramMessage(chat=TelegramChat(id=99887766), text="/start"),
+        )
+        mock_request = MagicMock()
+        mock_request.headers = {}
+
+        with patch.object(_router_module, "TelegramService") as mock_tg, \
+             patch.object(_router_module, "os") as mock_os:
+            mock_os.getenv.return_value = None
+            result = await telegram_webhook(update=update, request=mock_request)
+
+        assert result == {"ok": True}
+        mock_tg.send_message.assert_called_once()
+        call_args = mock_tg.send_message.call_args
+        assert call_args[0][0] == "99887766"
+        assert "99887766" in call_args[0][1]
+
+    @pytest.mark.asyncio
+    async def test_ignores_non_start_messages(self):
+        """Should return OK but not reply for non-/start messages."""
+        from api.routes.notifications.schemas import TelegramUpdate, TelegramMessage, TelegramChat
+
+        update = TelegramUpdate(
+            update_id=124,
+            message=TelegramMessage(chat=TelegramChat(id=99887766), text="hello"),
+        )
+        mock_request = MagicMock()
+        mock_request.headers = {}
+
+        with patch.object(_router_module, "TelegramService") as mock_tg, \
+             patch.object(_router_module, "os") as mock_os:
+            mock_os.getenv.return_value = None
+            result = await telegram_webhook(update=update, request=mock_request)
+
+        assert result == {"ok": True}
+        mock_tg.send_message.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_handles_update_without_message(self):
+        """Should return OK for updates without message."""
+        from api.routes.notifications.schemas import TelegramUpdate
+
+        update = TelegramUpdate(update_id=125)
+        mock_request = MagicMock()
+        mock_request.headers = {}
+
+        with patch.object(_router_module, "TelegramService") as mock_tg, \
+             patch.object(_router_module, "os") as mock_os:
+            mock_os.getenv.return_value = None
+            result = await telegram_webhook(update=update, request=mock_request)
+
+        assert result == {"ok": True}
+        mock_tg.send_message.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_handles_message_without_text(self):
+        """Should return OK for messages without text (e.g., photos)."""
+        from api.routes.notifications.schemas import TelegramUpdate, TelegramMessage, TelegramChat
+
+        update = TelegramUpdate(
+            update_id=126,
+            message=TelegramMessage(chat=TelegramChat(id=99887766)),
+        )
+        mock_request = MagicMock()
+        mock_request.headers = {}
+
+        with patch.object(_router_module, "TelegramService") as mock_tg, \
+             patch.object(_router_module, "os") as mock_os:
+            mock_os.getenv.return_value = None
+            result = await telegram_webhook(update=update, request=mock_request)
+
+        assert result == {"ok": True}
+        mock_tg.send_message.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_valid_secret_token_allows_request(self):
+        """Should process request when secret token matches."""
+        from api.routes.notifications.schemas import TelegramUpdate, TelegramMessage, TelegramChat
+
+        update = TelegramUpdate(
+            update_id=127,
+            message=TelegramMessage(chat=TelegramChat(id=99887766), text="/start"),
+        )
+        mock_request = MagicMock()
+        mock_request.headers = {"X-Telegram-Bot-Api-Secret-Token": "my-secret-123"}
+
+        with patch.object(_router_module, "TelegramService") as mock_tg, \
+             patch.object(_router_module, "os") as mock_os:
+            mock_os.getenv.return_value = "my-secret-123"
+            result = await telegram_webhook(update=update, request=mock_request)
+
+        assert result == {"ok": True}
+        mock_tg.send_message.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_invalid_secret_token_rejects_silently(self):
+        """Should return OK but not process when secret token mismatches."""
+        from api.routes.notifications.schemas import TelegramUpdate, TelegramMessage, TelegramChat
+
+        update = TelegramUpdate(
+            update_id=128,
+            message=TelegramMessage(chat=TelegramChat(id=99887766), text="/start"),
+        )
+        mock_request = MagicMock()
+        mock_request.headers = {"X-Telegram-Bot-Api-Secret-Token": "wrong-secret"}
+
+        with patch.object(_router_module, "TelegramService") as mock_tg, \
+             patch.object(_router_module, "os") as mock_os:
+            mock_os.getenv.return_value = "correct-secret"
+            result = await telegram_webhook(update=update, request=mock_request)
+
+        assert result == {"ok": True}
+        mock_tg.send_message.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_no_secret_configured_allows_all(self):
+        """Should process all requests when no secret is configured."""
+        from api.routes.notifications.schemas import TelegramUpdate, TelegramMessage, TelegramChat
+
+        update = TelegramUpdate(
+            update_id=129,
+            message=TelegramMessage(chat=TelegramChat(id=99887766), text="/start"),
+        )
+        mock_request = MagicMock()
+        mock_request.headers = {}
+
+        with patch.object(_router_module, "TelegramService") as mock_tg, \
+             patch.object(_router_module, "os") as mock_os:
+            mock_os.getenv.return_value = None
+            result = await telegram_webhook(update=update, request=mock_request)
+
+        assert result == {"ok": True}
+        mock_tg.send_message.assert_called_once()

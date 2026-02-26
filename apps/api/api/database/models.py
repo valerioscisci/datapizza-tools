@@ -265,6 +265,7 @@ class EmailLog(Base):
     __table_args__ = (
         Index("ix_email_logs_recipient_id", "recipient_id"),
         Index("ix_email_logs_recipient_created", "recipient_id", "created_at"),
+        Index("ix_email_logs_recipient_type", "recipient_id", "email_type"),
     )
 
 
@@ -275,7 +276,9 @@ class NotificationPreference(Base):
     user_id = Column(String(36), ForeignKey("users.id"), unique=True, nullable=False)
     email_notifications = Column(Integer, default=1)  # SQLite boolean
     daily_digest = Column(Integer, default=1)  # SQLite boolean
-    channel = Column(String(50), default="email")
+    channel = Column(String(50), default="email")  # "email", "telegram", "both"
+    telegram_chat_id = Column(String(50), nullable=True)
+    telegram_notifications = Column(Integer, default=0)  # SQLite boolean
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 

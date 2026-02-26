@@ -30,6 +30,8 @@ export interface NotificationPreference {
   email_notifications: boolean;
   daily_digest: boolean;
   channel: string;
+  telegram_notifications: boolean;
+  telegram_chat_id: string | null;
 }
 
 export const EMAIL_TYPE_FILTERS: Array<{ key: string; types: EmailType[] }> = [
@@ -67,6 +69,7 @@ export function formatRelativeTime(
   const diffHr = Math.floor(diffMin / 60);
   const diffDays = Math.floor(diffHr / 24);
 
+  if (diffMin < 0) return t('time.now');
   if (diffMin < 1) return t('time.now');
   if (diffMin < 60) return t('time.minutesAgo', { count: diffMin });
   if (diffHr < 24) return t('time.hoursAgo', { count: diffHr });

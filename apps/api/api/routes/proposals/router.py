@@ -510,17 +510,15 @@ async def update_proposal(
 
     logger.info("proposal_updated", proposal_id=proposal.id, new_status=proposal.status)
 
-    # Send notification emails based on status change
+    # Send notification emails based on status change (reuse company/talent from _fetch_proposal_data)
     try:
-        talent_user = db.query(User).filter(User.id == proposal.talent_id).first()
-        company_user = db.query(User).filter(User.id == proposal.company_id).first()
-        if talent_user and company_user:
+        if talent and company:
             if proposal.status == "accepted":
-                EmailService.send_proposal_accepted(db, proposal, talent_user, company_user)
+                EmailService.send_proposal_accepted(db, proposal, talent, company)
             elif proposal.status == "rejected":
-                EmailService.send_proposal_rejected(db, proposal, talent_user, company_user)
+                EmailService.send_proposal_rejected(db, proposal, talent, company)
             elif proposal.status == "hired":
-                EmailService.send_hiring_confirmation(db, proposal, talent_user, company_user)
+                EmailService.send_hiring_confirmation(db, proposal, talent, company)
     except Exception as e:
         logger.error("email_send_failed", error=str(e), email_type="proposal_status_update", proposal_id=proposal.id)
 
@@ -661,16 +659,14 @@ async def complete_proposal_course(
 
     logger.info("proposal_course_completed", proposal_id=proposal.id, course_id=course_id)
 
-    # Send notification emails for course completion and milestones
+    # Send notification emails for course completion and milestones (reuse company/talent from _fetch_proposal_data)
     try:
-        talent_user = db.query(User).filter(User.id == proposal.talent_id).first()
-        company_user = db.query(User).filter(User.id == proposal.company_id).first()
-        if talent_user and company_user:
+        if talent and company:
             course_title = course.title if course else "Unknown"
-            EmailService.send_course_completed(db, proposal, course_title, talent_user, company_user)
+            EmailService.send_course_completed(db, proposal, course_title, talent, company)
             # Notify talent about milestone XP earned
             if xp > 0:
-                EmailService.send_milestone_reached(db, proposal, "course_completed", xp, talent_user)
+                EmailService.send_milestone_reached(db, proposal, "course_completed", xp, talent)
     except Exception as e:
         logger.error("email_send_failed", error=str(e), email_type="course_completed", proposal_id=proposal.id)
 
@@ -771,15 +767,12 @@ async def start_proposal_course(
 
     logger.info("proposal_course_started", proposal_id=proposal.id, course_id=course_id)
 
-    # Send notification email for course start
+    # Send notification email for course start (reuse company/talent from _fetch_proposal_data)
     try:
-        talent_user = db.query(User).filter(User.id == proposal.talent_id).first()
-        company_user = db.query(User).filter(User.id == proposal.company_id).first()
-        if talent_user and company_user:
-            # Look up the course title
-            course_obj = db.query(Course).filter(Course.id == course_id).first()
-            course_title = course_obj.title if course_obj else "Unknown"
-            EmailService.send_course_started(db, proposal, course_title, talent_user, company_user)
+        if talent and company:
+            course_title = courses_map.get(course_id)
+            course_title = course_title.title if course_title else "Unknown"
+            EmailService.send_course_started(db, proposal, course_title, talent, company)
     except Exception as e:
         logger.error("email_send_failed", error=str(e), email_type="course_started", proposal_id=proposal.id)
 

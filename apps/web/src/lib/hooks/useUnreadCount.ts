@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/lib/auth/use-auth';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8003';
+import { API_BASE } from '@/app/[locale]/notifiche/_utils/constants';
 const POLL_INTERVAL_MS = 60_000;
 
 interface UseUnreadCountReturn {

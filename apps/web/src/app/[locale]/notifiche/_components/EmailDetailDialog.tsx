@@ -2,9 +2,11 @@
 
 import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { X, ExternalLink } from 'lucide-react';
 import type { EmailLog } from '../_utils/constants';
 import { emailTypeBadgeStyle } from '../_utils/constants';
+import DOMPurify from 'isomorphic-dompurify';
 
 interface EmailDetailDialogProps {
   email: EmailLog;
@@ -83,20 +85,20 @@ export function EmailDetailDialog({ email, onClose }: EmailDetailDialogProps) {
           <div className="mt-6 pt-6 border-t border-neutral-200">
             <div
               className="prose prose-sm max-w-none text-neutral-700 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: email.body_html }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(email.body_html) }}
             />
           </div>
 
           {/* Actions */}
           <div className="mt-8 flex gap-3">
             {email.related_proposal_id && (
-              <a
-                href={`/it/proposte`}
+              <Link
+                href="/it/proposte"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-azure-600 text-white font-medium rounded-xl hover:bg-azure-700 transition-colors cursor-pointer"
               >
                 {t('detail.goToProposal')}
                 <ExternalLink className="w-4 h-4" aria-hidden="true" />
-              </a>
+              </Link>
             )}
             <button
               onClick={onClose}

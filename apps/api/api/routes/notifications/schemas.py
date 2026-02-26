@@ -3,9 +3,24 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
+
+# Valid email_type values
+EMAIL_TYPE_VALUES = Literal[
+    "proposal_received",
+    "proposal_accepted",
+    "proposal_rejected",
+    "course_started",
+    "course_completed",
+    "milestone_reached",
+    "hiring_confirmation",
+    "daily_digest",
+]
+
+# Valid channel values
+CHANNEL_VALUES = Literal["email", "telegram", "both"]
 
 
 class EmailLogResponse(BaseModel):
@@ -20,8 +35,7 @@ class EmailLogResponse(BaseModel):
     is_read: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class EmailLogListResponse(BaseModel):
@@ -36,15 +50,21 @@ class NotificationPreferenceResponse(BaseModel):
     email_notifications: bool
     daily_digest: bool
     channel: str
+    telegram_chat_id: Optional[str] = None
+    telegram_notifications: bool = False
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class NotificationPreferenceUpdate(BaseModel):
     email_notifications: Optional[bool] = None
     daily_digest: Optional[bool] = None
-    channel: Optional[str] = None
+    channel: Optional[CHANNEL_VALUES] = None
+    telegram_notifications: Optional[bool] = None
+
+
+class TelegramLinkRequest(BaseModel):
+    chat_id: str = Field(..., min_length=1, max_length=50, pattern=r"^-?\d+$")
 
 
 class OkResponse(BaseModel):
@@ -62,3 +82,30 @@ class UnreadCountResponse(BaseModel):
 
 class DigestDisabledResponse(BaseModel):
     message: str
+
+
+# --- Telegram Webhook schemas ---
+
+
+class TelegramChat(BaseModel):
+    """Subset of Telegram Chat object."""
+
+    id: int
+
+
+class TelegramMessage(BaseModel):
+    """Subset of Telegram Message object."""
+
+    chat: TelegramChat
+    text: Optional[str] = None
+
+
+class TelegramUpdate(BaseModel):
+    """Telegram Update received via webhook.
+
+    Only ``message`` updates with text are relevant; other update types
+    (edited_message, callback_query, etc.) are ignored.
+    """
+
+    update_id: int
+    message: Optional[TelegramMessage] = None

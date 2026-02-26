@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import uuid
 from datetime import datetime, timezone
+from html import escape
 
 import structlog
 from sqlalchemy.orm import Session
@@ -21,6 +22,7 @@ from api.database.models import (
     Proposal,
     User,
 )
+from api.services.telegram_service import TelegramService
 
 logger = structlog.get_logger()
 
@@ -90,19 +92,29 @@ class EmailService:
         db.refresh(email_log)
 
         logger.info("email_created", email_id=email_log.id, email_type=email_type, recipient_id=recipient_id)
+
+        # Also send via Telegram if user has it enabled (never blocks main flow)
+        try:
+            telegram_text = body_text or subject
+            TelegramService.send_notification(db, recipient_id, telegram_text)
+        except Exception as e:
+            logger.error("telegram_notification_failed", error=str(e), recipient_id=recipient_id)
+
         return email_log
 
     @staticmethod
     def send_proposal_received(db: Session, proposal: Proposal, talent: User, company: User) -> EmailLog | None:
         """Email to TALENT when a company sends a proposal."""
-        company_name = company.company_name or company.full_name
+        company_name = escape(company.company_name or company.full_name)
+        talent_name = escape(talent.full_name)
+        budget = escape(proposal.budget_range or "Non specificato")
         subject = f"Nuova proposta formativa da {company_name}"
         content = (
             f"<h2 style='margin-top: 0;'>Hai ricevuto una nuova proposta!</h2>"
-            f"<p>Ciao <strong>{talent.full_name}</strong>,</p>"
+            f"<p>Ciao <strong>{talent_name}</strong>,</p>"
             f"<p><strong>{company_name}</strong> ti ha inviato una proposta formativa "
             f"personalizzata sulla piattaforma Datapizza.</p>"
-            f"<p>Budget indicato: <strong>{proposal.budget_range or 'Non specificato'}</strong></p>"
+            f"<p>Budget indicato: <strong>{budget}</strong></p>"
             f"<p>Accedi alla piattaforma per visualizzare i dettagli e rispondere.</p>"
             f"<p style='margin-top: 24px; color: #6b7280; font-size: 14px;'>— Il team Datapizza</p>"
         )
@@ -119,11 +131,13 @@ class EmailService:
     @staticmethod
     def send_proposal_accepted(db: Session, proposal: Proposal, talent: User, company: User) -> EmailLog | None:
         """Email to COMPANY when talent accepts the proposal."""
-        subject = f"{talent.full_name} ha accettato la tua proposta"
+        talent_name = escape(talent.full_name)
+        company_name = escape(company.full_name)
+        subject = f"{talent_name} ha accettato la tua proposta"
         content = (
             f"<h2 style='margin-top: 0;'>Proposta accettata!</h2>"
-            f"<p>Ciao <strong>{company.full_name}</strong>,</p>"
-            f"<p><strong>{talent.full_name}</strong> ha accettato la tua proposta formativa.</p>"
+            f"<p>Ciao <strong>{company_name}</strong>,</p>"
+            f"<p><strong>{talent_name}</strong> ha accettato la tua proposta formativa.</p>"
             f"<p>Il percorso di formazione puo' ora iniziare. Accedi alla piattaforma "
             f"per seguire i progressi del candidato.</p>"
             f"<p style='margin-top: 24px; color: #6b7280; font-size: 14px;'>— Il team Datapizza</p>"
@@ -134,18 +148,20 @@ class EmailService:
             email_type="proposal_accepted",
             subject=subject,
             body_html=_email_wrapper(content),
-            body_text=f"{talent.full_name} ha accettato la tua proposta. Accedi per i dettagli.",
+            body_text=f"{talent_name} ha accettato la tua proposta. Accedi per i dettagli.",
             related_proposal_id=proposal.id,
         )
 
     @staticmethod
     def send_proposal_rejected(db: Session, proposal: Proposal, talent: User, company: User) -> EmailLog | None:
         """Email to COMPANY when talent rejects the proposal."""
-        subject = f"{talent.full_name} ha rifiutato la tua proposta"
+        talent_name = escape(talent.full_name)
+        company_name = escape(company.full_name)
+        subject = f"{talent_name} ha rifiutato la tua proposta"
         content = (
             f"<h2 style='margin-top: 0;'>Proposta rifiutata</h2>"
-            f"<p>Ciao <strong>{company.full_name}</strong>,</p>"
-            f"<p><strong>{talent.full_name}</strong> ha rifiutato la tua proposta formativa.</p>"
+            f"<p>Ciao <strong>{company_name}</strong>,</p>"
+            f"<p><strong>{talent_name}</strong> ha rifiutato la tua proposta formativa.</p>"
             f"<p>Puoi creare una nuova proposta per un altro candidato dalla sezione Talenti.</p>"
             f"<p style='margin-top: 24px; color: #6b7280; font-size: 14px;'>— Il team Datapizza</p>"
         )
@@ -155,19 +171,22 @@ class EmailService:
             email_type="proposal_rejected",
             subject=subject,
             body_html=_email_wrapper(content),
-            body_text=f"{talent.full_name} ha rifiutato la tua proposta.",
+            body_text=f"{talent_name} ha rifiutato la tua proposta.",
             related_proposal_id=proposal.id,
         )
 
     @staticmethod
     def send_course_started(db: Session, proposal: Proposal, course_title: str, talent: User, company: User) -> EmailLog | None:
         """Email to COMPANY when talent starts a course."""
-        subject = f"{talent.full_name} ha iniziato il corso: {course_title}"
+        talent_name = escape(talent.full_name)
+        company_name = escape(company.full_name)
+        safe_course_title = escape(course_title)
+        subject = f"{talent_name} ha iniziato il corso: {safe_course_title}"
         content = (
             f"<h2 style='margin-top: 0;'>Corso iniziato</h2>"
-            f"<p>Ciao <strong>{company.full_name}</strong>,</p>"
-            f"<p><strong>{talent.full_name}</strong> ha iniziato il corso "
-            f"<strong>{course_title}</strong> nel percorso formativo.</p>"
+            f"<p>Ciao <strong>{company_name}</strong>,</p>"
+            f"<p><strong>{talent_name}</strong> ha iniziato il corso "
+            f"<strong>{safe_course_title}</strong> nel percorso formativo.</p>"
             f"<p>Accedi alla dashboard per seguire i progressi.</p>"
             f"<p style='margin-top: 24px; color: #6b7280; font-size: 14px;'>— Il team Datapizza</p>"
         )
@@ -177,19 +196,22 @@ class EmailService:
             email_type="course_started",
             subject=subject,
             body_html=_email_wrapper(content),
-            body_text=f"{talent.full_name} ha iniziato il corso: {course_title}.",
+            body_text=f"{talent_name} ha iniziato il corso: {safe_course_title}.",
             related_proposal_id=proposal.id,
         )
 
     @staticmethod
     def send_course_completed(db: Session, proposal: Proposal, course_title: str, talent: User, company: User) -> EmailLog | None:
         """Email to COMPANY when talent completes a course."""
-        subject = f"{talent.full_name} ha completato il corso: {course_title}"
+        talent_name = escape(talent.full_name)
+        company_name = escape(company.full_name)
+        safe_course_title = escape(course_title)
+        subject = f"{talent_name} ha completato il corso: {safe_course_title}"
         content = (
             f"<h2 style='margin-top: 0;'>Corso completato!</h2>"
-            f"<p>Ciao <strong>{company.full_name}</strong>,</p>"
-            f"<p><strong>{talent.full_name}</strong> ha completato il corso "
-            f"<strong>{course_title}</strong>.</p>"
+            f"<p>Ciao <strong>{company_name}</strong>,</p>"
+            f"<p><strong>{talent_name}</strong> ha completato il corso "
+            f"<strong>{safe_course_title}</strong>.</p>"
             f"<p>XP totali del percorso: <strong>{proposal.total_xp or 0}</strong></p>"
             f"<p>Accedi alla dashboard per seguire i prossimi step.</p>"
             f"<p style='margin-top: 24px; color: #6b7280; font-size: 14px;'>— Il team Datapizza</p>"
@@ -200,18 +222,20 @@ class EmailService:
             email_type="course_completed",
             subject=subject,
             body_html=_email_wrapper(content),
-            body_text=f"{talent.full_name} ha completato il corso: {course_title}.",
+            body_text=f"{talent_name} ha completato il corso: {safe_course_title}.",
             related_proposal_id=proposal.id,
         )
 
     @staticmethod
     def send_milestone_reached(db: Session, proposal: Proposal, milestone_type: str, xp_earned: int, talent: User) -> EmailLog | None:
         """Email to TALENT when a milestone is reached."""
+        talent_name = escape(talent.full_name)
+        safe_milestone_type = escape(milestone_type)
         subject = f"Traguardo raggiunto! +{xp_earned} XP"
         content = (
             f"<h2 style='margin-top: 0;'>Congratulazioni!</h2>"
-            f"<p>Ciao <strong>{talent.full_name}</strong>,</p>"
-            f"<p>Hai raggiunto un nuovo traguardo: <strong>{milestone_type}</strong></p>"
+            f"<p>Ciao <strong>{talent_name}</strong>,</p>"
+            f"<p>Hai raggiunto un nuovo traguardo: <strong>{safe_milestone_type}</strong></p>"
             f"<p>Hai guadagnato <strong>+{xp_earned} XP</strong>!</p>"
             f"<p>XP totali del percorso: <strong>{proposal.total_xp or 0}</strong></p>"
             f"<p>Continua cosi'!</p>"
@@ -223,21 +247,23 @@ class EmailService:
             email_type="milestone_reached",
             subject=subject,
             body_html=_email_wrapper(content),
-            body_text=f"Traguardo raggiunto: {milestone_type}. +{xp_earned} XP",
+            body_text=f"Traguardo raggiunto: {safe_milestone_type}. +{xp_earned} XP",
             related_proposal_id=proposal.id,
         )
 
     @staticmethod
     def send_hiring_confirmation(db: Session, proposal: Proposal, talent: User, company: User) -> list[EmailLog]:
         """Emails to BOTH talent and company when hiring is confirmed."""
-        company_name = company.company_name or company.full_name
+        company_name = escape(company.company_name or company.full_name)
+        talent_name = escape(talent.full_name)
+        company_contact = escape(company.full_name)
         results = []
 
         # Email to talent
         talent_subject = f"Congratulazioni! Sei stato assunto da {company_name}"
         talent_content = (
             f"<h2 style='margin-top: 0;'>Sei stato assunto!</h2>"
-            f"<p>Ciao <strong>{talent.full_name}</strong>,</p>"
+            f"<p>Ciao <strong>{talent_name}</strong>,</p>"
             f"<p>Congratulazioni! <strong>{company_name}</strong> ti ha assunto "
             f"dopo il completamento del percorso formativo.</p>"
             f"<p>XP totali guadagnati: <strong>{proposal.total_xp or 0}</strong></p>"
@@ -257,11 +283,11 @@ class EmailService:
             results.append(talent_email)
 
         # Email to company
-        company_subject = f"Assunzione confermata: {talent.full_name}"
+        company_subject = f"Assunzione confermata: {talent_name}"
         company_content = (
             f"<h2 style='margin-top: 0;'>Assunzione confermata</h2>"
-            f"<p>Ciao <strong>{company.full_name}</strong>,</p>"
-            f"<p>L'assunzione di <strong>{talent.full_name}</strong> e' stata confermata.</p>"
+            f"<p>Ciao <strong>{company_contact}</strong>,</p>"
+            f"<p>L'assunzione di <strong>{talent_name}</strong> e' stata confermata.</p>"
             f"<p>XP totali del percorso: <strong>{proposal.total_xp or 0}</strong></p>"
             f"<p>Benvenuto nel team!</p>"
             f"<p style='margin-top: 24px; color: #6b7280; font-size: 14px;'>— Il team Datapizza</p>"
@@ -272,7 +298,7 @@ class EmailService:
             email_type="hiring_confirmation",
             subject=company_subject,
             body_html=_email_wrapper(company_content),
-            body_text=f"Assunzione confermata: {talent.full_name}.",
+            body_text=f"Assunzione confermata: {talent_name}.",
             related_proposal_id=proposal.id,
         )
         if company_email:
@@ -303,6 +329,7 @@ class EmailService:
             AICache.cache_type == "career_advice",
         ).first()
 
+        user_name = escape(user.full_name)
         suggestions_html = ""
         if cache:
             try:
@@ -312,20 +339,20 @@ class EmailService:
                 career_direction = advice.get("career_direction", "")
 
                 if career_direction:
-                    suggestions_html += f"<p><strong>Direzione consigliata:</strong> {career_direction}</p>"
+                    suggestions_html += f"<p><strong>Direzione consigliata:</strong> {escape(career_direction)}</p>"
 
                 if courses_list:
                     suggestions_html += "<h3>Corsi consigliati per te</h3><ul>"
                     for c in courses_list:
-                        reason = c.get("reason", "")
-                        course_id = c.get("course_id", "")
+                        reason = escape(c.get("reason", ""))
+                        course_id = escape(c.get("course_id", ""))
                         suggestions_html += f"<li><strong>{course_id}</strong> — {reason}</li>"
                     suggestions_html += "</ul>"
 
                 if skill_gaps:
                     suggestions_html += "<h3>Competenze da sviluppare</h3><ul>"
                     for skill in skill_gaps:
-                        suggestions_html += f"<li>{skill}</li>"
+                        suggestions_html += f"<li>{escape(skill)}</li>"
                     suggestions_html += "</ul>"
             except (json.JSONDecodeError, TypeError):
                 cache = None
@@ -340,8 +367,8 @@ class EmailService:
                 suggestions_html += "<h3>Corsi in evidenza</h3><ul>"
                 for course in recent_courses:
                     suggestions_html += (
-                        f"<li><strong>{course.title}</strong> ({course.provider}) "
-                        f"— Livello: {course.level}</li>"
+                        f"<li><strong>{escape(course.title)}</strong> ({escape(course.provider)}) "
+                        f"— Livello: {escape(course.level)}</li>"
                     )
                 suggestions_html += "</ul>"
             else:
@@ -349,7 +376,7 @@ class EmailService:
 
         subject = "Il tuo digest giornaliero — Datapizza"
         content = (
-            f"<h2 style='margin-top: 0;'>Buongiorno {user.full_name}!</h2>"
+            f"<h2 style='margin-top: 0;'>Buongiorno {user_name}!</h2>"
             f"<p>Ecco il tuo digest giornaliero con suggerimenti personalizzati.</p>"
             f"{suggestions_html}"
             f"<p style='margin-top: 24px;'>Continua a formarti e resta aggiornato!</p>"
@@ -362,5 +389,5 @@ class EmailService:
             email_type="daily_digest",
             subject=subject,
             body_html=_email_wrapper(content),
-            body_text=f"Digest giornaliero per {user.full_name}. Accedi per i dettagli.",
+            body_text=f"Digest giornaliero per {user_name}. Accedi per i dettagli.",
         )
