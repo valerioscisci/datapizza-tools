@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Literal, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -34,6 +34,7 @@ async def list_talents(
     availability: Optional[str] = None,
     experience_level: Optional[str] = None,
     location: Optional[str] = None,
+    ai_readiness: Optional[Literal["beginner", "intermediate", "advanced", "expert"]] = None,
     db: Session = Depends(get_db),
 ):
     """List public talents with search, filters, and pagination.
@@ -73,6 +74,9 @@ async def list_talents(
     if location:
         query = query.filter(User.location.ilike(f"%{_escape_ilike(location)}%"))
 
+    if ai_readiness:
+        query = query.filter(User.ai_readiness_level == ai_readiness)
+
     total = query.count()
     users = query.order_by(User.created_at.desc()).offset(
         (page - 1) * page_size
@@ -90,6 +94,8 @@ async def list_talents(
             experience_years=user.experience_years,
             availability_status=user.availability_status or "available",
             bio=user.bio,
+            ai_readiness_score=user.ai_readiness_score,
+            ai_readiness_level=user.ai_readiness_level,
         ))
 
     return TalentCardListResponse(
@@ -150,6 +156,8 @@ async def get_talent(
         linkedin_url=user.linkedin_url,
         github_url=user.github_url,
         portfolio_url=user.portfolio_url,
+        ai_readiness_score=user.ai_readiness_score,
+        ai_readiness_level=user.ai_readiness_level,
         experiences=[_experience_to_response(exp) for exp in experiences],
         educations=[_education_to_response(edu) for edu in educations],
         created_at=user.created_at,

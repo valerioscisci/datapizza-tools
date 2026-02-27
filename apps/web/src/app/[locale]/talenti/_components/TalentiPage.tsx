@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Search } from 'lucide-react';
-import { API_BASE, EXPERIENCE_LEVEL_FILTERS, AVAILABILITY_FILTERS, type Talent, type TalentListResponse } from '../_utils/constants';
+import { API_BASE, EXPERIENCE_LEVEL_FILTERS, AVAILABILITY_FILTERS, AI_READINESS_FILTERS, type Talent, type TalentListResponse } from '../_utils/constants';
 import { TalentCard } from './TalentCard';
 
 export function TalentiPage() {
@@ -19,6 +19,7 @@ export function TalentiPage() {
   const [submittedSearch, setSubmittedSearch] = useState('');
   const [experienceLevel, setExperienceLevel] = useState<string>('all');
   const [availability, setAvailability] = useState<string>('all');
+  const [aiReadiness, setAiReadiness] = useState<string>('all');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchTalents = useCallback(async () => {
@@ -37,6 +38,9 @@ export function TalentiPage() {
       if (availability !== 'all') {
         params.set('availability', availability);
       }
+      if (aiReadiness !== 'all') {
+        params.set('ai_readiness', aiReadiness);
+      }
       const res = await fetch(`${API_BASE}/api/v1/talents?${params}`);
       if (!res.ok) throw new Error(`API error: ${res.status}`);
       const data: TalentListResponse = await res.json();
@@ -48,7 +52,7 @@ export function TalentiPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, submittedSearch, experienceLevel, availability]);
+  }, [page, submittedSearch, experienceLevel, availability, aiReadiness]);
 
   useEffect(() => {
     fetchTalents();
@@ -148,6 +152,29 @@ export function TalentiPage() {
                   }`}
                 >
                   {t(`filters.${status}` as Parameters<typeof t>[0])}
+                </button>
+              ))}
+            </div>
+
+            {/* AI Readiness */}
+            <div className="flex flex-wrap gap-2">
+              <span className="flex items-center text-xs font-semibold text-neutral-400 uppercase tracking-wider mr-1">
+                {t('filters.aiReadiness')}
+              </span>
+              {AI_READINESS_FILTERS.map((level) => (
+                <button
+                  key={level}
+                  onClick={() => { setAiReadiness(level); setPage(1); }}
+                  aria-pressed={aiReadiness === level}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+                    aiReadiness === level
+                      ? 'bg-azure-600 text-white'
+                      : 'bg-white text-neutral-600 border border-neutral-200 hover:border-azure-300 hover:text-azure-600'
+                  }`}
+                >
+                  {level === 'all'
+                    ? t('filters.aiReadinessAll')
+                    : t(`filters.${level}` as Parameters<typeof t>[0])}
                 </button>
               ))}
             </div>

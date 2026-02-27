@@ -89,6 +89,17 @@
 - Automated Daily Digest implementato: endpoint bulk con API key + GitHub Action cron
 - AI Skills Gap Analyzer implementato: dashboard completa con UX polish (auto-add skill, toast, hide existing)
 
+### Fase 11 — AI Agent Readiness Score
+- Quiz autovalutazione 8 domande su competenze AI/agentiche (scoring deterministico 0-100%, 4 livelli)
+- Modello `AIReadinessAssessment` + 2 colonne denormalizzate su User per filtraggio veloce
+- 4 endpoint sotto `profile/ai-readiness/`: quiz metadata, submit, get latest, course suggestions
+- Suggerimenti corsi algoritmici basati su weak categories (no dipendenza Gemini)
+- Quiz modale multi-step con progress bar, navigazione avanti/indietro, conferma chiusura
+- Sezione profilo con progresso circolare SVG, badge livello colorato, suggerimenti corsi
+- Marketplace talenti: badge AI Readiness su card e dettaglio, filtro per livello
+- Guard company user: sezione nascosta nel profilo, 403 sugli endpoint
+- 50 nuovi test unitari (515 totali), ~50 chiavi i18n, 5 scenari Playwright tutti passanti
+
 ## Pattern Consolidati
 - File `.props.ts` per ogni componente con props
 - Traduzioni split per dominio in `messages/it/`

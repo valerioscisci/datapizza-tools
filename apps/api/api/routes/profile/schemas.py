@@ -50,6 +50,8 @@ class ProfileResponse(BaseModel):
     company_website: Optional[str] = None
     company_size: Optional[str] = None
     industry: Optional[str] = None
+    ai_readiness_score: Optional[int] = Field(None, description="AI readiness score (0-100), null if never taken")
+    ai_readiness_level: Optional[str] = Field(None, description="AI readiness level: beginner, intermediate, advanced, expert")
     is_public: bool = Field(False, description="Whether profile is visible to companies")
     experiences: list[ExperienceResponse] = Field(default_factory=list, description="Work experiences")
     educations: list[EducationResponse] = Field(default_factory=list, description="Education entries")

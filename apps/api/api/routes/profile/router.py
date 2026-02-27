@@ -42,6 +42,8 @@ def _build_profile_response(user: User, experiences: list[Experience], education
         company_website=user.company_website,
         company_size=user.company_size,
         industry=user.industry,
+        ai_readiness_score=user.ai_readiness_score,
+        ai_readiness_level=user.ai_readiness_level,
         is_public=bool(user.is_public),
         experiences=[_experience_to_response(exp) for exp in experiences],
         educations=[_education_to_response(edu) for edu in educations],

@@ -14,7 +14,13 @@
       "senior": "Senior",
       "available": "Disponibile",
       "employed": "Occupato",
-      "reskilling": "In formazione"
+      "reskilling": "In formazione",
+      "aiReadiness": "AI Readiness",
+      "aiReadinessAll": "Tutti",
+      "beginner": "Principiante",
+      "intermediate": "Intermedio",
+      "advanced": "Avanzato",
+      "expert": "Esperto"
     },
     "card": {
       "skills": "Competenze",
