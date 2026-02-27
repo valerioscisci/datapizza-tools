@@ -1,12 +1,7 @@
 'use client';
 
 import { User } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-
-interface BioSectionProps {
-  bio: string | null;
-  t: ReturnType<typeof useTranslations>;
-}
+import { BioSectionProps } from './BioSection.props';
 
 export function BioSection({ bio, t }: BioSectionProps) {
   return (

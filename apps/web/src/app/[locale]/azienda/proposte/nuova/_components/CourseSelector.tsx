@@ -1,19 +1,8 @@
 'use client';
 
 import { Search, Check, Loader2, GraduationCap } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { Course, levelBadgeStyle } from '../_utils/constants';
-
-interface CourseSelectorProps {
-  filteredCourses: Course[];
-  courseSearch: string;
-  setCourseSearch: (value: string) => void;
-  isSelected: (courseId: string) => boolean;
-  toggleCourse: (course: Course) => void;
-  loadingCourses: boolean;
-  t: ReturnType<typeof useTranslations>;
-  tCourses: ReturnType<typeof useTranslations>;
-}
+import { levelBadgeStyle } from '../_utils/constants';
+import { CourseSelectorProps } from './CourseSelector.props';
 
 export function CourseSelector({
   filteredCourses,

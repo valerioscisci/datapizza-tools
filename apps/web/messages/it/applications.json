@@ -1,0 +1,25 @@
+{
+  "applications": {
+    "title": "Candidature",
+    "subtitle": "Visualizza tutte le candidature ed il loro stato di avanzamento",
+    "tabs": {
+      "proposte": "Proposte",
+      "da_completare": "Da completare",
+      "attive": "Attive",
+      "archiviate": "Archiviate"
+    },
+    "status": {
+      "in_valutazione": "In valutazione",
+      "colloquio": "Colloquio schedulato",
+      "questionario": "Questionario da completare",
+      "proposta": "Proposta ricevuta",
+      "archiviata": "Archiviata"
+    },
+    "empty": "Nessuna candidatura in questa sezione",
+    "loading": "Caricamento candidature...",
+    "applied_at": "Candidatura inviata il",
+    "applied": "Candidatura inviata!",
+    "alreadyApplied": "Hai gia' inviato la candidatura",
+    "loginToApply": "Accedi per candidarti"
+  }
+}

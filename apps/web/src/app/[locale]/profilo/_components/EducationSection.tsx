@@ -8,20 +8,12 @@ import {
   Trash2,
   Loader2,
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 import {
   API_BASE,
-  Education,
   EducationFormData,
 } from '../_utils/constants';
 import { EducationForm } from './EducationForm';
-
-interface EducationSectionProps {
-  educations: Education[];
-  accessToken: string;
-  onUpdate: () => void;
-  t: ReturnType<typeof useTranslations>;
-}
+import { EducationSectionProps } from './EducationSection.props';
 
 export function EducationSection({
   educations,

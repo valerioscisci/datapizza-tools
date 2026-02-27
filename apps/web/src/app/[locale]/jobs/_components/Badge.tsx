@@ -1,9 +1,4 @@
-import React from 'react';
-
-export interface BadgeProps {
-  children: React.ReactNode;
-  variant?: 'salary' | 'experience' | 'work_mode' | 'location' | 'welfare' | 'smart' | 'language' | 'default';
-}
+import { BadgeProps } from './Badge.props';
 
 const colors: Record<string, string> = {
   salary: 'bg-yellow-50 text-yellow-500 border-yellow-400/30',

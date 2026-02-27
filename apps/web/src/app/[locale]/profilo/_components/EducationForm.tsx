@@ -2,21 +2,12 @@
 
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 import {
-  Education,
   EducationFormData,
   DEGREE_TYPES,
   YEARS,
 } from '../_utils/constants';
-
-interface EducationFormProps {
-  education: Education | null;
-  onSave: (data: EducationFormData) => void;
-  onCancel: () => void;
-  saving: boolean;
-  t: ReturnType<typeof useTranslations>;
-}
+import { EducationFormProps } from './EducationForm.props';
 
 export function EducationForm({
   education,

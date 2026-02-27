@@ -1,16 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
 import { X, AlertTriangle, Star } from 'lucide-react';
-import { type Proposal } from '../_utils/constants';
-
-export interface HireConfirmationModalProps {
-  proposal: Proposal;
-  onConfirm: (hiringNotes: string) => void;
-  onCancel: () => void;
-  tHire: ReturnType<typeof useTranslations>;
-}
+import { HireConfirmationModalProps } from './HireConfirmationModal.props';
 
 export function HireConfirmationModal({
   proposal,

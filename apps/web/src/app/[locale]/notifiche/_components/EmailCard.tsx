@@ -2,13 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { Mail, MailOpen } from 'lucide-react';
-import type { EmailLog } from '../_utils/constants';
 import { emailTypeBadgeStyle, formatRelativeTime } from '../_utils/constants';
-
-interface EmailCardProps {
-  email: EmailLog;
-  onClick: () => void;
-}
+import { EmailCardProps } from './EmailCard.props';
 
 export function EmailCard({ email, onClick }: EmailCardProps) {
   const t = useTranslations('notifications');

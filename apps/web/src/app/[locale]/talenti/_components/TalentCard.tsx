@@ -1,15 +1,8 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import { MapPin, Briefcase, Clock } from 'lucide-react';
-import { type Talent } from '../_utils/constants';
 import { AvailabilityBadge } from './AvailabilityBadge';
-
-export interface TalentCardProps {
-  talent: Talent;
-  onClick: () => void;
-  t: ReturnType<typeof useTranslations>;
-}
+import { TalentCardProps } from './TalentCard.props';
 
 const MAX_VISIBLE_SKILLS = 5;
 

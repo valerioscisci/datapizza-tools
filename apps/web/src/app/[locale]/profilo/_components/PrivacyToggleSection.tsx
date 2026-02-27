@@ -2,15 +2,8 @@
 
 import { useState } from 'react';
 import { Eye, Info } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 import { API_BASE, ProfileResponse } from '../_utils/constants';
-
-interface PrivacyToggleSectionProps {
-  isPublic: boolean;
-  accessToken: string;
-  onUpdate: (value: boolean) => void;
-  t: ReturnType<typeof useTranslations>;
-}
+import { PrivacyToggleSectionProps } from './PrivacyToggleSection.props';
 
 export function PrivacyToggleSection({
   isPublic,

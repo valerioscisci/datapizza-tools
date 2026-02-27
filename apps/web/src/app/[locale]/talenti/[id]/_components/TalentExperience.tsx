@@ -2,13 +2,8 @@
 
 import { Briefcase, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Experience, formatMonthYear } from '../_utils/constants';
-
-interface TalentExperienceProps {
-  experiences: Experience[];
-  t: ReturnType<typeof useTranslations>;
-  tProfile: ReturnType<typeof useTranslations>;
-}
+import { formatMonthYear } from '../_utils/constants';
+import { TalentExperienceProps } from './TalentExperience.props';
 
 export function TalentExperience({ experiences, t, tProfile }: TalentExperienceProps) {
   return (

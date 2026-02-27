@@ -1,15 +1,8 @@
 'use client';
 
 import { Users, Send } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-
-interface TalentCtaProps {
-  talentId: string;
-  isCompany: boolean;
-  isAuthenticated: boolean;
-  t: ReturnType<typeof useTranslations>;
-}
+import { TalentCtaProps } from './TalentCta.props';
 
 export function TalentCta({ talentId, isCompany, isAuthenticated, t }: TalentCtaProps) {
   return (

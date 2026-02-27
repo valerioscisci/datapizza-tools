@@ -1,13 +1,7 @@
 'use client';
 
 import { User } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { TalentDetail } from '../_utils/constants';
-
-interface TalentBioAndSkillsProps {
-  talent: TalentDetail;
-  t: ReturnType<typeof useTranslations>;
-}
+import { TalentBioAndSkillsProps } from './TalentBioAndSkills.props';
 
 export function TalentBioAndSkills({ talent, t }: TalentBioAndSkillsProps) {
   return (

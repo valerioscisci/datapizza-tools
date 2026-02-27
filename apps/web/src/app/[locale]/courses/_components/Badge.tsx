@@ -1,9 +1,4 @@
-import React from 'react';
-
-export interface BadgeProps {
-  children: React.ReactNode;
-  className: string;
-}
+import { BadgeProps } from './Badge.props';
 
 export function Badge({ children, className }: BadgeProps) {
   return (

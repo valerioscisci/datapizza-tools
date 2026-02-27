@@ -1,0 +1,60 @@
+{
+  "craftYourDeveloper": {
+    "meta": {
+      "title": "Craft Your Developer - Datapizza"
+    },
+    "hero": {
+      "title": "Craft Your Developer",
+      "subtitle": "Non cercare il developer perfetto. Formalo tu.",
+      "description": "Seleziona un developer mid o senior dal nostro marketplace, progetta un percorso formativo personalizzato sulle competenze AI che ti servono, e assumi un professionista gia' pronto per il tuo team."
+    },
+    "whyTitle": "Perche' scegliere Craft Your Developer?",
+    "benefits": {
+      "targeted": {
+        "title": "Formazione Mirata",
+        "description": "Invece di cercare candidati con skill rare e costose, forma un developer esperto sulle competenze specifiche di cui hai bisogno."
+      },
+      "cost": {
+        "title": "Costi Ridotti",
+        "description": "Risparmia sui costi di recruiting tradizionale e ottieni un developer formato esattamente sulle tue esigenze."
+      },
+      "quality": {
+        "title": "Qualita' Garantita",
+        "description": "I developer nel nostro marketplace sono gia' professionisti mid e senior. Aggiungi le competenze AI e ottieni il candidato ideale."
+      },
+      "speed": {
+        "title": "Time-to-Hire Ridotto",
+        "description": "Mentre un processo di selezione tradizionale richiede mesi, il nostro percorso di reskilling e' veloce e mirato."
+      }
+    },
+    "howItWorks": {
+      "title": "Come Funziona",
+      "step1": {
+        "title": "Esplora i Profili",
+        "description": "Naviga il nostro marketplace di developer mid e senior in cerca di nuove opportunita'."
+      },
+      "step2": {
+        "title": "Progetta il Percorso",
+        "description": "Seleziona un developer e definisci le competenze AI e tecniche che vuoi che acquisisca."
+      },
+      "step3": {
+        "title": "Formazione Guidata",
+        "description": "Il developer segue un percorso formativo personalizzato con corsi, progetti pratici e mentoring."
+      },
+      "step4": {
+        "title": "Assumi",
+        "description": "Al termine del percorso, assumi il developer gia' formato e pronto per contribuire al tuo team."
+      }
+    },
+    "talents": {
+      "title": "Scopri i Talenti nel Marketplace",
+      "description": "Naviga i profili dei developer mid e senior disponibili. Trova il candidato ideale per il tuo percorso Craft Your Developer.",
+      "button": "Scopri i Talenti"
+    },
+    "cta": {
+      "title": "Pronto a costruire il tuo team del futuro?",
+      "button": "Contattaci",
+      "description": "Parla con il nostro team per scoprire come Craft Your Developer puo' aiutare la tua azienda."
+    }
+  }
+}

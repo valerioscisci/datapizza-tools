@@ -1,0 +1,80 @@
+{
+  "notifications": {
+    "title": "Notifiche",
+    "subtitle": "Le tue notifiche email dalla piattaforma",
+    "tabs": {
+      "all": "Tutte",
+      "unread": "Non lette",
+      "proposals": "Proposte",
+      "courses": "Corsi",
+      "milestones": "Traguardi",
+      "hiring": "Assunzioni",
+      "digest": "Digest"
+    },
+    "empty": "Nessuna notifica",
+    "emptyDescription": "Non hai ancora ricevuto notifiche.",
+    "loading": "Caricamento notifiche...",
+    "errorLoading": "Errore nel caricamento delle notifiche.",
+    "retry": "Riprova",
+    "markAllRead": "Segna tutte come lette",
+    "markRead": "Segna come letta",
+    "unreadCount": "{count} non lette",
+    "emailTypes": {
+      "proposal_received": "Proposta Ricevuta",
+      "proposal_accepted": "Proposta Accettata",
+      "proposal_rejected": "Proposta Rifiutata",
+      "course_started": "Corso Iniziato",
+      "course_completed": "Corso Completato",
+      "milestone_reached": "Traguardo Raggiunto",
+      "hiring_confirmation": "Conferma Assunzione",
+      "daily_digest": "Digest Giornaliero"
+    },
+    "detail": {
+      "close": "Chiudi",
+      "goToProposal": "Vai alla Proposta",
+      "from": "Da",
+      "type": "Tipo",
+      "receivedAt": "Ricevuta il"
+    },
+    "preferences": {
+      "title": "Preferenze Notifiche",
+      "emailNotifications": "Notifiche Email",
+      "emailNotificationsDescription": "Ricevi email automatiche per eventi importanti (proposte, corsi, traguardi, assunzioni).",
+      "dailyDigest": "Digest Giornaliero",
+      "dailyDigestDescription": "Ricevi un riepilogo giornaliero con corsi suggeriti e risorse di reskilling personalizzate.",
+      "channel": "Canale di notifica",
+      "channelEmail": "Email",
+      "channelTelegram": "Telegram (in arrivo)",
+      "generateDigest": "Genera Digest Ora",
+      "generateDigestLoading": "Generazione in corso...",
+      "generateDigestSuccess": "Digest generato! Controlla la tua inbox.",
+      "saved": "Preferenze salvate!",
+      "cancel": "Annulla",
+      "telegram": "Telegram",
+      "telegramLink": "Collega Telegram",
+      "telegramLinked": "Telegram collegato",
+      "telegramUnlink": "Scollega Telegram",
+      "telegramChatIdPlaceholder": "Inserisci il tuo Chat ID",
+      "telegramInstructions": "Per collegare Telegram:",
+      "telegramStep1": "1. Apri @datapizza_notify_bot su Telegram e premi Start — il bot ti rispondera' con il tuo Chat ID",
+      "telegramStep2": "2. Copia il Chat ID e incollalo qui sotto",
+      "telegramLinking": "Collegamento in corso...",
+      "telegramLinkSuccess": "Telegram collegato con successo!",
+      "telegramUnlinkSuccess": "Telegram scollegato.",
+      "telegramNotifications": "Notifiche Telegram",
+      "telegramNotificationsDescription": "Ricevi notifiche istantanee su Telegram per eventi importanti.",
+      "telegramLinkFromProfile": "Collega Telegram nelle preferenze notifiche"
+    },
+    "pagination": {
+      "previous": "Precedente",
+      "next": "Successiva",
+      "page": "Pagina {current} di {total}"
+    },
+    "time": {
+      "now": "Adesso",
+      "minutesAgo": "{count} min fa",
+      "hoursAgo": "{count} ore fa",
+      "daysAgo": "{count} giorni fa"
+    }
+  }
+}

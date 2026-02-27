@@ -2,20 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { Bell, CheckCheck } from 'lucide-react';
-import type { EmailLog } from '../_utils/constants';
 import { EmailCard } from './EmailCard';
-
-interface EmailListProps {
-  emails: EmailLog[];
-  loading: boolean;
-  total: number;
-  page: number;
-  pageSize: number;
-  unreadCount: number;
-  onEmailClick: (email: EmailLog) => void;
-  onMarkAllRead: () => void;
-  onPageChange: (page: number) => void;
-}
+import { EmailListProps } from './EmailList.props';
 
 export function EmailList({
   emails,

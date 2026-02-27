@@ -1,0 +1,101 @@
+{
+  "profile": {
+    "title": "Il mio Profilo",
+    "editProfile": "Modifica Profilo",
+    "saveProfile": "Salva",
+    "cancel": "Annulla",
+    "bio": "Chi sono",
+    "bioPlaceholder": "Descrivi il tuo background e le tue passioni...",
+    "skills": "Competenze",
+    "addSkill": "Aggiungi competenza",
+    "skillPlaceholder": "es. React, Python, AWS...",
+    "experience": "Esperienza Lavorativa",
+    "addExperience": "Aggiungi Esperienza",
+    "education": "Formazione",
+    "addEducation": "Aggiungi Formazione",
+    "current": "Attuale",
+    "present": "Presente",
+    "noExperience": "Nessuna esperienza aggiunta",
+    "noEducation": "Nessuna formazione aggiunta",
+    "noBio": "Nessuna descrizione aggiunta",
+    "noSkills": "Nessuna competenza aggiunta",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "confirmDelete": "Sei sicuro di voler eliminare?",
+    "saving": "Salvataggio...",
+    "saved": "Salvato!",
+    "error": "Errore nel salvataggio",
+    "loading": "Caricamento profilo...",
+    "experienceYearsPlaceholder": "es. 3-5 anni",
+    "privacyToggle": {
+      "title": "Visibilita' Profilo",
+      "description": "Rendi il tuo profilo visibile alle aziende nel marketplace dei talenti.",
+      "info": "Attivando questa opzione, il tuo profilo sara' visibile alle aziende attraverso il progetto \"Craft Your Developer\". Potresti ricevere proposte per percorsi di crescita professionale personalizzati. Le tue informazioni sensibili (email, telefono) non saranno mai mostrate pubblicamente."
+    },
+    "fields": {
+      "fullName": "Nome completo",
+      "phone": "Telefono",
+      "location": "Citta'",
+      "currentRole": "Ruolo attuale",
+      "experienceLevel": "Livello esperienza",
+      "experienceYears": "Anni di esperienza",
+      "availability": "Disponibilita'",
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "portfolio": "Portfolio/Sito web",
+      "title": "Ruolo",
+      "company": "Azienda",
+      "employmentType": "Tipo contratto",
+      "startMonth": "Mese inizio",
+      "startYear": "Anno inizio",
+      "endMonth": "Mese fine",
+      "endYear": "Anno fine",
+      "description": "Descrizione",
+      "institution": "Istituto",
+      "degree": "Titolo di studio",
+      "degreeType": "Tipo titolo",
+      "fieldOfStudy": "Indirizzo di studi"
+    },
+    "availability_options": {
+      "available": "Disponibile",
+      "employed": "Occupato",
+      "reskilling": "In formazione"
+    },
+    "experience_levels": {
+      "junior": "Junior",
+      "mid": "Mid-Level",
+      "senior": "Senior"
+    },
+    "employment_types": {
+      "full-time": "Full-time",
+      "part-time": "Part-time",
+      "contract": "Contratto",
+      "freelance": "Freelance"
+    },
+    "degree_types": {
+      "diploma": "Diploma",
+      "bachelor": "Laurea Triennale",
+      "master": "Laurea Magistrale",
+      "phd": "Dottorato",
+      "certificate": "Certificazione"
+    },
+    "aiAdvisor": {
+      "title": "AI Career Advisor",
+      "generate": "Genera consigli",
+      "regenerate": "Rigenera",
+      "loading": "Generazione consigli in corso...",
+      "careerDirection": "Direzione Carriera",
+      "skillGaps": "Competenze da Sviluppare",
+      "recommendedCourses": "Corsi Consigliati",
+      "recommendedArticles": "Articoli Consigliati",
+      "reason": "Perche'",
+      "goToCourse": "Vai al Corso",
+      "readArticle": "Leggi Articolo",
+      "generatedAt": "Generato il {date}",
+      "error": "Errore durante la generazione dei consigli",
+      "unavailable": "Servizio AI non disponibile al momento",
+      "fillProfile": "Completa il tuo profilo (aggiungi competenze ed esperienze) per ricevere consigli personalizzati",
+      "noSkills": "Aggiungi almeno alcune competenze al tuo profilo per attivare l'AI Advisor"
+    }
+  }
+}

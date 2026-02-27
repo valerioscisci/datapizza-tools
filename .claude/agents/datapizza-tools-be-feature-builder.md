@@ -233,12 +233,39 @@ Create a task breakdown:
 
 ### Step 3: Database Model Pattern
 
+Models are organized in **per-domain files** under `api/database/models/`:
+
+```
+api/database/models/
+├── __init__.py          # Re-exports ALL models for backward compatibility
+├── user.py              # User
+├── profile.py           # Experience, Education
+├── jobs.py              # Job
+├── applications.py      # Application
+├── proposals.py         # Proposal, ProposalCourse, ProposalMilestone, ProposalMessage
+├── news.py              # News
+├── courses.py           # Course
+├── ai.py                # AICache
+└── notifications.py     # EmailLog, NotificationPreference
+```
+
+**Rules:**
+1. New models go in their domain file (or create a new file if it's a new domain)
+2. `__init__.py` **MUST** re-export any new model for backward compatibility
+3. All consuming code imports from `api.database.models` (the package), e.g. `from api.database.models import User`
+4. Each domain file imports `Base` from `api.database.connection`
+
+**Template for a new domain model file:**
+
 ```python
-from sqlalchemy import Column, String, DateTime, ForeignKey, Enum, Text, Integer
-from sqlalchemy.orm import relationship
-import json
-from datetime import datetime
+from __future__ import annotations
+
+from datetime import datetime, timezone
 import uuid
+
+from sqlalchemy import Column, Index, String, Text, Integer, DateTime, ForeignKey
+from api.database.connection import Base
+
 
 class MyNewModel(Base):
     __tablename__ = "my_new_models"
@@ -252,22 +279,27 @@ class MyNewModel(Base):
     # Fields
     name = Column(String(255), nullable=False)
     description = Column(Text)
-    status = Column(Enum(MyStatus), default=MyStatus.active)
     metadata_json = Column(Text, default="{}")  # JSON stored as TEXT for SQLite
     tags_json = Column(Text, default="[]")       # JSON array stored as TEXT for SQLite
 
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    deleted_at = Column(DateTime, nullable=True)  # Soft delete
-
-    # Relationships
-    owner = relationship("User", back_populates="my_new_models")
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Indexes
     __table_args__ = (
         Index("ix_my_new_models_owner_status", "owner_id", "status"),
     )
+```
+
+Then add to `api/database/models/__init__.py`:
+```python
+from api.database.models.my_domain import MyNewModel
+
+__all__ = [
+    # ... existing models ...
+    "MyNewModel",
+]
 ```
 
 ### Step 4: Pydantic Schema Pattern

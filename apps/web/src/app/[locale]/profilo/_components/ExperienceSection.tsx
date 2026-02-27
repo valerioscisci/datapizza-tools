@@ -9,21 +9,13 @@ import {
   Trash2,
   Loader2,
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 import {
   API_BASE,
-  Experience,
   ExperienceFormData,
   formatMonthYear,
 } from '../_utils/constants';
 import { ExperienceForm } from './ExperienceForm';
-
-interface ExperienceSectionProps {
-  experiences: Experience[];
-  accessToken: string;
-  onUpdate: () => void;
-  t: ReturnType<typeof useTranslations>;
-}
+import { ExperienceSectionProps } from './ExperienceSection.props';
 
 export function ExperienceSection({
   experiences,

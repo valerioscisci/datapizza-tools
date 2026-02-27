@@ -9,13 +9,8 @@ import {
   Pencil,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { ProfileResponse, availabilityBadgeStyle } from '../_utils/constants';
-
-interface ProfileHeaderProps {
-  profile: ProfileResponse;
-  onEdit: () => void;
-  t: ReturnType<typeof useTranslations>;
-}
+import { availabilityBadgeStyle } from '../_utils/constants';
+import { ProfileHeaderProps } from './ProfileHeader.props';
 
 export function ProfileHeader({ profile, onEdit, t }: ProfileHeaderProps) {
   return (

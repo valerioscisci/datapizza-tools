@@ -1,0 +1,42 @@
+{
+  "courses": {
+    "title": "Corsi di Formazione",
+    "subtitle": "Migliora le tue competenze con i migliori corsi tech e AI per accelerare la tua carriera",
+    "filters": {
+      "all": "Tutti",
+      "AI": "AI & ML",
+      "ML": "Machine Learning",
+      "frontend": "Frontend",
+      "backend": "Backend",
+      "devops": "DevOps"
+    },
+    "card": {
+      "goToCourse": "Vai al Corso",
+      "level": "Livello",
+      "duration": "Durata",
+      "price": "Prezzo",
+      "rating": "Valutazione",
+      "students": "Studenti",
+      "instructor": "Istruttore",
+      "free": "Gratis"
+    },
+    "levels": {
+      "beginner": "Principiante",
+      "intermediate": "Intermedio",
+      "advanced": "Avanzato"
+    },
+    "empty": "Nessun corso trovato",
+    "loading": "Caricamento corsi...",
+    "dialog": {
+      "close": "Chiudi",
+      "closeLabel": "Chiudi il corso",
+      "description": "Descrizione",
+      "goToCourse": "Vai al Corso"
+    },
+    "pagination": {
+      "previous": "Precedente",
+      "next": "Successiva",
+      "page": "Pagina {current} di {total}"
+    }
+  }
+}

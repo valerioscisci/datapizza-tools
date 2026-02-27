@@ -398,7 +398,7 @@ return <Display data={data} />;
 <h1>{t('welcome.title')}</h1>
 ```
 
-**Italian only**: Only `messages/it.json` is maintained. No other locale files needed.
+**Italian only**: Translations are organized in **domain-based files** under `messages/it/*.json` (e.g., `common.json`, `auth.json`, `jobs.json`, etc.). New domains must be added to `TRANSLATION_FILES` in `src/i18n/request.ts`.
 
 ### Cursor Pointer Review
 

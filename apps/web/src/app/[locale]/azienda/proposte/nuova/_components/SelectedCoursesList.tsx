@@ -1,15 +1,7 @@
 'use client';
 
 import { ArrowUp, ArrowDown, X } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { SelectedCourse } from '../_utils/constants';
-
-interface SelectedCoursesListProps {
-  selectedCourses: SelectedCourse[];
-  moveCourse: (index: number, direction: 'up' | 'down') => void;
-  removeCourse: (courseId: string) => void;
-  t: ReturnType<typeof useTranslations>;
-}
+import { SelectedCoursesListProps } from './SelectedCoursesList.props';
 
 export function SelectedCoursesList({
   selectedCourses,

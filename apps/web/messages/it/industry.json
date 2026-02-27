@@ -1,0 +1,14 @@
+{
+  "industry": {
+    "fintech": "Fintech",
+    "aiml": "AI/ML",
+    "saas": "SaaS",
+    "ecommerce": "E-commerce",
+    "healthtech": "HealthTech",
+    "edtech": "EdTech",
+    "cybersecurity": "Cybersecurity",
+    "dataAnalytics": "Data & Analytics",
+    "consulting": "Consulenza",
+    "other": "Altro"
+  }
+}
