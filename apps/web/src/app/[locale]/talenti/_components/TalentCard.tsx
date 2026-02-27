@@ -1,10 +1,25 @@
 'use client';
 
-import { MapPin, Briefcase, Clock } from 'lucide-react';
+import { MapPin, Briefcase, Clock, Brain } from 'lucide-react';
 import { AvailabilityBadge } from './AvailabilityBadge';
 import { TalentCardProps } from './TalentCard.props';
 
 const MAX_VISIBLE_SKILLS = 5;
+
+function aiReadinessBadgeStyle(level: string): string {
+  switch (level) {
+    case 'beginner':
+      return 'bg-red-50 text-red-600 border-red-200';
+    case 'intermediate':
+      return 'bg-yellow-50 text-yellow-600 border-yellow-200';
+    case 'advanced':
+      return 'bg-azure-50 text-azure-700 border-azure-300/30';
+    case 'expert':
+      return 'bg-pastelgreen-100 text-pastelgreen-600 border-pastelgreen-500/30';
+    default:
+      return 'bg-neutral-100 text-neutral-600 border-neutral-200';
+  }
+}
 
 export function TalentCard({ talent, onClick, t }: TalentCardProps) {
   const visibleSkills = talent.skills.slice(0, MAX_VISIBLE_SKILLS);
@@ -65,6 +80,12 @@ export function TalentCard({ talent, onClick, t }: TalentCardProps) {
           status={talent.availability_status}
           label={t(`filters.${talent.availability_status}` as Parameters<typeof t>[0])}
         />
+        {talent.ai_readiness_score !== null && talent.ai_readiness_level && (
+          <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full border ${aiReadinessBadgeStyle(talent.ai_readiness_level)}`}>
+            <Brain className="w-3 h-3" aria-hidden="true" />
+            {t(`filters.${talent.ai_readiness_level}` as Parameters<typeof t>[0])} {talent.ai_readiness_score}%
+          </span>
+        )}
       </div>
 
       {/* Skills Pills */}

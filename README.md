@@ -42,7 +42,7 @@ A new paid product for companies (see [Datapizza for Companies](https://datapizz
 ### Planned Features (with implementation plans in `/plans/`)
 
 - ~~**AI Skills Gap Analyzer**~~ (`plans/02-ai-skills-gap-dashboard.md`) — **Implemented** (see Development Status below)
-- **AI Agent Readiness Score** (`plans/03-ai-readiness-score.md`) — Self-assessment quiz (8 questions) measuring AI/agentic workflow readiness. Score displayed on profile and talent marketplace, filterable by companies in CYD flow. Includes personalized course suggestions for weak areas
+- ~~**AI Agent Readiness Score**~~ (`plans/03-ai-readiness-score.md`) — **Implemented** (see Development Status below)
 - **Reskilling Roadmaps** (`plans/04-reskilling-roadmaps.md`) — AI-generated learning paths for career transitions (e.g., "From Java Backend Dev to AI/ML Engineer" — 12-week plan). Browse pre-generated roadmaps, enroll, track progress week by week with XP gamification. Nightly GitHub Action (disabled, demo) generates/updates popular roadmaps
 
 ### TODO
@@ -85,7 +85,7 @@ datapizza-tools/
 │       ├── api/openapi.py     # Custom OpenAPI schema with tags, security, and API docs
 │       ├── api/auth.py       # JWT authentication utilities
 │       ├── prompts/          # AI prompt templates (job_matcher.md, career_advisor.md)
-│       └── tests/            # pytest unit test suite (377 tests)
+│       └── tests/            # pytest unit test suite (515 tests)
 ├── THOUGHT_PROCESS.MD       # Development thought process log (in Italian)
 └── README.md
 ```
@@ -119,6 +119,7 @@ This project uses a structured AI-assisted development workflow to maximize prod
 - AI Job Matching with Gemini (scoring 0-100, match reasons, best-match sort)
 - AI Career Advisor (career direction, skill gaps, course/article recommendations)
 - AI Skills Gap Analyzer dashboard (demand status, missing skills, market trends, personalized insights)
+- AI Agent Readiness Score (8-question self-assessment quiz, score on profile/marketplace, course suggestions, level filters)
 - Auto-add missing skills to profile from skill gap analysis
 - Email notifications + daily digest (in-DB, 9 notification types)
 - Telegram bot integration (dual-channel delivery, link/unlink flow)
@@ -126,7 +127,7 @@ This project uses a structured AI-assisted development workflow to maximize prod
 - Automated daily digest endpoint with GitHub Action trigger
 - Swagger/OpenAPI docs at `/docs` with 14 tag groups
 - GitHub Action for nightly content fetching (disabled, showcase)
-- 465 backend unit tests + 65 frontend E2E Playwright tests
+- 515 backend unit tests + 65 frontend E2E Playwright tests
 - Vercel deployment (frontend + backend API with Gemini AI)
 
 ## Getting Started

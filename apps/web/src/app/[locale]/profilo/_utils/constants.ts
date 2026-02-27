@@ -47,6 +47,9 @@ export interface ProfileResponse {
   linkedin_url: string | null;
   github_url: string | null;
   portfolio_url: string | null;
+  user_type: string;
+  ai_readiness_score: number | null;
+  ai_readiness_level: string | null;
   is_public: boolean;
   experiences: Experience[];
   educations: Education[];
@@ -102,6 +105,40 @@ export interface CareerAdviceResponse {
   skill_gaps: string[];
   generated_at: string;
   model_used: string;
+}
+
+// --- AI Readiness Types ---
+
+export interface QuizQuestion {
+  id: string;
+}
+
+export interface QuizMeta {
+  questions: QuizQuestion[];
+  version: number;
+}
+
+export interface AIReadinessResult {
+  id: string;
+  total_score: number;
+  readiness_level: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  answers: Record<string, number>;
+  quiz_version: number;
+  created_at: string;
+}
+
+export interface CourseSuggestion {
+  id: string;
+  title: string;
+  provider: string | null;
+  level: string;
+  url: string | null;
+  category: string;
+}
+
+export interface SuggestionsResult {
+  suggestions: CourseSuggestion[];
+  weak_categories: string[];
 }
 
 // --- Helpers ---

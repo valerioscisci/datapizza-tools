@@ -6,10 +6,26 @@ import {
   Linkedin,
   Github,
   Globe,
+  Brain,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { availabilityBadgeStyle } from '../_utils/constants';
 import { TalentHeroProps } from './TalentHero.props';
+
+function aiReadinessBadgeStyle(level: string): string {
+  switch (level) {
+    case 'beginner':
+      return 'bg-red-50 text-red-600 border-red-200';
+    case 'intermediate':
+      return 'bg-yellow-50 text-yellow-600 border-yellow-200';
+    case 'advanced':
+      return 'bg-azure-50 text-azure-700 border-azure-300/30';
+    case 'expert':
+      return 'bg-pastelgreen-100 text-pastelgreen-600 border-pastelgreen-500/30';
+    default:
+      return 'bg-neutral-100 text-neutral-600 border-neutral-200';
+  }
+}
 
 export function TalentHero({ talent, tProfile }: TalentHeroProps) {
   return (
@@ -60,6 +76,12 @@ export function TalentHero({ talent, tProfile }: TalentHeroProps) {
             {talent.experience_years && (
               <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border bg-neutral-100 text-neutral-600 border-neutral-200">
                 {talent.experience_years}
+              </span>
+            )}
+            {talent.ai_readiness_score !== null && talent.ai_readiness_level && (
+              <span className={`inline-flex items-center gap-1 px-3 py-1 text-sm font-medium rounded-full border ${aiReadinessBadgeStyle(talent.ai_readiness_level)}`}>
+                <Brain className="w-3.5 h-3.5" aria-hidden="true" />
+                {tProfile(`aiReadinessLevels.${talent.ai_readiness_level}` as Parameters<typeof tProfile>[0])} {talent.ai_readiness_score}%
               </span>
             )}
           </div>

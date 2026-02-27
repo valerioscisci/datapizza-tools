@@ -85,6 +85,64 @@
       "subtitle": "Scopri come le tue competenze si confrontano con il mercato",
       "goTo": "Vai all'analisi"
     },
+    "aiReadinessLevels": {
+      "beginner": "Principiante",
+      "intermediate": "Intermedio",
+      "advanced": "Avanzato",
+      "expert": "Esperto"
+    },
+    "aiReadiness": {
+      "title": "AI Agent Readiness Score",
+      "subtitle": "Scopri il tuo livello di preparazione AI",
+      "takeQuiz": "Fai il Quiz",
+      "retakeQuiz": "Rifai il Quiz",
+      "loading": "Caricamento...",
+      "error": "Errore durante il caricamento del risultato",
+      "score": "Il tuo punteggio AI Readiness",
+      "quizVersion": "Quiz versione {version}",
+      "levels": {
+        "beginner": "Principiante",
+        "intermediate": "Intermedio",
+        "advanced": "Avanzato",
+        "expert": "Esperto"
+      },
+      "emptyState": {
+        "title": "Scopri il tuo livello",
+        "description": "Rispondi a 8 domande per valutare la tua preparazione su workflow AI e agentici."
+      },
+      "quiz": {
+        "questionOf": "Domanda {current} di {total}",
+        "next": "Avanti",
+        "back": "Indietro",
+        "submit": "Invia Risposte",
+        "submitting": "Invio in corso...",
+        "cancel": "Chiudi",
+        "confirmCancel": "Sei sicuro di voler chiudere? Le risposte andranno perse.",
+        "questions": {
+          "q1_ai_coding_assistants": "Utilizzi assistenti AI per la programmazione quotidianamente? (es. Copilot, Cursor, Claude)",
+          "q2_prompt_writing": "Sai scrivere prompt efficaci per strumenti AI?",
+          "q3_agentic_workflows": "Hai costruito o contribuito a workflow agentici?",
+          "q4_ai_code_review": "Utilizzi l'AI per code review o testing?",
+          "q5_ai_api_integration": "Hai integrato API AI (OpenAI, Anthropic, Google) in progetti?",
+          "q6_ai_output_evaluation": "Sai valutare gli output dei modelli AI per accuratezza e bias?",
+          "q7_rag_systems": "Hai lavorato con sistemi RAG (Retrieval-Augmented Generation)?",
+          "q8_prompt_engineering": "Conosci tecniche di prompt engineering (few-shot, chain-of-thought)?"
+        },
+        "answers": {
+          "never": "Mai",
+          "beginner": "Base",
+          "intermediate": "Intermedio",
+          "advanced": "Avanzato",
+          "expert": "Esperto"
+        }
+      },
+      "suggestions": {
+        "title": "Corsi Suggeriti",
+        "subtitle": "In base alle tue aree deboli: {categories}",
+        "noCourses": "Nessun corso suggerito al momento. Ottimo lavoro!",
+        "goToCourse": "Vai al Corso"
+      }
+    },
     "aiAdvisor": {
       "title": "AI Career Advisor",
       "generate": "Genera consigli",

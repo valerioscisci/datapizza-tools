@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 from api.database.connection import SessionLocal, engine, Base
-from api.database.models import Job, User, Application, News, Course, Experience, Education, Proposal, ProposalCourse, ProposalMilestone, ProposalMessage, EmailLog, NotificationPreference
+from api.database.models import Job, User, Application, News, Course, Experience, Education, Proposal, ProposalCourse, ProposalMilestone, ProposalMessage, EmailLog, NotificationPreference, AIReadinessAssessment
 from api.auth import hash_password
 
 
@@ -223,6 +223,8 @@ def seed_users(job_ids: list[str] | None = None):
                 linkedin_url="https://linkedin.com/in/marco-rossi-dev",
                 github_url="https://github.com/marcorossi",
                 user_type="talent",
+                ai_readiness_score=84,
+                ai_readiness_level="expert",
                 is_public=1,
                 created_at=datetime.now(timezone.utc) - timedelta(days=30),
             ),
@@ -241,6 +243,8 @@ def seed_users(job_ids: list[str] | None = None):
                 linkedin_url="https://linkedin.com/in/giulia-bianchi",
                 github_url="https://github.com/giuliabianchi",
                 user_type="talent",
+                ai_readiness_score=62,
+                ai_readiness_level="advanced",
                 is_public=1,
                 created_at=datetime.now(timezone.utc) - timedelta(days=25),
             ),
@@ -258,6 +262,8 @@ def seed_users(job_ids: list[str] | None = None):
                 availability_status="available",
                 github_url="https://github.com/lucaferrari",
                 user_type="talent",
+                ai_readiness_score=44,
+                ai_readiness_level="intermediate",
                 is_public=1,
                 created_at=datetime.now(timezone.utc) - timedelta(days=20),
             ),
@@ -274,6 +280,8 @@ def seed_users(job_ids: list[str] | None = None):
                 availability_status="reskilling",
                 reskilling_status="in_progress",
                 user_type="talent",
+                ai_readiness_score=19,
+                ai_readiness_level="beginner",
                 is_public=1,
                 created_at=datetime.now(timezone.utc) - timedelta(days=18),
             ),
@@ -290,6 +298,8 @@ def seed_users(job_ids: list[str] | None = None):
                 skills_json=json.dumps(["Kubernetes", "Terraform", "AWS", "CI/CD", "Linux"]),
                 availability_status="employed",
                 user_type="talent",
+                ai_readiness_score=72,
+                ai_readiness_level="advanced",
                 is_public=0,
                 created_at=datetime.now(timezone.utc) - timedelta(days=15),
             ),
@@ -1508,6 +1518,114 @@ def seed_email_logs():
         db.close()
 
 
+def seed_ai_readiness_assessments():
+    """Seed AI readiness assessment rows for the first 5 talent users."""
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        db.query(AIReadinessAssessment).delete()
+        db.commit()
+
+        # Fetch first 5 talent users (ordered by created_at asc, matching seed order)
+        talents = (
+            db.query(User)
+            .filter(User.user_type == "talent")
+            .order_by(User.created_at.asc())
+            .limit(5)
+            .all()
+        )
+
+        if len(talents) < 5:
+            print("Not enough talent users found, skipping AI readiness assessment seeding.")
+            return
+
+        # Realistic answer sets that produce the correct scores
+        # Marco Rossi: score=84 -> raw=27 -> 27/32*100=84.375 rounds to 84 -> expert
+        marco_answers = {
+            "q1_ai_coding_assistants": 4,
+            "q2_prompt_writing": 4,
+            "q3_agentic_workflows": 3,
+            "q4_ai_code_review": 4,
+            "q5_ai_api_integration": 3,
+            "q6_ai_output_evaluation": 3,
+            "q7_rag_systems": 3,
+            "q8_prompt_engineering": 3,
+        }
+
+        # Giulia Bianchi: score=62 -> raw=20 -> 20/32*100=62.5 rounds to 62 -> advanced
+        giulia_answers = {
+            "q1_ai_coding_assistants": 3,
+            "q2_prompt_writing": 3,
+            "q3_agentic_workflows": 2,
+            "q4_ai_code_review": 3,
+            "q5_ai_api_integration": 3,
+            "q6_ai_output_evaluation": 2,
+            "q7_rag_systems": 2,
+            "q8_prompt_engineering": 2,
+        }
+
+        # Luca Ferrari: score=44 -> raw=14 -> 14/32*100=43.75 rounds to 44 -> intermediate
+        luca_answers = {
+            "q1_ai_coding_assistants": 2,
+            "q2_prompt_writing": 2,
+            "q3_agentic_workflows": 1,
+            "q4_ai_code_review": 2,
+            "q5_ai_api_integration": 2,
+            "q6_ai_output_evaluation": 1,
+            "q7_rag_systems": 2,
+            "q8_prompt_engineering": 2,
+        }
+
+        # Sara Romano: score=19 -> raw=6 -> 6/32*100=18.75 rounds to 19 -> beginner
+        sara_answers = {
+            "q1_ai_coding_assistants": 1,
+            "q2_prompt_writing": 1,
+            "q3_agentic_workflows": 0,
+            "q4_ai_code_review": 1,
+            "q5_ai_api_integration": 1,
+            "q6_ai_output_evaluation": 1,
+            "q7_rag_systems": 0,
+            "q8_prompt_engineering": 1,
+        }
+
+        # Andrea Conti: score=72 -> raw=23 -> 23/32*100=71.875 rounds to 72 -> advanced
+        andrea_answers = {
+            "q1_ai_coding_assistants": 3,
+            "q2_prompt_writing": 3,
+            "q3_agentic_workflows": 3,
+            "q4_ai_code_review": 3,
+            "q5_ai_api_integration": 3,
+            "q6_ai_output_evaluation": 2,
+            "q7_rag_systems": 3,
+            "q8_prompt_engineering": 3,
+        }
+
+        assessment_data = [
+            (talents[0], marco_answers, 84, "expert"),
+            (talents[1], giulia_answers, 62, "advanced"),
+            (talents[2], luca_answers, 44, "intermediate"),
+            (talents[3], sara_answers, 19, "beginner"),
+            (talents[4], andrea_answers, 72, "advanced"),
+        ]
+
+        assessments = []
+        for user, answers, score, level in assessment_data:
+            assessments.append(AIReadinessAssessment(
+                user_id=user.id,
+                answers_json=json.dumps(answers),
+                total_score=score,
+                readiness_level=level,
+                quiz_version=1,
+                created_at=datetime.now(timezone.utc) - timedelta(days=2),
+            ))
+
+        db.add_all(assessments)
+        db.commit()
+        print(f"Seeded {len(assessments)} AI readiness assessments successfully.")
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     job_ids = seed_jobs()
     seed_users(job_ids)
@@ -1517,3 +1635,4 @@ if __name__ == "__main__":
     seed_companies_and_proposals()
     seed_notification_preferences()
     seed_email_logs()
+    seed_ai_readiness_assessments()

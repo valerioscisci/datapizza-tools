@@ -14,6 +14,7 @@ import { ExperienceSection } from './ExperienceSection';
 import { EducationSection } from './EducationSection';
 import { ProfileEditModal } from './ProfileEditModal';
 import { AICareerAdvisor } from './AICareerAdvisor';
+import { AIReadinessSection } from './AIReadinessSection';
 import { NotificationPreferencesSection } from './NotificationPreferencesSection';
 
 export function ProfiloPage() {
@@ -123,6 +124,11 @@ export function ProfiloPage() {
             skillToAdd={skillToAdd}
             onAutoAddComplete={handleAutoAddComplete}
           />
+
+          {/* AI Readiness Score — only for talent users */}
+          {profile.user_type === 'talent' && (
+            <AIReadinessSection />
+          )}
 
           {/* Experience */}
           <ExperienceSection

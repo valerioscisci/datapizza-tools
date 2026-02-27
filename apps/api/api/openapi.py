@@ -43,6 +43,10 @@ TAGS_METADATA = [
         "description": "Education history management within the user profile. Add, update, and remove education entries.",
     },
     {
+        "name": "Profile - AI Readiness",
+        "description": "AI Agent Readiness self-assessment quiz. Take the quiz to measure AI-readiness across 8 dimensions, view results, and get personalized course suggestions for weak areas.",
+    },
+    {
         "name": "Talents",
         "description": "Public talent directory for companies. Browse and search available developers by skills, experience, location, and availability.",
     },

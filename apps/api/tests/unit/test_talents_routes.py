@@ -216,6 +216,8 @@ class TestListTalents:
             u.experience_years = "3-5 anni"
             u.availability_status = "available"
             u.bio = None
+            u.ai_readiness_score = None
+            u.ai_readiness_level = None
             u.is_public = 1
             u.is_active = 1
             u.created_at = datetime(2024, 6, 1, tzinfo=timezone.utc)

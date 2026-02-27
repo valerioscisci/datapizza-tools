@@ -43,6 +43,8 @@ export interface TalentDetail {
   linkedin_url: string | null;
   github_url: string | null;
   portfolio_url: string | null;
+  ai_readiness_score: number | null;
+  ai_readiness_level: string | null;
   experiences: Experience[];
   educations: Education[];
   created_at: string;

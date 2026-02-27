@@ -60,6 +60,8 @@ def mock_user():
     user.company_website = None
     user.company_size = None
     user.industry = None
+    user.ai_readiness_score = None
+    user.ai_readiness_level = None
     user.is_public = 0
     user.is_active = 1
     user.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
@@ -97,6 +99,8 @@ def mock_public_user():
     user.company_website = None
     user.company_size = None
     user.industry = None
+    user.ai_readiness_score = None
+    user.ai_readiness_level = None
     user.is_public = 1
     user.is_active = 1
     user.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
@@ -278,6 +282,8 @@ def mock_company_user():
     user.company_website = "https://techflow.it"
     user.company_size = "51-200"
     user.industry = "Software & Technology"
+    user.ai_readiness_score = None
+    user.ai_readiness_level = None
     user.is_public = 0
     user.is_active = 1
     user.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)

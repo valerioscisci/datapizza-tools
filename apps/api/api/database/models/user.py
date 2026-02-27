@@ -32,6 +32,8 @@ class User(Base):
     company_website = Column(String(500), nullable=True)
     company_size = Column(String(100), nullable=True)  # "1-10", "11-50", "51-200", "201-500", "500+"
     industry = Column(String(255), nullable=True)
+    ai_readiness_score = Column(Integer, nullable=True)  # 0-100, null = never taken
+    ai_readiness_level = Column(String(20), nullable=True)  # beginner/intermediate/advanced/expert
     is_public = Column(Integer, default=0)
     is_active = Column(Integer, default=1)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

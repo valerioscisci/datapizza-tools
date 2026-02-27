@@ -18,6 +18,7 @@ from api.database.models.news import News
 from api.database.models.courses import Course
 from api.database.models.ai import AICache
 from api.database.models.notifications import EmailLog, NotificationPreference
+from api.database.models.ai_readiness import AIReadinessAssessment
 
 __all__ = [
     "User",
@@ -34,4 +35,5 @@ __all__ = [
     "AICache",
     "EmailLog",
     "NotificationPreference",
+    "AIReadinessAssessment",
 ]
