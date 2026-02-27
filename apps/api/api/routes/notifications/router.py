@@ -6,6 +6,7 @@ and Telegram webhook.
 
 from __future__ import annotations
 
+import hmac
 import os
 import uuid
 from datetime import datetime, timezone
@@ -19,6 +20,7 @@ from api.auth import get_current_user
 from api.database.connection import get_db
 from api.database.models import EmailLog, NotificationPreference, User
 from api.routes.notifications.schemas import (
+    BulkDigestResponse,
     DigestDisabledResponse,
     EMAIL_TYPE_VALUES,
     EmailLogListResponse,
@@ -352,6 +354,87 @@ async def trigger_daily_digest(
         related_proposal_id=result.related_proposal_id,
         is_read=bool(result.is_read),
         created_at=result.created_at,
+    )
+
+
+@router.post(
+    "/daily-digest/bulk",
+    response_model=BulkDigestResponse,
+    openapi_extra={"security": []},
+    summary="Send daily digest to all opted-in users (cron/admin)",
+    description=(
+        "Iterates all users with daily_digest=True in NotificationPreference "
+        "and generates a digest for each. Authenticated via X-API-Key header, "
+        "not JWT. Intended for GitHub Action cron trigger."
+    ),
+)
+async def trigger_bulk_daily_digest(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Send daily digest to ALL users who have daily_digest enabled."""
+    # Validate API key
+    api_key = os.getenv("CRON_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Bulk digest not configured",
+        )
+
+    provided_key = request.headers.get("X-API-Key", "")
+    if not hmac.compare_digest(provided_key, api_key):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API key",
+        )
+
+    # Find all users with daily_digest enabled
+    prefs = (
+        db.query(NotificationPreference)
+        .filter(NotificationPreference.daily_digest == 1)
+        .all()
+    )
+
+    users_with_prefs = {p.user_id for p in prefs}
+    all_active_users = db.query(User).filter(User.is_active == 1).all()
+
+    # Users with explicit daily_digest=True
+    target_users_from_prefs = [u for u in all_active_users if u.id in users_with_prefs]
+    # Users with no preference record (default daily_digest=True)
+    users_without_prefs = [u for u in all_active_users if u.id not in users_with_prefs]
+    target_users = target_users_from_prefs + users_without_prefs
+
+    sent = 0
+    failed = 0
+    skipped = 0
+    errors: list[dict] = []
+
+    for user in target_users:
+        try:
+            result = EmailService.generate_daily_digest(db, user)
+            if result:
+                sent += 1
+            else:
+                skipped += 1
+        except Exception as e:
+            failed += 1
+            errors.append({"user_id": user.id, "error": str(e)})
+            logger.error("bulk_digest_user_failed", user_id=user.id, error=str(e))
+
+    logger.info(
+        "bulk_digest_completed",
+        sent=sent,
+        skipped=skipped,
+        failed=failed,
+        total=len(target_users),
+    )
+
+    return BulkDigestResponse(
+        sent=sent,
+        skipped=skipped,
+        failed=failed,
+        total=len(target_users),
+        errors=errors[:10],
     )
 
 

@@ -26,6 +26,7 @@ get_unread_count = _router_module.get_unread_count
 get_preferences = _router_module.get_preferences
 update_preferences = _router_module.update_preferences
 trigger_daily_digest = _router_module.trigger_daily_digest
+trigger_bulk_daily_digest = _router_module.trigger_bulk_daily_digest
 link_telegram = _router_module.link_telegram
 unlink_telegram = _router_module.unlink_telegram
 telegram_webhook = _router_module.telegram_webhook
@@ -410,6 +411,278 @@ class TestTriggerDailyDigest:
         assert result == {"message": "Daily digest disabled"}
 
 
+# --- POST /notifications/daily-digest/bulk ---
+
+
+def _make_mock_request(api_key=None):
+    """Create a mock Request with optional X-API-Key header."""
+    request = MagicMock()
+    headers = {}
+    if api_key is not None:
+        headers["X-API-Key"] = api_key
+    request.headers = headers
+    return request
+
+
+class TestTriggerBulkDailyDigest:
+    """Tests for the POST /notifications/daily-digest/bulk endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_missing_cron_api_key_returns_503(self, mock_db):
+        """Should return 503 when CRON_API_KEY env var is not set."""
+        request = _make_mock_request(api_key="any-key")
+
+        with patch.object(_router_module, "os") as mock_os:
+            mock_os.getenv.return_value = None
+
+            with pytest.raises(HTTPException) as exc_info:
+                await trigger_bulk_daily_digest(request=request, db=mock_db)
+
+        assert exc_info.value.status_code == 503
+        assert "not configured" in exc_info.value.detail
+
+    @pytest.mark.asyncio
+    async def test_invalid_api_key_returns_401(self, mock_db):
+        """Should return 401 when the provided API key doesn't match."""
+        request = _make_mock_request(api_key="wrong-key")
+
+        with patch.object(_router_module, "os") as mock_os:
+            mock_os.getenv.return_value = "correct-key"
+
+            with pytest.raises(HTTPException) as exc_info:
+                await trigger_bulk_daily_digest(request=request, db=mock_db)
+
+        assert exc_info.value.status_code == 401
+        assert "Invalid API key" in exc_info.value.detail
+
+    @pytest.mark.asyncio
+    async def test_missing_api_key_header_returns_401(self, mock_db):
+        """Should return 401 when X-API-Key header is missing entirely."""
+        request = _make_mock_request(api_key=None)
+        request.headers = {}  # No X-API-Key
+
+        with patch.object(_router_module, "os") as mock_os:
+            mock_os.getenv.return_value = "correct-key"
+
+            with pytest.raises(HTTPException) as exc_info:
+                await trigger_bulk_daily_digest(request=request, db=mock_db)
+
+        assert exc_info.value.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_sends_digest_to_opted_in_users(self, mock_db):
+        """Should send digest to users with daily_digest enabled."""
+        from api.database.models import NotificationPreference as NPModel
+        from api.database.models import User as UModel
+
+        user1 = MagicMock()
+        user1.id = "user-1"
+        user1.is_active = 1
+        user2 = MagicMock()
+        user2.id = "user-2"
+        user2.is_active = 1
+
+        pref1 = MagicMock()
+        pref1.user_id = "user-1"
+        pref1.daily_digest = 1
+        pref2 = MagicMock()
+        pref2.user_id = "user-2"
+        pref2.daily_digest = 1
+
+        digest_email = _make_email(email_type="daily_digest")
+
+        call_count = [0]
+
+        def query_side_effect(model):
+            call_count[0] += 1
+            q = MagicMock()
+            if model is NPModel:
+                q.filter.return_value.all.return_value = [pref1, pref2]
+            elif model is UModel:
+                q.filter.return_value.all.return_value = [user1, user2]
+            return q
+
+        mock_db.query.side_effect = query_side_effect
+
+        request = _make_mock_request(api_key="valid-key")
+
+        with patch.object(_router_module, "os") as mock_os, \
+             patch.object(_router_module, "EmailService") as mock_service:
+            mock_os.getenv.return_value = "valid-key"
+            mock_service.generate_daily_digest.return_value = digest_email
+
+            result = await trigger_bulk_daily_digest(request=request, db=mock_db)
+
+        assert result.sent == 2
+        assert result.failed == 0
+        assert result.total == 2
+        assert mock_service.generate_daily_digest.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_includes_users_without_preferences(self, mock_db):
+        """Should include users who have no NotificationPreference record (default=True)."""
+        from api.database.models import NotificationPreference as NPModel
+        from api.database.models import User as UModel
+
+        user1 = MagicMock()
+        user1.id = "user-with-pref"
+        user1.is_active = 1
+        user2 = MagicMock()
+        user2.id = "user-without-pref"
+        user2.is_active = 1
+
+        pref1 = MagicMock()
+        pref1.user_id = "user-with-pref"
+        pref1.daily_digest = 1
+
+        digest_email = _make_email(email_type="daily_digest")
+
+        def query_side_effect(model):
+            q = MagicMock()
+            if model is NPModel:
+                q.filter.return_value.all.return_value = [pref1]
+            elif model is UModel:
+                q.filter.return_value.all.return_value = [user1, user2]
+            return q
+
+        mock_db.query.side_effect = query_side_effect
+
+        request = _make_mock_request(api_key="valid-key")
+
+        with patch.object(_router_module, "os") as mock_os, \
+             patch.object(_router_module, "EmailService") as mock_service:
+            mock_os.getenv.return_value = "valid-key"
+            mock_service.generate_daily_digest.return_value = digest_email
+
+            result = await trigger_bulk_daily_digest(request=request, db=mock_db)
+
+        # Both users should be processed (one with pref, one without)
+        assert result.total == 2
+        assert result.sent == 2
+        assert mock_service.generate_daily_digest.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_one_user_fails_continues_with_others(self, mock_db):
+        """Should continue processing when one user fails."""
+        from api.database.models import NotificationPreference as NPModel
+        from api.database.models import User as UModel
+
+        user1 = MagicMock()
+        user1.id = "user-fail"
+        user1.is_active = 1
+        user2 = MagicMock()
+        user2.id = "user-success"
+        user2.is_active = 1
+
+        pref1 = MagicMock()
+        pref1.user_id = "user-fail"
+        pref1.daily_digest = 1
+        pref2 = MagicMock()
+        pref2.user_id = "user-success"
+        pref2.daily_digest = 1
+
+        digest_email = _make_email(email_type="daily_digest")
+
+        def query_side_effect(model):
+            q = MagicMock()
+            if model is NPModel:
+                q.filter.return_value.all.return_value = [pref1, pref2]
+            elif model is UModel:
+                q.filter.return_value.all.return_value = [user1, user2]
+            return q
+
+        mock_db.query.side_effect = query_side_effect
+
+        call_count = [0]
+
+        def digest_side_effect(db, user):
+            call_count[0] += 1
+            if user.id == "user-fail":
+                raise RuntimeError("AI service unavailable")
+            return digest_email
+
+        request = _make_mock_request(api_key="valid-key")
+
+        with patch.object(_router_module, "os") as mock_os, \
+             patch.object(_router_module, "EmailService") as mock_service:
+            mock_os.getenv.return_value = "valid-key"
+            mock_service.generate_daily_digest.side_effect = digest_side_effect
+
+            result = await trigger_bulk_daily_digest(request=request, db=mock_db)
+
+        assert result.sent == 1
+        assert result.failed == 1
+        assert result.total == 2
+        assert len(result.errors) == 1
+        assert result.errors[0].user_id == "user-fail"
+        assert "AI service unavailable" in result.errors[0].error
+
+    @pytest.mark.asyncio
+    async def test_skipped_when_digest_returns_none(self, mock_db):
+        """Should count as skipped when generate_daily_digest returns None."""
+        from api.database.models import NotificationPreference as NPModel
+        from api.database.models import User as UModel
+
+        user1 = MagicMock()
+        user1.id = "user-skipped"
+        user1.is_active = 1
+
+        pref1 = MagicMock()
+        pref1.user_id = "user-skipped"
+        pref1.daily_digest = 1
+
+        def query_side_effect(model):
+            q = MagicMock()
+            if model is NPModel:
+                q.filter.return_value.all.return_value = [pref1]
+            elif model is UModel:
+                q.filter.return_value.all.return_value = [user1]
+            return q
+
+        mock_db.query.side_effect = query_side_effect
+
+        request = _make_mock_request(api_key="valid-key")
+
+        with patch.object(_router_module, "os") as mock_os, \
+             patch.object(_router_module, "EmailService") as mock_service:
+            mock_os.getenv.return_value = "valid-key"
+            mock_service.generate_daily_digest.return_value = None
+
+            result = await trigger_bulk_daily_digest(request=request, db=mock_db)
+
+        assert result.sent == 0
+        assert result.skipped == 1
+        assert result.total == 1
+
+    @pytest.mark.asyncio
+    async def test_no_users_returns_zero_totals(self, mock_db):
+        """Should return all zeros when no users have digest enabled."""
+        from api.database.models import NotificationPreference as NPModel
+        from api.database.models import User as UModel
+
+        def query_side_effect(model):
+            q = MagicMock()
+            if model is NPModel:
+                q.filter.return_value.all.return_value = []
+            elif model is UModel:
+                q.filter.return_value.all.return_value = []
+            return q
+
+        mock_db.query.side_effect = query_side_effect
+
+        request = _make_mock_request(api_key="valid-key")
+
+        with patch.object(_router_module, "os") as mock_os:
+            mock_os.getenv.return_value = "valid-key"
+
+            result = await trigger_bulk_daily_digest(request=request, db=mock_db)
+
+        assert result.sent == 0
+        assert result.skipped == 0
+        assert result.failed == 0
+        assert result.total == 0
+
+
 # --- Schema validation tests ---
 
 
@@ -544,6 +817,27 @@ class TestNotificationSchemas:
         )
         assert update.message is not None
         assert update.message.text is None
+
+    def test_bulk_digest_response(self):
+        """Should create a valid BulkDigestResponse."""
+        from api.routes.notifications.schemas import BulkDigestResponse
+
+        resp = BulkDigestResponse(sent=5, skipped=2, failed=1, total=8)
+        assert resp.sent == 5
+        assert resp.skipped == 2
+        assert resp.failed == 1
+        assert resp.total == 8
+        assert resp.errors == []
+
+    def test_bulk_digest_response_with_errors(self):
+        """Should accept errors list in BulkDigestResponse."""
+        from api.routes.notifications.schemas import BulkDigestError, BulkDigestResponse
+
+        errors = [BulkDigestError(user_id="u1", error="Failed")]
+        resp = BulkDigestResponse(sent=0, skipped=0, failed=1, total=1, errors=errors)
+        assert len(resp.errors) == 1
+        assert resp.errors[0].user_id == "u1"
+        assert resp.errors[0].error == "Failed"
 
     def test_telegram_link_request(self):
         """Should create a valid TelegramLinkRequest."""

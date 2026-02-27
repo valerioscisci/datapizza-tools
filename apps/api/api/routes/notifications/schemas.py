@@ -109,3 +109,29 @@ class TelegramUpdate(BaseModel):
 
     update_id: int
     message: Optional[TelegramMessage] = None
+
+
+# --- Bulk Daily Digest schemas ---
+
+
+class BulkDigestError(BaseModel):
+    """Error detail for a single user during bulk digest generation."""
+
+    user_id: str
+    error: str
+
+
+class BulkDigestResponse(BaseModel):
+    """Response from the bulk daily digest endpoint."""
+
+    sent: int = Field(..., description="Number of digests successfully created")
+    skipped: int = Field(
+        ..., description="Number of users skipped (digest disabled or no content)"
+    )
+    failed: int = Field(
+        ..., description="Number of users where digest generation failed"
+    )
+    total: int = Field(..., description="Total users processed")
+    errors: list[BulkDigestError] = Field(
+        default_factory=list, description="First 10 errors (if any)"
+    )
