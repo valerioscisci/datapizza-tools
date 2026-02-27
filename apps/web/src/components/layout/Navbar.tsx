@@ -134,6 +134,15 @@ export default function Navbar() {
                   >
                     {t('nav.courses')}
                   </Link>
+                  {user && !isCompany && (
+                    <Link
+                      href="/it/skill-gap"
+                      className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 transition-colors"
+                      onClick={() => setTalentsOpen(false)}
+                    >
+                      {t('nav.skillGap')}
+                    </Link>
+                  )}
                 </div>
               )}
             </div>
@@ -175,6 +184,12 @@ export default function Navbar() {
                           className="px-3 py-2 text-sm font-medium text-neutral-700 hover:text-azure-600 transition-colors cursor-pointer"
                         >
                           {t('nav.myProposals')}
+                        </Link>
+                        <Link
+                          href="/it/skill-gap"
+                          className="px-3 py-2 text-sm font-medium text-neutral-700 hover:text-azure-600 transition-colors cursor-pointer"
+                        >
+                          {t('nav.skillGap')}
                         </Link>
                       </>
                     )}
@@ -318,6 +333,13 @@ export default function Navbar() {
                           onClick={() => setMobileOpen(false)}
                         >
                           {t('nav.myProposals')}
+                        </Link>
+                        <Link
+                          href="/it/skill-gap"
+                          className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-azure-25 hover:text-azure-600 rounded-lg transition-colors"
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          {t('nav.skillGap')}
                         </Link>
                       </>
                     )}

@@ -1,0 +1,53 @@
+{
+  "skillGap": {
+    "title": "Analisi Skill Gap",
+    "subtitle": "Confronta le tue competenze con la domanda del mercato tech italiano",
+    "generate": "Genera Analisi",
+    "regenerate": "Rigenera Analisi",
+    "loading": "Analisi in corso...",
+    "generatedAt": "Generato il {date}",
+    "noSkills": {
+      "title": "Nessuna competenza nel profilo",
+      "description": "Aggiungi almeno alcune competenze al tuo profilo per attivare l'analisi completa.",
+      "cta": "Vai al Profilo"
+    },
+    "aiUnavailable": "Servizio AI non disponibile — i dati di mercato sono comunque aggiornati",
+    "error": "Errore durante la generazione dell'analisi",
+    "userSkills": {
+      "title": "Le tue Competenze",
+      "subtitle": "Stato di mercato di ogni tua competenza",
+      "statusGreen": "Richiesta",
+      "statusYellow": "Stabile",
+      "statusRed": "In calo",
+      "trendUp": "In crescita",
+      "trendDown": "In calo",
+      "trendStable": "Stabile",
+      "inJobs": "in {count} offerte",
+      "empty": "Nessuna competenza nel profilo"
+    },
+    "missingSkills": {
+      "title": "Competenze Mancanti",
+      "subtitle": "Competenze richieste dal mercato non presenti nel tuo profilo",
+      "demandHigh": "Alta domanda",
+      "demandMedium": "Media domanda",
+      "demandLow": "Bassa domanda",
+      "inJobs": "Richiesta in {count} offerte",
+      "courses": "Corsi consigliati",
+      "addToProfile": "Aggiungi al profilo",
+      "noCourses": "Nessun corso trovato",
+      "goToCourse": "Vai al Corso"
+    },
+    "marketTrends": {
+      "title": "Trend di Mercato",
+      "subtitle": "Competenze piu' richieste nel mercato tech italiano",
+      "totalJobs": "{count} offerte analizzate",
+      "rank": "#{rank}",
+      "empty": "Nessun dato di mercato disponibile"
+    },
+    "insights": {
+      "title": "Analisi AI Personalizzata",
+      "empty": "Genera l'analisi per ricevere insight personalizzati",
+      "unavailable": "L'analisi AI personalizzata non e' disponibile al momento"
+    }
+  }
+}

@@ -1,7 +1,10 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Check, Loader2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Check, Loader2, BarChart3 } from 'lucide-react';
+import Link from 'next/link';
 import { useProfileData } from '../_hooks/useProfileData';
 import { ProfileHeader } from './ProfileHeader';
 import { PrivacyToggleSection } from './PrivacyToggleSection';
@@ -15,6 +18,9 @@ import { NotificationPreferencesSection } from './NotificationPreferencesSection
 
 export function ProfiloPage() {
   const t = useTranslations('profile');
+  const searchParams = useSearchParams();
+  const skillToAdd = searchParams.get('addSkill');
+  const [addedSkillToast, setAddedSkillToast] = useState<string | null>(null);
   const {
     user,
     accessToken,
@@ -30,6 +36,11 @@ export function ProfiloPage() {
     handleSkillsUpdate,
     handlePrivacyUpdate,
   } = useProfileData();
+
+  const handleAutoAddComplete = useCallback((skill: string) => {
+    setAddedSkillToast(skill);
+    setTimeout(() => setAddedSkillToast(null), 3000);
+  }, []);
 
   if (loading || !user || !accessToken) return null;
 
@@ -54,6 +65,17 @@ export function ProfiloPage() {
 
   return (
     <>
+      {/* Skill auto-added toast */}
+      {addedSkillToast && (
+        <div className="fixed top-20 right-4 z-50 animate-in fade-in slide-in-from-right-5">
+          <div className="px-4 py-2 rounded-lg text-sm font-medium shadow-lg bg-pastelgreen-100 text-pastelgreen-600 border border-pastelgreen-500/30">
+            <span className="flex items-center gap-1">
+              <Check className="w-4 h-4" aria-hidden="true" /> {t('skillAdded', { skill: addedSkillToast })}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Save feedback toast */}
       {saveFeedback && (
         <div className="fixed top-20 right-4 z-50 animate-in fade-in slide-in-from-right-5">
@@ -98,6 +120,8 @@ export function ProfiloPage() {
             onUpdate={handleSkillsUpdate}
             accessToken={accessToken}
             t={t}
+            skillToAdd={skillToAdd}
+            onAutoAddComplete={handleAutoAddComplete}
           />
 
           {/* Experience */}
@@ -118,6 +142,20 @@ export function ProfiloPage() {
 
           {/* AI Career Advisor */}
           <AICareerAdvisor profile={profile} />
+
+          {/* Skill Gap Analyzer CTA */}
+          <div className="border border-azure-200 rounded-lg bg-azure-50 p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BarChart3 className="w-5 h-5 text-azure-600" aria-hidden="true" />
+              <div>
+                <p className="text-sm font-semibold text-azure-700">{t('skillGapCta.title')}</p>
+                <p className="text-xs text-azure-600">{t('skillGapCta.subtitle')}</p>
+              </div>
+            </div>
+            <Link href="/it/skill-gap" className="text-sm font-medium text-azure-600 hover:text-azure-700">
+              {t('skillGapCta.goTo')} &rarr;
+            </Link>
+          </div>
 
           {/* Notification Preferences */}
           <NotificationPreferencesSection />

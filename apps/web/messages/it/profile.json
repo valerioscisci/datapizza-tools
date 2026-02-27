@@ -79,6 +79,12 @@
       "phd": "Dottorato",
       "certificate": "Certificazione"
     },
+    "skillAdded": "\"{skill}\" aggiunta al profilo!",
+    "skillGapCta": {
+      "title": "Analisi Skill Gap",
+      "subtitle": "Scopri come le tue competenze si confrontano con il mercato",
+      "goTo": "Vai all'analisi"
+    },
     "aiAdvisor": {
       "title": "AI Career Advisor",
       "generate": "Genera consigli",

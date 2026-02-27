@@ -56,7 +56,7 @@ TAGS_METADATA = [
     },
     {
         "name": "AI",
-        "description": "AI-powered features using Google Gemini. Includes job matching with profile-based scoring and career advice with personalized recommendations.",
+        "description": "AI-powered features using Google Gemini. Includes job matching with profile-based scoring, career advice with personalized recommendations, skill gap analysis with market demand classification, and market trend monitoring.",
     },
     {
         "name": "Notifications",

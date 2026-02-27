@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Plus, Pencil, X, Check, Loader2 } from 'lucide-react';
 import { API_BASE } from '../_utils/constants';
 import { SkillsSectionProps } from './SkillsSection.props';
@@ -10,14 +10,17 @@ export function SkillsSection({
   onUpdate,
   accessToken,
   t,
+  skillToAdd,
+  onAutoAddComplete,
 }: SkillsSectionProps) {
   const [editing, setEditing] = useState(false);
   const [newSkill, setNewSkill] = useState('');
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<'saved' | 'error' | null>(null);
+  const addedFromParam = useRef(false);
 
   const saveSkills = useCallback(
-    async (updatedSkills: string[]) => {
+    async (updatedSkills: string[]): Promise<boolean> => {
       setSaving(true);
       setFeedback(null);
       try {
@@ -33,15 +36,27 @@ export function SkillsSection({
         onUpdate(updatedSkills);
         setFeedback('saved');
         setTimeout(() => setFeedback(null), 2000);
+        return true;
       } catch {
         setFeedback('error');
         setTimeout(() => setFeedback(null), 3000);
+        return false;
       } finally {
         setSaving(false);
       }
     },
     [accessToken, onUpdate],
   );
+
+  // Auto-add skill from search param (e.g. ?addSkill=Python from skill-gap page)
+  useEffect(() => {
+    if (skillToAdd && !addedFromParam.current && !skills.includes(skillToAdd)) {
+      addedFromParam.current = true;
+      saveSkills([...skills, skillToAdd]).then((ok) => {
+        if (ok) onAutoAddComplete?.(skillToAdd);
+      });
+    }
+  }, [skillToAdd, skills, saveSkills, onAutoAddComplete]);
 
   const addSkill = () => {
     const trimmed = newSkill.trim();
