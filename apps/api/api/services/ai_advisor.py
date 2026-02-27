@@ -217,6 +217,65 @@ class GeminiAdvisor:
             return None
 
 
+    def skill_gap_analysis(
+        self,
+        user_profile_dict: dict,
+        user_skills_status: list[dict],
+        missing_skills_data: list[dict],
+        market_trends_data: list[dict],
+        news_list: list[dict],
+    ) -> dict | None:
+        """Generate personalized skill gap insights using Gemini.
+
+        The algorithmic demand data is already computed. Gemini adds:
+        - A personalized narrative summary (2-3 paragraphs in Italian)
+        - Reasons why each missing skill matters for this specific user
+
+        Returns:
+            Dict with "personalized_insights" (str) and "missing_skill_reasons" (dict).
+            Or None on failure.
+        """
+        if not self.is_available:
+            return None
+
+        try:
+            template = _load_prompt("skill_gap_analyzer.md")
+            prompt = template.replace(
+                "{user_profile}", json.dumps(user_profile_dict, ensure_ascii=False, indent=2)
+            ).replace(
+                "{user_skills_status}", json.dumps(user_skills_status, ensure_ascii=False, indent=2)
+            ).replace(
+                "{missing_skills}", json.dumps(missing_skills_data, ensure_ascii=False, indent=2)
+            ).replace(
+                "{market_trends}", json.dumps(market_trends_data, ensure_ascii=False, indent=2)
+            ).replace(
+                "{news_list}", json.dumps(news_list, ensure_ascii=False, indent=2)
+            )
+
+            logger.info("gemini_skill_gap_analysis_start")
+            raw = self._call_gemini(prompt)
+            result = self._parse_json(raw, fallback=None)
+
+            if result is None:
+                return None
+
+            if not isinstance(result, dict):
+                logger.error("gemini_skill_gap_invalid_structure", result_type=type(result).__name__)
+                return None
+
+            validated = {
+                "personalized_insights": str(result.get("personalized_insights", "")),
+                "missing_skill_reasons": result.get("missing_skill_reasons", {}),
+            }
+
+            logger.info("gemini_skill_gap_analysis_done")
+            return validated
+
+        except Exception as e:
+            logger.error("gemini_skill_gap_analysis_error", error=str(e))
+            return None
+
+
 def get_advisor() -> GeminiAdvisor:
     """Get the GeminiAdvisor singleton instance."""
     return GeminiAdvisor()

@@ -3,7 +3,7 @@ import { getRequestConfig } from 'next-intl/server';
 const TRANSLATION_FILES = [
   'common', 'auth', 'home', 'applications', 'talents',
   'craft-your-developer', 'jobs', 'news', 'courses',
-  'profile', 'proposals', 'industry', 'notifications'
+  'profile', 'proposals', 'industry', 'notifications', 'skill-gap'
 ];
 
 export default getRequestConfig(async ({ requestLocale }) => {

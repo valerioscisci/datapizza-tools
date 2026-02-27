@@ -5,4 +5,6 @@ export interface SkillsSectionProps {
   onUpdate: (skills: string[]) => void;
   accessToken: string;
   t: ReturnType<typeof useTranslations>;
+  skillToAdd?: string | null;
+  onAutoAddComplete?: (skill: string) => void;
 }
