@@ -1,0 +1,48 @@
+name: Daily Digest
+
+on:
+  workflow_dispatch: # Manual trigger — always available
+  # schedule:
+  #   # 9:00 AM CET = 08:00 UTC (winter) / 9:00 AM CEST = 07:00 UTC (summer)
+  #   # Using 07:00 UTC targets 9 AM in summer. In winter it will be 8 AM CET.
+  #   # For exact 9 AM year-round, use two cron entries or an external scheduler.
+  #   - cron: '0 7 * * *'  # 07:00 UTC = 9:00 CEST (summer) / 08:00 CET (winter)
+
+jobs:
+  send-digest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send bulk daily digest
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL || 'https://api-three-beta-80.vercel.app' }}
+          CRON_API_KEY: ${{ secrets.CRON_API_KEY }}
+        run: |
+          echo "Triggering daily digest at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST "${API_BASE_URL}/api/v1/notifications/daily-digest/bulk" \
+            -H "Content-Type: application/json" \
+            -H "X-API-Key: ${CRON_API_KEY}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP Status: ${HTTP_CODE}"
+          echo "Response: ${BODY}"
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::Daily digest failed with HTTP ${HTTP_CODE}"
+            exit 1
+          fi
+
+          # Parse and display summary
+          SENT=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('sent',0))" 2>/dev/null || echo "?")
+          FAILED=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('failed',0))" 2>/dev/null || echo "?")
+          TOTAL=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total',0))" 2>/dev/null || echo "?")
+
+          echo "::notice::Daily digest complete: ${SENT}/${TOTAL} sent, ${FAILED} failed"
+
+          if [ "$FAILED" != "0" ] && [ "$FAILED" != "?" ]; then
+            echo "::warning::${FAILED} digest(s) failed to send"
+          fi
