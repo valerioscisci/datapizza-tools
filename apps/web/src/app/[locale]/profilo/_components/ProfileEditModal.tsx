@@ -2,20 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 import {
-  ProfileResponse,
   EXPERIENCE_LEVELS,
   AVAILABILITY_OPTIONS,
 } from '../_utils/constants';
-
-interface ProfileEditModalProps {
-  profile: ProfileResponse;
-  onClose: () => void;
-  onSave: (data: Partial<ProfileResponse>) => void;
-  saving: boolean;
-  t: ReturnType<typeof useTranslations>;
-}
+import { ProfileEditModalProps } from './ProfileEditModal.props';
 
 export function ProfileEditModal({
   profile,

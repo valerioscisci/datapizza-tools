@@ -5,13 +5,8 @@ import { useEffect } from 'react';
 import { GraduationCap, ExternalLink, X, Star } from 'lucide-react';
 import { TechTag } from '@/components/ui/TechTag';
 import { levelBadgeColor } from '../_utils/constants';
-import type { Course } from '../_utils/types';
 import { Badge } from './Badge';
-
-export interface CourseDetailDialogProps {
-  course: Course;
-  onClose: () => void;
-}
+import { CourseDetailDialogProps } from './CourseDetailDialog.props';
 
 export function CourseDetailDialog({ course, onClose }: CourseDetailDialogProps) {
   const t = useTranslations('courses');

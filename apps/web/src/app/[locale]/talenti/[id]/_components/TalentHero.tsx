@@ -8,12 +8,8 @@ import {
   Globe,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { TalentDetail, availabilityBadgeStyle } from '../_utils/constants';
-
-interface TalentHeroProps {
-  talent: TalentDetail;
-  tProfile: ReturnType<typeof useTranslations>;
-}
+import { availabilityBadgeStyle } from '../_utils/constants';
+import { TalentHeroProps } from './TalentHero.props';
 
 export function TalentHero({ talent, tProfile }: TalentHeroProps) {
   return (

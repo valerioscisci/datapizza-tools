@@ -105,7 +105,7 @@ components/
 
 ### Rule 5: Styling with Tailwind v4 — Datapizza Design System
 - Use utility classes directly in JSX
-- Use `cn()` helper for conditional classes
+- Use `cn()` helper for conditional classes — it wraps `twMerge` directly (no `clsx`). It accepts `ClassNameValue` from `tailwind-merge` (strings, arrays, falsy values). Do NOT use object syntax `{ 'class': condition }` — use `condition && 'class'` instead.
 - Never use inline styles unless absolutely necessary
 - **Follow the Datapizza color token system** (see below)
 
@@ -247,12 +247,31 @@ Always use the canonical (shorter) form of Tailwind classes to avoid VSCode warn
 This ensures consistency and eliminates linter warnings.
 
 ### Rule 6: Internationalization
-- All user-facing strings must use translations
-- **Italian only**: Only maintain `messages/it.json` — no other locale files needed
-- Use nested keys for organization
-- Default locale is `it`, routing configured with `locales: ['it']`
+- All user-facing strings must use translations via `useTranslations()`
+- **Italian only**: locale is `it`, routing configured with `locales: ['it']`
+- **Split translation files**: translations are organized in **domain-based files** under `messages/it/`:
+  ```
+  messages/it/
+  ├── common.json          # nav, footer, shared UI keys
+  ├── auth.json            # auth (login, signup)
+  ├── home.json            # homepage keys
+  ├── applications.json    # applications keys
+  ├── talents.json         # talents marketplace keys
+  ├── craft-your-developer.json  # CYD landing page keys
+  ├── jobs.json            # jobs market keys
+  ├── news.json            # news page keys
+  ├── courses.json         # courses page keys
+  ├── profile.json         # profile page keys
+  ├── proposals.json       # proposals keys
+  ├── industry.json        # industry section keys
+  └── notifications.json   # notifications keys
+  ```
+- Each file wraps its keys under a top-level namespace (e.g., `auth.json` → `{ "auth": { ... } }`)
+- **Adding new translation files**: create the file in `messages/it/`, then add the filename to the `TRANSLATION_FILES` array in `src/i18n/request.ts`
+- `request.ts` loads all files via `Promise.all` and merges them into a single messages object
+- Use nested keys for organization within each domain file
 
-### Rule 7: Cursor Pointer on Interactive Elements
+### Rule 6.1: Cursor Pointer on Interactive Elements
 - **ALL** buttons, clickable badges, links, and interactive elements MUST have `cursor-pointer` class
 - This applies to: `<button>`, `<a>`, clickable `<div>`/`<span>`, badge filters, dropdown triggers
 - Never rely on browser defaults — always explicitly set `cursor-pointer`
@@ -266,12 +285,12 @@ const t = useTranslations('items');
 ```
 
 ```json
-// messages/en.json
+// messages/it/items.json
 {
   "items": {
     "detail": {
-      "title": "Item Detail",
-      "status": "Status: {status}"
+      "title": "Dettaglio Articolo",
+      "status": "Stato: {status}"
     }
   }
 }
@@ -874,7 +893,7 @@ Before completing any feature:
 - [ ] **Props interfaces in `.props.ts` files** for all complex components
 - [ ] All TypeScript types are properly defined (no `any`)
 - [ ] Hook ordering follows the 9-step pattern
-- [ ] All strings are translated (Italian only — `messages/it.json`)
+- [ ] All strings are translated (Italian only — domain files in `messages/it/*.json`)
 - [ ] Component is accessible (keyboard, screen reader)
 - [ ] Loading and error states are handled
 - [ ] Mobile-responsive design

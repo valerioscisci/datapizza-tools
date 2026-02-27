@@ -1,0 +1,52 @@
+{
+  "talents": {
+    "title": "Scopri i Talenti",
+    "subtitle": "Esplora i profili dei developer disponibili nel nostro marketplace",
+    "search": {
+      "placeholder": "Cerca per nome, ruolo o competenza..."
+    },
+    "filters": {
+      "experienceLevel": "Livello",
+      "availability": "Disponibilita'",
+      "all": "Tutti",
+      "junior": "Junior",
+      "mid": "Mid-Level",
+      "senior": "Senior",
+      "available": "Disponibile",
+      "employed": "Occupato",
+      "reskilling": "In formazione"
+    },
+    "card": {
+      "skills": "Competenze",
+      "viewProfile": "Vedi Profilo"
+    },
+    "detail": {
+      "backToList": "Torna ai Talenti",
+      "bio": "Chi sono",
+      "noBio": "Nessuna descrizione disponibile",
+      "skills": "Competenze",
+      "noSkills": "Nessuna competenza indicata",
+      "experience": "Esperienza Lavorativa",
+      "noExperience": "Nessuna esperienza condivisa",
+      "education": "Formazione",
+      "noEducation": "Nessuna formazione condivisa",
+      "current": "Attuale",
+      "present": "Presente",
+      "interestedCta": "Interessato a questo talento?",
+      "interestedDescription": "Scopri come Craft Your Developer puo' aiutarti a formare questo developer sulle competenze che ti servono.",
+      "contactButton": "Scopri Craft Your Developer",
+      "proposeTraining": "Proponi un Percorso",
+      "proposeTrainingDescription": "Sei un'azienda? Proponi un percorso formativo personalizzato a questo talento."
+    },
+    "notFound": "Talento non trovato",
+    "notFoundDescription": "Il profilo richiesto non esiste o non e' pubblico.",
+    "empty": "Nessun talento trovato",
+    "emptyDescription": "Prova a modificare i filtri o la ricerca.",
+    "loading": "Caricamento talenti...",
+    "pagination": {
+      "previous": "Precedente",
+      "next": "Successiva",
+      "page": "Pagina {current} di {total}"
+    }
+  }
+}

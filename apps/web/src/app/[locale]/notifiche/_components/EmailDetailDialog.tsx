@@ -4,14 +4,9 @@ import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { X, ExternalLink } from 'lucide-react';
-import type { EmailLog } from '../_utils/constants';
 import { emailTypeBadgeStyle } from '../_utils/constants';
 import DOMPurify from 'isomorphic-dompurify';
-
-interface EmailDetailDialogProps {
-  email: EmailLog;
-  onClose: () => void;
-}
+import { EmailDetailDialogProps } from './EmailDetailDialog.props';
 
 export function EmailDetailDialog({ email, onClose }: EmailDetailDialogProps) {
   const t = useTranslations('notifications');

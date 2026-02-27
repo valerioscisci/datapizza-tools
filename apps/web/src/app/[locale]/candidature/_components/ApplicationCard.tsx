@@ -4,11 +4,12 @@ import { useTranslations } from 'next-intl';
 import { Briefcase, Calendar } from 'lucide-react';
 import { formatSalary, formatDate, workModeLabel } from '@/lib/job-utils';
 import { statusBadgeStyle } from '../_utils/constants';
-import type { Application } from '../_utils/types';
+import { ApplicationCardProps } from './ApplicationCard.props';
 
-export function ApplicationCard({ app }: { app: Application }) {
+export function ApplicationCard({ app }: ApplicationCardProps) {
   const t = useTranslations('applications');
-  const salary = formatSalary(app.job.salary_min, app.job.salary_max);
+  const tJobs = useTranslations('jobs');
+  const salary = formatSalary(app.job.salary_min, app.job.salary_max, tJobs);
 
   return (
     <div className="p-6 bg-white rounded-2xl border border-neutral-200 hover:border-azure-300 hover:shadow-lg transition-all duration-300">
@@ -45,7 +46,7 @@ export function ApplicationCard({ app }: { app: Application }) {
           </span>
         )}
         <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full border bg-pastelgreen-100 text-pastelgreen-600 border-pastelgreen-500/30">
-          {workModeLabel(app.job.work_mode)}
+          {workModeLabel(app.job.work_mode, tJobs)}
         </span>
       </div>
 

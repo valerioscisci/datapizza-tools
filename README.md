@@ -74,11 +74,12 @@ datapizza-tools/
 │   │   ├── src/app/[locale]/ # Pages (homepage, craft-your-developer, jobs, news, courses, login, signup, candidature, profilo, talenti, proposte, azienda/proposte, notifiche)
 │   │   ├── src/components/   # Shared components (Navbar, Footer, TechTag)
 │   │   ├── src/lib/auth/      # NextAuth v5 config and useAuth hook
-│   │   ├── e2e/              # Playwright E2E tests (auth, jobs, applications, profile)
-│   │   └── messages/it.json  # Italian translations
+│   │   ├── e2e/              # Playwright E2E tests (auth, jobs, applications, profile, talents, proposals)
+│   │   └── messages/it/     # Italian translations (domain-based split: common, auth, home, jobs, courses, profile, proposals, notifications, etc.)
 │   └── api/                 # FastAPI backend (port 8003)
 │       ├── api/routes/       # Domain-driven API endpoints (each feature = folder with router.py + schemas.py, children as subfolders)
-│       ├── api/database/     # SQLAlchemy models (Job, User, Application, News, Course, Experience, Education, Proposal, ProposalCourse, ProposalMilestone, ProposalMessage, AICache, EmailLog, NotificationPreference), connection, seed
+│       ├── api/database/models/ # Per-domain SQLAlchemy models (user.py, jobs.py, proposals.py, notifications.py, etc.) with __init__.py re-exports
+│       ├── api/database/     # Database connection, seed
 │       ├── api/services/     # Business logic services (GeminiAdvisor — AI-powered job matching and career recommendations, EmailService — local email notifications, TelegramService — Telegram Bot notification delivery)
 │       ├── api/scrapers/     # Content fetching CLI (insert_content.py — used by GitHub Action agent)
 │       ├── api/openapi.py     # Custom OpenAPI schema with tags, security, and API docs

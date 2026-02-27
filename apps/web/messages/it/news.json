@@ -1,0 +1,30 @@
+{
+  "news": {
+    "title": "News Tech & AI",
+    "subtitle": "Resta aggiornato sulle ultime novita' nel mondo tech e AI per migliorare le tue opportunita' di carriera",
+    "filters": {
+      "all": "Tutte",
+      "AI": "Intelligenza Artificiale",
+      "tech": "Tecnologia",
+      "careers": "Carriere"
+    },
+    "card": {
+      "readMore": "Leggi l'articolo",
+      "publishedAt": "Pubblicata il",
+      "source": "Fonte"
+    },
+    "empty": "Nessuna news trovata",
+    "loading": "Caricamento news...",
+    "dialog": {
+      "close": "Chiudi",
+      "closeLabel": "Chiudi la news",
+      "source": "Fonte originale",
+      "readArticle": "Leggi l'articolo"
+    },
+    "pagination": {
+      "previous": "Precedente",
+      "next": "Successiva",
+      "page": "Pagina {current} di {total}"
+    }
+  }
+}

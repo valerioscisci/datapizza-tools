@@ -2,22 +2,13 @@
 
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 import {
-  Experience,
   ExperienceFormData,
   EMPLOYMENT_TYPES,
   MONTHS,
   YEARS,
 } from '../_utils/constants';
-
-interface ExperienceFormProps {
-  experience: Experience | null;
-  onSave: (data: ExperienceFormData) => void;
-  onCancel: () => void;
-  saving: boolean;
-  t: ReturnType<typeof useTranslations>;
-}
+import { ExperienceFormProps } from './ExperienceForm.props';
 
 export function ExperienceForm({
   experience,

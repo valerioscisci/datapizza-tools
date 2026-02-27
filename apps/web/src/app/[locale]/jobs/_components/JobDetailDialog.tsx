@@ -8,21 +8,15 @@ import { Briefcase, ExternalLink, X, Check, Sparkles } from 'lucide-react';
 import { formatSalary, formatDate, workModeLabel } from '@/lib/job-utils';
 import { TechTag } from '@/components/ui/TechTag';
 import { API_BASE, experienceLevelEmoji, matchBadgeStyle } from '../_utils/constants';
-import type { Job, JobMatchResult } from '../_utils/types';
 import { Badge } from './Badge';
-
-export interface JobDetailDialogProps {
-  job: Job;
-  match?: JobMatchResult;
-  onClose: () => void;
-}
+import { JobDetailDialogProps } from './JobDetailDialog.props';
 
 export function JobDetailDialog({ job, match, onClose }: JobDetailDialogProps) {
   const tApps = useTranslations('applications');
   const tJobs = useTranslations('jobs');
   const { user, accessToken } = useAuth();
   const router = useRouter();
-  const salary = formatSalary(job.salary_min, job.salary_max);
+  const salary = formatSalary(job.salary_min, job.salary_max, tJobs);
   const [applyState, setApplyState] = useState<'idle' | 'loading' | 'success' | 'duplicate'>('idle');
 
   // Lock body scroll while dialog is open
@@ -136,9 +130,9 @@ export function JobDetailDialog({ job, match, onClose }: JobDetailDialogProps) {
           {/* Badges */}
           <div className="flex flex-wrap gap-2 mt-6">
             {salary && <Badge variant="salary">{'\u{1F4B0}'} RAL {salary}</Badge>}
-            {job.employment_type && <Badge variant="default">{job.employment_type === 'full-time' ? 'Full Time' : job.employment_type}</Badge>}
-            {job.experience_years && <Badge variant="experience">{'\u{1F9D1}\u200D\u{1F4BC}'} Esperienza: {job.experience_years}</Badge>}
-            <Badge variant="work_mode">{'\u{1F465}'} {workModeLabel(job.work_mode)}</Badge>
+            {job.employment_type && <Badge variant="default">{job.employment_type === 'full-time' ? tJobs('card.fullTime') : job.employment_type === 'part-time' ? tJobs('card.partTime') : job.employment_type}</Badge>}
+            {job.experience_years && <Badge variant="experience">{'\u{1F9D1}\u200D\u{1F4BC}'} {tJobs('card.experienceLabel')} {job.experience_years}</Badge>}
+            <Badge variant="work_mode">{'\u{1F465}'} {workModeLabel(job.work_mode, tJobs)}</Badge>
           </div>
 
           <div className="flex flex-wrap gap-2 mt-2">

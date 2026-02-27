@@ -2,15 +2,8 @@
 
 import { useState, useCallback } from 'react';
 import { Plus, Pencil, X, Check, Loader2 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 import { API_BASE } from '../_utils/constants';
-
-interface SkillsSectionProps {
-  skills: string[];
-  onUpdate: (skills: string[]) => void;
-  accessToken: string;
-  t: ReturnType<typeof useTranslations>;
-}
+import { SkillsSectionProps } from './SkillsSection.props';
 
 export function SkillsSection({
   skills,

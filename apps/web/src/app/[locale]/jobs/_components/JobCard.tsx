@@ -6,18 +6,12 @@ import { Briefcase, ChevronDown } from 'lucide-react';
 import { formatSalary, workModeLabel } from '@/lib/job-utils';
 import { TechTag } from '@/components/ui/TechTag';
 import { experienceLevelEmoji, matchBadgeStyle } from '../_utils/constants';
-import type { Job, JobMatchResult } from '../_utils/types';
 import { Badge } from './Badge';
-
-export interface JobCardProps {
-  job: Job;
-  match?: JobMatchResult;
-  onClick: () => void;
-}
+import { JobCardProps } from './JobCard.props';
 
 export function JobCard({ job, match, onClick }: JobCardProps) {
   const t = useTranslations('jobs');
-  const salary = formatSalary(job.salary_min, job.salary_max);
+  const salary = formatSalary(job.salary_min, job.salary_max, t);
   const [showTooltip, setShowTooltip] = useState(false);
 
   return (
@@ -91,9 +85,9 @@ export function JobCard({ job, match, onClick }: JobCardProps) {
       {/* Info Badges */}
       <div className="flex flex-wrap gap-2 mt-4">
         {salary && <Badge variant="salary">{'\u{1F4B0}'} RAL {salary}</Badge>}
-        {job.employment_type && <Badge variant="default">{job.employment_type === 'full-time' ? 'Full Time' : job.employment_type}</Badge>}
-        {job.experience_years && <Badge variant="experience">{'\u{1F9D1}\u200D\u{1F4BC}'} Esperienza: {job.experience_years}</Badge>}
-        <Badge variant="work_mode">{'\u{1F465}'} {workModeLabel(job.work_mode)}</Badge>
+        {job.employment_type && <Badge variant="default">{job.employment_type === 'full-time' ? t('card.fullTime') : job.employment_type === 'part-time' ? t('card.partTime') : job.employment_type}</Badge>}
+        {job.experience_years && <Badge variant="experience">{'\u{1F9D1}\u200D\u{1F4BC}'} {t('card.experienceLabel')} {job.experience_years}</Badge>}
+        <Badge variant="work_mode">{'\u{1F465}'} {workModeLabel(job.work_mode, t)}</Badge>
       </div>
 
       <div className="flex flex-wrap gap-2 mt-2">

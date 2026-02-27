@@ -4,10 +4,10 @@ import { Newspaper, ChevronDown, Calendar } from 'lucide-react';
 import { formatDate } from '@/lib/job-utils';
 import { TechTag } from '@/components/ui/TechTag';
 import { categoryBadgeColor } from '../_utils/constants';
-import type { NewsItem } from '../_utils/types';
 import { Badge } from './Badge';
+import { NewsCardProps } from './NewsCard.props';
 
-export function NewsCard({ news, onClick }: { news: NewsItem; onClick: () => void }) {
+export function NewsCard({ news, onClick }: NewsCardProps) {
   return (
     <div
       onClick={onClick}

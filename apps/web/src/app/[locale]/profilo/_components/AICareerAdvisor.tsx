@@ -16,11 +16,7 @@ import {
 } from 'lucide-react';
 import { formatDate } from '@/lib/job-utils';
 import { useAICareerAdvice } from '../_hooks/useAICareerAdvice';
-import type { ProfileResponse } from '../_utils/constants';
-
-interface AICareerAdvisorProps {
-  profile: ProfileResponse;
-}
+import { AICareerAdvisorProps } from './AICareerAdvisor.props';
 
 function levelBadgeStyle(level?: string): string {
   switch (level) {

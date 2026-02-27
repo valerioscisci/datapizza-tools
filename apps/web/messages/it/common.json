@@ -1,0 +1,19 @@
+{
+  "common": {
+    "appName": "Datapizza",
+    "companies": "Per le Aziende",
+    "talents": "Per i Talenti"
+  },
+  "nav": {
+    "craftYourDeveloper": "Craft Your Developer",
+    "browseTalents": "Scopri i Talenti",
+    "jobsMarket": "Mercato del Lavoro",
+    "myApplications": "Le mie Candidature",
+    "myProfile": "Il mio Profilo",
+    "news": "News Tech",
+    "courses": "Corsi di Formazione",
+    "myProposals": "Le mie Proposte",
+    "companyProposals": "Le mie Proposte",
+    "notifications": "Notifiche"
+  }
+}

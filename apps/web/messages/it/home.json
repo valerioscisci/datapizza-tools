@@ -1,0 +1,15 @@
+{
+  "home": {
+    "hero": {
+      "title": "Il futuro del lavoro tech inizia qui",
+      "subtitle": "Naviga il mercato del lavoro guidato dall'AI. Acquisisci nuove competenze, trova il tuo prossimo ruolo.",
+      "ctaTalents": "Cerca Lavoro",
+      "ctaCompanies": "Per le Aziende"
+    },
+    "stats": {
+      "jobsAvailable": "Offerte Disponibili",
+      "companiesActive": "Aziende Attive",
+      "developersHelped": "Developer Aiutati"
+    }
+  }
+}

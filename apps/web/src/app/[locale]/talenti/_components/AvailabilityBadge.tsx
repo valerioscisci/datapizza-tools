@@ -1,9 +1,6 @@
 'use client';
 
-export interface AvailabilityBadgeProps {
-  status: string;
-  label: string;
-}
+import { AvailabilityBadgeProps } from './AvailabilityBadge.props';
 
 export function AvailabilityBadge({ status, label }: AvailabilityBadgeProps) {
   const colors: Record<string, string> = {

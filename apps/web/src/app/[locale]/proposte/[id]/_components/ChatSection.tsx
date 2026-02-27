@@ -4,14 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, Send, Loader2 } from 'lucide-react';
 import { API_BASE, type ChatMessage, type ChatMessagesResponse } from '../../_utils/constants';
-
-export interface ChatSectionProps {
-  proposalId: string;
-  accessToken: string;
-  currentUserId: string;
-  currentUserType: 'company' | 'talent';
-  proposalStatus: string;
-}
+import { ChatSectionProps } from './ChatSection.props';
 
 export function ChatSection({
   proposalId,

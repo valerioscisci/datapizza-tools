@@ -6,10 +6,10 @@ import { Newspaper, ExternalLink, X } from 'lucide-react';
 import { formatDate } from '@/lib/job-utils';
 import { TechTag } from '@/components/ui/TechTag';
 import { categoryBadgeColor } from '../_utils/constants';
-import type { NewsItem } from '../_utils/types';
 import { Badge } from './Badge';
+import { NewsDetailDialogProps } from './NewsDetailDialog.props';
 
-export function NewsDetailDialog({ news, onClose }: { news: NewsItem; onClose: () => void }) {
+export function NewsDetailDialog({ news, onClose }: NewsDetailDialogProps) {
   const t = useTranslations('news');
 
   useEffect(() => {

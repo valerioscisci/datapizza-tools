@@ -1,0 +1,60 @@
+{
+  "jobs": {
+    "meta": {
+      "title": "Mercato del Lavoro - Datapizza"
+    },
+    "title": "Offerte di Lavoro",
+    "subtitle": "Trova la tua prossima opportunita' nel mondo tech",
+    "filters": {
+      "all": "Tutte",
+      "remote": "Remoto",
+      "hybrid": "Ibrido",
+      "onsite": "In sede"
+    },
+    "card": {
+      "apply": "Candidati",
+      "postedAt": "Pubblicata il",
+      "location": "Sede",
+      "salary": "RAL",
+      "remote": "Remoto",
+      "hybrid": "Ibrido",
+      "onsite": "In sede",
+      "experienceLabel": "Esperienza:",
+      "fullTime": "Full Time",
+      "partTime": "Part Time"
+    },
+    "salary": {
+      "from": "da {amount}",
+      "upTo": "fino a {amount}"
+    },
+    "workModes": {
+      "remote": "Full Remote",
+      "hybrid": "Ibrido",
+      "onsite": "In Sede"
+    },
+    "empty": "Nessuna offerta trovata",
+    "loading": "Caricamento offerte...",
+    "dialog": {
+      "description": "Descrizione",
+      "close": "Chiudi",
+      "closeLabel": "Chiudi"
+    },
+    "pagination": {
+      "previous": "Precedente",
+      "next": "Successiva",
+      "page": "Pagina {current} di {total}"
+    },
+    "aiMatch": {
+      "button": "AI Match",
+      "loading": "Analisi in corso...",
+      "sortBestMatch": "Migliori Match",
+      "scoreLabel": "Match",
+      "reasons": "Perche' questo match",
+      "noMatches": "Nessun match disponibile",
+      "error": "Errore durante l'analisi AI",
+      "unavailable": "Servizio AI non disponibile",
+      "generatedAt": "Analisi generata il {date}",
+      "matchDetails": "Dettagli AI Match"
+    }
+  }
+}

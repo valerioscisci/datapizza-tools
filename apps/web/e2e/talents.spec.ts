@@ -268,8 +268,8 @@ test.describe('Profile Privacy Toggle', () => {
     // Verify "Visibilita' Profilo" heading is visible (note: apostrophe in Italian)
     await expect(page.getByText('Visibilit')).toBeVisible();
 
-    // Verify the toggle switch (role="switch") exists
-    const toggle = page.locator('[role="switch"]');
+    // Verify the privacy toggle switch exists (use aria-label to distinguish from notification toggles)
+    const toggle = page.getByRole('switch', { name: /Visibilit/i });
     await expect(toggle).toBeVisible();
   });
 
@@ -280,8 +280,8 @@ test.describe('Profile Privacy Toggle', () => {
     await page.goto('/it/profilo');
     await page.waitForSelector('h1', { timeout: 15000 });
 
-    // Find the toggle
-    const toggle = page.locator('[role="switch"]');
+    // Find the privacy toggle (use aria-label to distinguish from notification toggles)
+    const toggle = page.getByRole('switch', { name: /Visibilit/i });
     await expect(toggle).toBeVisible();
 
     // Note initial state

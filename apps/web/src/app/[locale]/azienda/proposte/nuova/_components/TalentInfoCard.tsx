@@ -1,15 +1,7 @@
 'use client';
 
 import { User, Briefcase, MapPin, Loader2 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { TalentInfo } from '../_utils/constants';
-
-interface TalentInfoCardProps {
-  talent: TalentInfo | null;
-  loadingTalent: boolean;
-  t: ReturnType<typeof useTranslations>;
-  tTalents: ReturnType<typeof useTranslations>;
-}
+import { TalentInfoCardProps } from './TalentInfoCard.props';
 
 export function TalentInfoCard({ talent, loadingTalent, t, tTalents }: TalentInfoCardProps) {
   return (

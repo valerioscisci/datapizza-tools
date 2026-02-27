@@ -2,13 +2,7 @@
 
 import { GraduationCap } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Education } from '../_utils/constants';
-
-interface TalentEducationProps {
-  educations: Education[];
-  t: ReturnType<typeof useTranslations>;
-  tProfile: ReturnType<typeof useTranslations>;
-}
+import { TalentEducationProps } from './TalentEducation.props';
 
 export function TalentEducation({ educations, t, tProfile }: TalentEducationProps) {
   return (

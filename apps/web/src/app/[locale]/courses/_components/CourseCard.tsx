@@ -2,13 +2,8 @@ import { useTranslations } from 'next-intl';
 import { GraduationCap, ChevronDown, Star } from 'lucide-react';
 import { TechTag } from '@/components/ui/TechTag';
 import { levelBadgeColor } from '../_utils/constants';
-import type { Course } from '../_utils/types';
 import { Badge } from './Badge';
-
-export interface CourseCardProps {
-  course: Course;
-  onClick: () => void;
-}
+import { CourseCardProps } from './CourseCard.props';
 
 export function CourseCard({ course, onClick }: CourseCardProps) {
   const t = useTranslations('courses');

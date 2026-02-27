@@ -16,22 +16,12 @@ import {
   UserCheck,
 } from 'lucide-react';
 import {
-  type Proposal,
   type ProposalCourse,
   statusBadgeStyle,
   formatDate,
   milestoneColor,
 } from '../_utils/constants';
-
-export interface CompanyProposalCardProps {
-  proposal: Proposal;
-  onSaveCompanyUpdate: (proposalId: string, courseId: string, companyNotes: string, deadline: string | null) => void;
-  onHire: (proposal: Proposal) => void;
-  t: ReturnType<typeof useTranslations>;
-  tStatus: ReturnType<typeof useTranslations>;
-  tMilestones: ReturnType<typeof useTranslations>;
-  tHire: ReturnType<typeof useTranslations>;
-}
+import { CompanyProposalCardProps } from './CompanyProposalCard.props';
 
 function DeadlineBadge({ course, t }: { course: ProposalCourse; t: ReturnType<typeof useTranslations> }) {
   if (!course.deadline) return null;
